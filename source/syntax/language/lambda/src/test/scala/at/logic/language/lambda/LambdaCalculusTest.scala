@@ -23,35 +23,21 @@ class LambdaCalculusTest extends SpecificationWithJUnit {
   private case class MyVar(nm: String) extends Var(VariableStringSymbol(nm), Ti())
   "TypedLambdaCalculus" should {
     "make implicit conversion from String to Name" in {
-      (LambdaVar("p",i) ) must beEqualTo (LambdaVar("p", i ))
-    }
-    "export lambda expressions to strings correctly (1)" in {
-      val exp = LambdaVar("P", i)
-      (exportLambdaExpressionToString(exp)) must beEqualTo ("P")
-    }
-    "export lambda expressions to strings correctly (2)" in {
-      val exp = App(LambdaVar("P", i -> o), LambdaVar("x",i))
-      (exportLambdaExpressionToString(exp)) must beEqualTo ("(P x)")
-    }
-    "export lambda expressions to strings correctly (3)" in {
-      val exp1 = LambdaVar("x",i)
-      val exp2 = App(LambdaVar("P", i -> o), exp1)
-      val exp3 = Abs(exp1,exp2)
-      (exportLambdaExpressionToString(exp3)) must beEqualTo ("\\x.(P x)")
+      (Var("p",i) ) must beEqualTo (Var("p", i ))
     }
     "create N-ary abstractions (AbsN) correctly" in {
-      val v1 = LambdaVar("x",i)
-      val v2 = LambdaVar("y",i)
-      val f = LambdaVar("f",i -> (i -> o))
+      val v1 = Var("x",i)
+      val v2 = Var("y",i)
+      val f = Var("f",i -> (i -> o))
       ( AbsN(v1::v2::Nil, f) match {
         case Abs(v1,Abs(v2,f)) => true
         case _ => false
         }) must beEqualTo ( true )
     }
     "create N-ary applications (AppN) correctly" in {
-      val v1 = LambdaVar("x",i)
-      val v2 = LambdaVar("y",i)
-      val f = LambdaVar("f",i -> (i -> o))
+      val v1 = Var("x",i)
+      val v2 = Var("y",i)
+      val f = Var("f",i -> (i -> o))
       ( AppN(f, List(v1,v2)) match {
         case App(App(f, v1), v2) => true
         case _ => false
@@ -61,14 +47,14 @@ class LambdaCalculusTest extends SpecificationWithJUnit {
 
   "AbsN1" should {
     "extract correctly" in {
-      (LambdaVar("x",i)) must not (beLike {case AbsN1(_,_) => ok})
+      (Var("x",i)) must not (beLike {case AbsN1(_,_) => ok})
     }
   }
   
   "De Bruijn Indices" should {
     "work correctly for alpha conversion" in {
-      val a1 = Abs(MyVar("y"), App(LambdaVar("x",i->i), MyVar("y")))
-      val b1 = Abs(MyVar("z"), App(LambdaVar("x",i->i), MyVar("z")))
+      val a1 = Abs(MyVar("y"), App(Var("x",i->i), MyVar("y")))
+      val b1 = Abs(MyVar("z"), App(Var("x",i->i), MyVar("z")))
       "- (\\y.xy) = (\\z.xz)" in {
         (a1) must beEqualTo (b1)
       }
@@ -101,10 +87,10 @@ class LambdaCalculusTest extends SpecificationWithJUnit {
   }
 
   "extract free and bound variables correctly" in {
-      val x = LambdaVar(VariableStringSymbol("X"), i -> o )
-      val y = LambdaVar(VariableStringSymbol("y"), i )
-      val z = LambdaVar(VariableStringSymbol("Z"), i -> o )
-      val r = LambdaVar(VariableStringSymbol("R"), (i -> o) -> (i -> ((i -> o) -> o)))
+      val x = Var(VariableStringSymbol("X"), i -> o )
+      val y = Var(VariableStringSymbol("y"), i )
+      val z = Var(VariableStringSymbol("Z"), i -> o )
+      val r = Var(VariableStringSymbol("R"), (i -> o) -> (i -> ((i -> o) -> o)))
       val a = AppN(r, x::y::z::Nil)
       val qa = Abs( x, a )
       val free = qa.freeVariables
@@ -121,8 +107,8 @@ class LambdaCalculusTest extends SpecificationWithJUnit {
   
 
   "correctly order expressions" in {
-    val x = LambdaVar(VariableStringSymbol("x"), i )
-    val y = LambdaVar(VariableStringSymbol("y"), i )
+    val x = Var(VariableStringSymbol("x"), i )
+    val y = Var(VariableStringSymbol("y"), i )
 
     val xx = Abs( x, x )
     val yy = Abs( y, y )
@@ -135,8 +121,8 @@ class LambdaCalculusTest extends SpecificationWithJUnit {
     xy.compare( yy ) must not be equalTo( 0 )
     signum( xx.compare( xy ) ) * signum( xy.compare( xx ) ) must beEqualTo ( -1 )
 
-    val f = LambdaVar(VariableStringSymbol("f"), i -> i)
-    val g = LambdaVar(VariableStringSymbol("g"), i -> i)
+    val f = Var(VariableStringSymbol("f"), i -> i)
+    val g = Var(VariableStringSymbol("g"), i -> i)
     val fx = App( f, x )
     val gx = App( g, x )
     val fy = App( f, y )
@@ -160,8 +146,8 @@ class LambdaCalculusTest extends SpecificationWithJUnit {
   }
 
   "deal correctly with bound variables in the Abs extractor" in {
-    val x = LambdaVar(VariableStringSymbol("x"), i)
-    val p = LambdaVar(VariableStringSymbol("p"), i -> o)
+    val x = Var(VariableStringSymbol("x"), i)
+    val p = Var(VariableStringSymbol("p"), i -> o)
     val px = App(p, x)
     val xpx = Abs(x, px)
 

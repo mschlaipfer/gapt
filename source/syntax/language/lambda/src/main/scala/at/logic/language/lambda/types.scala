@@ -64,12 +64,14 @@ package types {
     }
   }
 
+/*
   object ImplicitConverters {
     implicit def fromString(s:String):TA = StringExtractor.unapply(s) match {
       case Some(result) => result
       case None =>  throw new IllegalArgumentException("Bad syntax for types: "+s)
     }
   }
+*/
 
   trait Parsers extends JavaTokenParsers {
     def Type: Parser[TA] = (arrowType | iType | oType)

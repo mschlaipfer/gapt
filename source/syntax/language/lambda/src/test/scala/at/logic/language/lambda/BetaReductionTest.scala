@@ -88,22 +88,22 @@ class BetaReductionTest extends SpecificationWithJUnit {
     }
     "betaReduce correctly with regard to de Bruijn indices" in {
       "- 1" in {
-        val term1 = App(Abs(LambdaVar("x",i->i),Abs(LambdaVar("y",i),App(LambdaVar("x",i->i),LambdaVar("y",i)))),Abs(LambdaVar("z",i),LambdaVar("z",i)))
-        val term2 = Abs(LambdaVar("y",i),App(Abs(LambdaVar("z",i),LambdaVar("z",i)),LambdaVar("y",i)))
+        val term1 = App(Abs(Var("x",i->i),Abs(Var("y",i),App(Var("x",i->i),Var("y",i)))),Abs(Var("z",i),Var("z",i)))
+        val term2 = Abs(Var("y",i),App(Abs(Var("z",i),Var("z",i)),Var("y",i)))
         (betaReduce(term1)(Outermost, Leftmost)) must beEqualTo (term2)
       }
       "- 2" in {
-        val term1 = App(Abs(LambdaVar("x",i->i),Abs(LambdaVar("x",i),App(LambdaVar("x",i->i),LambdaVar("x",i)))),Abs(LambdaVar("x",i),LambdaVar("x",i)))
-        val term2 = Abs(LambdaVar("y",i),App(Abs(LambdaVar("z",i),LambdaVar("z",i)),LambdaVar("y",i)))
+        val term1 = App(Abs(Var("x",i->i),Abs(Var("x",i),App(Var("x",i->i),Var("x",i)))),Abs(Var("x",i),Var("x",i)))
+        val term2 = Abs(Var("y",i),App(Abs(Var("z",i),Var("z",i)),Var("y",i)))
         (betaReduce(term1)(Outermost, Leftmost)) must beEqualTo (term2)
       }
       "- 3" in {
-        val x1 = LambdaVar("x",i->i)
-        val x2 = LambdaVar("y",i)
-        val x3 = LambdaVar("z",i)
-        val x4 = LambdaVar("w",i)
-        val x5 = LambdaVar("v",i)
-        val c1 = LambdaVar("f", i->(i->i))
+        val x1 = Var("x",i->i)
+        val x2 = Var("y",i)
+        val x3 = Var("z",i)
+        val x4 = Var("w",i)
+        val x5 = Var("v",i)
+        val c1 = Var("f", i->(i->i))
         val t1 = App(c1,App(x1,x2))
         val t2 = App(t1,App(x1,x3))
         val t3 = Abs(x4,x4)
@@ -117,9 +117,9 @@ class BetaReductionTest extends SpecificationWithJUnit {
       }
     }
     "betaNormalize correctly with Abs terms built from variables obtained by the Abs extractor" in {
-      val x = LambdaVar("x", i)
-      val y = LambdaVar("", i)
-      val p = LambdaVar("p", i -> o)
+      val x = Var("x", i)
+      val y = Var("", i)
+      val p = Var("p", i -> o)
       val px = App( p, x )
       val py = App( p, y )
       val xpx = Abs(x, px)

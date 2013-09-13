@@ -153,6 +153,8 @@ import base.types._
 
     //sanity checks for free and bound variables
     // TODO: should this be here??
+    /* If you need to check something that you yourself built, there's something
+     * wrong.
     def checkFormulaOccurrences(l : Seq[FormulaOccurrence]) = {
       (l filterNot ((fo : FormulaOccurrence) => 
         checkFormulas( List(fo.formula) ++ fo.ancestors.map(((occ:FormulaOccurrence) => occ.formula) ) ))
@@ -164,6 +166,7 @@ import base.types._
         x ++ checkLambdaExpression(y) )
       ).isEmpty
     }
+    */
 
   }
 

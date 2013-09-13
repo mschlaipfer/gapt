@@ -15,7 +15,11 @@ import collection.immutable.HashMap
   class Substitution[T <: LambdaExpression] protected[substitutions](val map: Map[Var, T]) extends (T => T) {
     def ::(sub:Tuple2[Var, T]) = new Substitution(map + sub)
     def :::(otherSubstitution:Substitution[T]) = new Substitution(map ++ otherSubstitution.map.iterator)
-    def apply(expression: T): T = applyWithChangeDBIndices(expression, Nil)
+    //def apply(expression: T): T = applyWithChangeDBIndices(expression, Nil)
+    // TODO:
+    // This is currently the identity function. Re-implement it without
+    // DBIndices. Re-implement as a function instead of a type???
+    def apply(expression: T): T = expression
     def applyAndBetaNormalize(expr : T) : T = betaNormalize(apply(expr))(StrategyOuterInner.Outermost).asInstanceOf[T] //TODO:instead of casting, change betanormalize
 
     override def equals(a: Any) = a match {
@@ -29,6 +33,7 @@ import collection.immutable.HashMap
     override def hashCode() = map.hashCode
     override def toString = map.toString
 
+    /*
     // the change of db indices is done automatically in the constructor of abs
     // NOTE: the list protectedVars contains the bound variables of the whole expression
     protected def applyWithChangeDBIndices(expression: T, protectedVars: List[Var]): T = {
@@ -69,6 +74,7 @@ import collection.immutable.HashMap
         freeVarsInRange)).asInstanceOf[T]
       case _ => expression
     }
+    */
 
     // make sure the overriden keys are of the applying sub
     // note: compose is in function application notation i.e. (sigma compose tau) apply x = sigma(tau(x)) = x.tau.sigma

@@ -27,7 +27,10 @@ package etaExpansion {
               val binders: List[Var] = lsArgs.map(z => {
                 val dv  = disAllowedVars.foldLeft(Set[Var]())((ls,x) => ls.+(x))
 //                println("\n\n"+disAllowedVars.toString)
-                val fv = freshVar(z, dv, x); disAllowedVars += fv; fv
+                // TODO: replace with getRenaming when implemented.
+                //val fv = freshVar(z, dv, x); 
+                disAllowedVars += fv; 
+                fv
               })
               AbsN(binders, AppN(term, binders.map((z => apply(z)))))
             }
@@ -41,7 +44,9 @@ package etaExpansion {
               val binders: List[Var] = lsArgs.map(z => {
                 val dv  = disAllowedVars.foldLeft(Set[Var]())((ls,x) => ls.+(x))
 //                println("\n\n"+disAllowedVars.toString)
-                val fv = freshVar(z, dv, term); disAllowedVars+=fv;
+                // TODO: replace with getRenaming when implemented.
+                //val fv = freshVar(z, dv, term);
+                disAllowedVars+=fv;
                 fv
               })
               AbsN(binders, AppN(App(m,apply(n)), binders.map((z => apply(z)))))
@@ -49,9 +54,10 @@ package etaExpansion {
           }
         }
 
-        case AbsN1(lsVars, sub) => {
+        /*case AbsN1(lsVars, sub) => {
           AbsN(lsVars, apply(sub))
         }
+        */
       }
     }
   }

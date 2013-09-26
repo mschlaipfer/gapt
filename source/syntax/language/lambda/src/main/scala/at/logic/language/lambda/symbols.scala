@@ -4,7 +4,12 @@
 
 package at.logic.language.lambda.symbols
 
-abstract class SymbolA
+abstract class SymbolA {
+  override def equals(v: Any) = v match {
+    case v: SymbolA => v.toString == this.toString
+    case _ => false
+  }
+}
 
 // This is used for renaming variables during substitution.
 // DO NOT confuse this with DeBruijn indices, there are no such indices in
@@ -31,14 +36,4 @@ object StringSymbol {
     case _ => None
   }
 }
-
-// TODO: implement
-// Renames the variables in 'toRename' such that the new names do not clash
-// with variables in 'blackList'.
-// Note: to rename one variable v, call getRenaming(List(v), List()). Create a
-// new method with that??
-// TODO: Var is not visible here... find another place for this.
-//object getRenaming {
-//  def apply(toRename: List[Var], blackList: List[Var]) = toRename
-//}
 

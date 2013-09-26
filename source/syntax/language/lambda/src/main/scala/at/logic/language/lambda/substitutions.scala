@@ -101,11 +101,12 @@ import collection.immutable.HashMap
     def apply() = new Substitution(new HashMap())
   }
 
-  object ImplicitConverters {
+  /*object ImplicitConverters {
     implicit def convertSubstitutionToPair[T <: LambdaExpression](sub: Substitution[T]): Tuple2[Var,T] = {
       require(sub.map.size == 1)
       sub.map.iterator.next
     }
     implicit def convertPairToSubstitution[T <: LambdaExpression](pair: Tuple2[Var, T]): Substitution[T] = Substitution(pair)
   }
+  */
 }

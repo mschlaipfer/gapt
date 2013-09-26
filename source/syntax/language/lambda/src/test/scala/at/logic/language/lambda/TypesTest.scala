@@ -12,7 +12,6 @@ import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import scala.util.parsing.combinator._
 import types._
-import types.ImplicitConverters._
 
 @RunWith(classOf[JUnitRunner])
 class TypesTest  extends SpecificationWithJUnit {
@@ -36,7 +35,7 @@ class TypesTest  extends SpecificationWithJUnit {
     "parse correctly from string (5)" in {
       ( p.parseAll(p.Type, "(i -> (o -> o))").get ) must beEqualTo ( ->(Ti(), ->(To(),To())) )
     }
-    "implicitly convert from string (1)" in {
+    "use correctly the constructor for strings string (1)" in {
       ( ->("(i -> (o -> o))", To()) ) must beEqualTo ( ->(->(Ti(), ->(To(),To())),To()) )
     }
     "extract from string (1)" in {

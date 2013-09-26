@@ -1,113 +1,49 @@
 /*
  * etaExpansion.scala
  *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
  */
 
-package at.logic.language.lambda
+package at.logic.language.lambda.etaExpansion
 
 import at.logic.language.lambda.symbols._
-import typedLambdaCalculus._
 import at.logic.language.lambda.typedLambdaCalculus._
 import at.logic.language.lambda.types._
-import scala.collection.mutable.{Set => MSet}
-
-
-// etaExpansion is applied to expressions which are in \beta normal form ONLY
-package etaExpansion {
-  object EtaExpand {
-    implicit val disAllowedVars = MSet[Var]()
-    def apply(term: LambdaExpression)(implicit disAllowedVars: MSet[Var]): LambdaExpression = {
-      term match {
-        case x:Var => x.exptype match {
-            case Ti() => x
-            case To() => x
-            case FunctionType(_, lsArgs ) => {
-              val binders: List[Var] = lsArgs.map(z => {
-                val dv  = disAllowedVars.foldLeft(Set[Var]())((ls,x) => ls.+(x))
-//                println("\n\n"+disAllowedVars.toString)
-                // TODO: replace with getRenaming when implemented.
-                //val fv = freshVar(z, dv, x); 
-                disAllowedVars += fv; 
-                fv
-              })
-              AbsN(binders, AppN(term, binders.map((z => apply(z)))))
-            }
-        }
-
-        case App(m,n) => {
-          term.exptype match {
-            case Ti() => term
-            case To() => term
-            case FunctionType(to, lsArgs) => {
-              val binders: List[Var] = lsArgs.map(z => {
-                val dv  = disAllowedVars.foldLeft(Set[Var]())((ls,x) => ls.+(x))
-//                println("\n\n"+disAllowedVars.toString)
-                // TODO: replace with getRenaming when implemented.
-                //val fv = freshVar(z, dv, term);
-                disAllowedVars+=fv;
-                fv
-              })
-              AbsN(binders, AppN(App(m,apply(n)), binders.map((z => apply(z)))))
-            }
-          }
-        }
-
-        /*case AbsN1(lsVars, sub) => {
-          AbsN(lsVars, apply(sub))
-        }
-        */
+  
+// Transforms a function f: i0 -> ... -> in -> o into
+// \lambda x0:i0. ... \lambda xn:in f x0 ... xn
+// i.e. adds the lambda abstraction and new variables.
+// Note that etaExpantion is applied only to expressions in beta-normal form.
+object EtaExpand {
+  def apply(term: LambdaExpression) : LambdaExpression = apply(term, List())
+  def apply(term: LambdaExpression, disallowedVars: List[Var]) : LambdaExpression = term match {
+    case Var(_, exptype) => exptype match {
+      case Ti() => term
+      case To() => term
+      case FunctionType(_, args) => {
+        val binders: List[Var] = args.map(z => {
+          val newVar = Var("eta", z) // Creating a new var of appropriate type
+          getRenaming(newVar, disallowedVars) // Rename if needed
+        })
+        val dv = disallowedVars ++ binders
+        AbsN(binders, AppN(term, binders.map((z => apply(z, dv)))))
       }
     }
-  }
 
-  object EtaNormalize {
-    def apply(term: LambdaExpression)(implicit disAllowedVars: MSet[Var]): LambdaExpression = {
-      val term2 = EtaExpand(term)
-      if (term2 == term) term else EtaNormalize(EtaExpand(term))
+    case App(m,n) => term.exptype match {
+      case Ti() => term
+      case To() => term
+      case FunctionType(_, args) => {
+        val binders: List[Var] = args.map(z => {
+          val newVar = Var("eta", z) // Creating a new var of appropriate type
+          getRenaming(newVar, disallowedVars) // Rename if needed
+        })
+        val dv = disallowedVars ++ binders
+        AbsN(binders, AppN(App(m,apply(n, dv)), binders.map((z => apply(z, dv)))))
+      }
     }
+
+    case Abs(x,t) => Abs(x, apply(t, disallowedVars))
   }
 }
 
 
-
-
-
-
-
-
-
-
-
-                    /*
-package etaExpansion {
-  object EtaExpand {
-    def apply(term: LambdaExpression): LambdaExpression = {
-      term match {
-        case x:Var => x
-
-        case App(m,n) => App(apply(m),apply(n))
-        
-        case AbsN1(lsVars, sub) => sub.exptype match {
-            case FunctionType(_, lsArgs ) if lsVars.size < lsArgs.size => {
-                val v = sub.factory.createVar(VariableStringSymbol("x"), lsArgs.head, Some(1))
-                Abs(v, LambdaFactory.createApp(sub, v))
-            }
-            case Ti() => AbsN(lsVars, sub)
-            case To() => AbsN(lsVars, sub)
-            case _ => term
-            
-        }
-      }
-    }
-  }
-
-  object EtaNormalize {
-    def apply(term: LambdaExpression): LambdaExpression = {
-      val term2 = EtaExpand(term)
-      if (term2 == term) term else EtaNormalize(EtaExpand(term))
-    }
-  }
-}
-                      */

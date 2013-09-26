@@ -9,11 +9,9 @@ import org.specs2.mutable._
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 
-
 import types._
 import types.Definitions._
 import symbols._
-import symbols.ImplicitConverters._
 import typedLambdaCalculus._
 import substitutions._
 import BetaReduction._
@@ -23,9 +21,13 @@ class BetaReductionTest extends SpecificationWithJUnit {
   import StrategyOuterInner._
   import StrategyLeftRight._
 
-  val v = Var("v", i, LambdaFactory); val x = Var("x", i, LambdaFactory); val y = Var("y", i, LambdaFactory);
-  val f = Var("f", i -> i, LambdaFactory); val g = Var("g", i -> i, LambdaFactory)
-  val f2 = Var("f2", i -> i, LambdaFactory); val g2 = Var("g2", i -> i, LambdaFactory)
+  val v = Var("v", i); 
+  val x = Var("x", i); 
+  val y = Var("y", i);
+  val f = Var("f", i -> i); 
+  val g = Var("g", i -> i)
+  val f2 = Var("f2", i -> i); 
+  val g2 = Var("g2", i -> i)
 
   "BetaReduction" should {
     "betaReduce a simple redex" in {

@@ -1,15 +1,14 @@
 /*
  * Replacements.scala
  *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
  */
 
 package at.logic.language.lambda
 
 import symbols._
-import typedLambdaCalculus._
+/*
 
+// TODO where? why?
 package replacements {
   case class Replacement(position: List[Int], expression: LambdaExpression) {
     def apply(exp: LambdaExpression):LambdaExpression = replace(position, exp)
@@ -28,3 +27,4 @@ package replacements {
     implicit def convertReplacementToPair(rep: Replacement):Tuple2[List[Int],LambdaExpression] = (rep.position, rep.expression)
   }
 }
+*/

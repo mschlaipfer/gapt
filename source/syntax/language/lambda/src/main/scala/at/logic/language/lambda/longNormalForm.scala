@@ -1,28 +1,30 @@
 /*
- * etaExpansion.scala
+ * longNormalForm.scala
  *
+ * Transforms a function f: i0 -> ... -> in -> o into
+ * \lambda x0:i0. ... \lambda xn:in f x0 ... xn
+ * i.e. adds the lambda abstraction and new variables. 
+ * Note that etaExpantion is applied only to expressions in beta-normal form.
+ *
+ * Implemented according to Definition 2.25 of Higher-Order Unification and 
+ * Matching by Gilles Dowek (http://who.rocq.inria.fr/Gilles.Dowek/Publi/unification.ps)
  */
 
-package at.logic.language.lambda.etaExpansion
+package at.logic.language.lambda
 
-import at.logic.language.lambda.symbols._
-import at.logic.language.lambda.typedLambdaCalculus._
-import at.logic.language.lambda.types._
+import symbols._
+import types._
   
-// Transforms a function f: i0 -> ... -> in -> o into
-// \lambda x0:i0. ... \lambda xn:in f x0 ... xn
-// i.e. adds the lambda abstraction and new variables.
-// Note that etaExpantion is applied only to expressions in beta-normal form.
-object EtaExpand {
+object longNormalForm {
   def apply(term: LambdaExpression) : LambdaExpression = apply(term, List())
   def apply(term: LambdaExpression, disallowedVars: List[Var]) : LambdaExpression = term match {
     case Var(_, exptype) => exptype match {
       case Ti() => term
       case To() => term
       case FunctionType(_, args) => {
-        val binders: List[Var] = args.map(z => {
+        val binders: List[Var] = args.foldRight(List[Var]()) ( (z, acc) => {
           val newVar = Var("eta", z) // Creating a new var of appropriate type
-          getRenaming(newVar, disallowedVars) // Rename if needed
+          getRenaming(newVar, disallowedVars ++ acc) :: acc // Rename if needed
         })
         val dv = disallowedVars ++ binders
         AbsN(binders, AppN(term, binders.map((z => apply(z, dv)))))
@@ -33,9 +35,9 @@ object EtaExpand {
       case Ti() => term
       case To() => term
       case FunctionType(_, args) => {
-        val binders: List[Var] = args.map(z => {
+        val binders: List[Var] = args.foldRight(List[Var]()) ( (z, acc) => {
           val newVar = Var("eta", z) // Creating a new var of appropriate type
-          getRenaming(newVar, disallowedVars) // Rename if needed
+          getRenaming(newVar, disallowedVars ++ acc) :: acc // Rename if needed
         })
         val dv = disallowedVars ++ binders
         AbsN(binders, AppN(App(m,apply(n, dv)), binders.map((z => apply(z, dv)))))

@@ -13,8 +13,6 @@ import org.specs2.runner.JUnitRunner
 
 import types._
 import symbols._
-import typedLambdaCalculus._
-import substitutions._
 import types.Definitions._
 import BetaReduction._
 import ImplicitStandardStrategy._
@@ -34,25 +32,8 @@ class SubstitutionsTest extends SpecificationWithJUnit {
       val sub1 = Substitution(x,e1)
       val sub2 = Substitution(x,e2)
       val sub = sub1 compose sub2
-      //println("\n\n\n"+sub.toString+"\n\n\n")
       sub must beEqualTo (sub2)
     }
-/*
-    "make implicit conversion from pair to Substitution" in {
-      val v = Var("v", i); val x = Var("x", i); val f = Var("f", i -> i)
-      val e = App(f, x)
-      val sigma: Substitution[LambdaExpression] = Substitution(v,e)
-      val eta = (v,e)
-      ( Substitution(eta) ) must beEqualTo ( sigma )
-    }
-    "make implicit conversion from Substitution to pair" in {
-      val v = Var("v", i); val x = Var("x", i); val f = Var("f", i -> i)
-      val e = App(f, x)
-      val eta = (v,e)
-      val sigma = Substitution(eta)
-      ( sigma: Tuple2[Var, LambdaExpression] ) must beEqualTo ( eta )
-    }
-*/
     "substitute correctly when Substitution is applied (1)" in {
       val v = Var("v", i); 
       val x = Var("x", i); 
@@ -64,8 +45,7 @@ class SubstitutionsTest extends SpecificationWithJUnit {
     "substitute correctly when Substitution is applied (2)" in {
       val v = Var("v", i); val x = Var("x", i); val f = Var("f", i -> i)
       val e = App(f, x)
-      val d = (v,e)
-      val sigma = Substitution(d)
+      val sigma = Substitution(v, e)
       val expression = App(f, v)
       ( App(f, App(f, x)) ) must beEqualTo ( sigma(expression) )
     }
@@ -77,18 +57,6 @@ class SubstitutionsTest extends SpecificationWithJUnit {
       val expression = Abs(y, App(f, v))
       ( Abs(y,App(f, App(f, x))) ) must beEqualTo ( sigma(expression) )
     }
-    
-    // TODO: Why is this commented out?
-    /*"substitute correctly when Substitution is applied (4)" in {
-      "(λx1:i.x2((λx3:i.v(x1:i):o)):o)"
-      val x1 = Var("x1", i); val x2 = Var("x2", i->o); val x3 = Var("x3", i); val v = Var("v", i->o)
-      val y = Var("y", i)
-      val e = App(f, x)
-      val sigma: Substitution = (v,e)
-      val expression = Abs(y, App(f, v))
-      ( Abs(y,App(f, App(f, x))) ) must beEqualTo ( sigma(expression) )
-    }*/
-    
     "substitute correctly when SingleSubstitution is applied, renaming bound variables (1)" in {
         val v = Var("v", i); val x = Var("x", i); val f = Var("f", i -> i)
         val e = App(f, x)
@@ -111,7 +79,6 @@ class SubstitutionsTest extends SpecificationWithJUnit {
         val isDifferent = !(exp2==exp3)
         ( exp2) must be_!= ( exp3 )
     }
-
     "substitute and normalize correctly when Substitution is applied" in {
       val x = Var("X", i -> o )
       val f = Var("f", (i -> o) -> i )
@@ -122,18 +89,17 @@ class SubstitutionsTest extends SpecificationWithJUnit {
       val Pz = App( p, z )
       val t = Abs( z, Pz )
 
-      val sigma = Substitution[LambdaExpression]( x, t )
+      val sigma = Substitution( x, t )
 
       betaNormalize( sigma.apply( xfx ) ) must beEqualTo( App( p, App( f, t ) ) )
     }
-
     "concatenate/compose 2 Substitutions correctly" in {
       val v = Var("v", i); val x = Var("x", i); val f = Var("f", i -> i)
       val e = App(f, x)
       val sigma = Substitution(v,e)
-      val sigma1: Substitution[LambdaExpression] = sigma::(Substitution[LambdaExpression]())
-      val sigma2 = sigma::sigma::(Substitution[LambdaExpression]())
-      val sigma3 = sigma1:::sigma1
+      val sigma1 = sigma::(Substitution())
+      val sigma2 = sigma::sigma::(Substitution())
+      val sigma3 = sigma1::sigma1
       ( sigma2 ) must beEqualTo ( sigma3 )
     }
     "substitute correctly when Substitution is applied" in {
@@ -144,8 +110,6 @@ class SubstitutionsTest extends SpecificationWithJUnit {
       val sigma1 = Substitution(v,x)
       ( sigma1(e) ) must beEqualTo ( App(f,x) )
     }
-  }
-  "Substitution with regard to de-Bruijn indices" should {
     "not substitute for bound variables in (\\x.fx)x with sub {x |-> gy}" in {
       val term1 = App(Abs(Var("x",i), App(Var("f",i->i),Var("x",i))),Var("x",i))
       val sub = Substitution(Var("x",i), App(Var("g",i->i),Var("y",i)))
@@ -166,7 +130,7 @@ class SubstitutionsTest extends SpecificationWithJUnit {
         (sub(term1)) must beEqualTo (term2)
       }
     }
-    "recompute correctly indices when substituting a term with bound variables into the scope of other bound variables" in {
+    "substitute correctly when substituting a term with bound variables into the scope of other bound variables" in {
       val term1 = Abs(Var("x",i), App(Var("F",i->i),Var("x",i)))
       val sub = Substitution(Var("F",i->i), Abs(Var("x",i), App(Var("f",i->i),Var("x",i))))
       val term2 = Abs(Var("x",i), App(Abs(Var("x",i), App(Var("f",i->i),Var("x",i))),Var("x",i)))

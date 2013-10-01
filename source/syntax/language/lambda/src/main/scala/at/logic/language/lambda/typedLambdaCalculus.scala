@@ -3,10 +3,10 @@
  *
  */
 
-package at.logic.language.lambda.typedLambdaCalculus
+package at.logic.language.lambda
 
-import at.logic.language.lambda.symbols._
-import at.logic.language.lambda.types._
+import symbols._
+import types._
 
 // Collects all methods that operate on LambdaExpressions
 abstract class LambdaExpression {
@@ -35,12 +35,10 @@ abstract class LambdaExpression {
 // applications and abstractions (and constants).
 class Var(val sym: SymbolA, val exptype: TA) extends LambdaExpression {
 
-  // sym is not accessible outside because we do not want the user
-  // knowing about this symbol stuff. If he asks for the name of the variable,
-  // it is a string that he should get.
+  // The name of the variable should be obtained with this method.
   def name : String = sym match {
     case StringSymbol(s) => s
-    case VariantSymbol(s, _) => s
+    case VariantSymbol(s, i) => s + i.toString
     case _ => throw new Exception("Unexpected type.")
   }
 
@@ -73,12 +71,10 @@ object Var {
 
 class Cons(val sym: SymbolA, val exptype: TA) extends LambdaExpression {
 
-  // sym is not accessible outside because we do not want the user
-  // knowing about this symbol stuff. If he asks for the name of the variable,
-  // it is a string that he should get.
+  // The name of the variable should be obtained with this method.
   def name : String = sym match {
     case StringSymbol(s) => s
-    case VariantSymbol(s, _) => s
+    case VariantSymbol(s, i) => s + i.toString
     case _ => throw new Exception("Unexpected type.")
   }
 
@@ -183,9 +179,9 @@ class Abs(val variable: Var, val term: LambdaExpression) extends LambdaExpressio
         val blackList = term.freeVariables ++ t.freeVariables
         val freshVar = getRenaming(Var("alpha", v.exptype), blackList)
         // t[v\freshVar] == term[variable\freshVar]
-        val t1 = substitute(t, v, freshVar) 
-        val t2 = substitute(term, variable, freshVar)
-        t1 == t2
+        val s1 = Substitution(v, freshVar)
+        val s2 = Substitution(variable, freshVar)
+        s1(t) == s2(term)
       }
       else false
     case _ => false
@@ -229,23 +225,3 @@ object getRenaming {
   }
 }
 
-// Substitution (capture-avoinding)
-// as in http://en.wikipedia.org/wiki/Lambda_calculus#Capture-avoiding_substitutions
-object substitute {
-  def apply(t: LambdaExpression, x: Var, u: LambdaExpression) : LambdaExpression = t match {
-    case Var(_, _) if t == x => u
-    case Var(_, _) if t != x => t
-    case App(t1, t2) => App(substitute(t1, x, u), substitute(t2, x, u))
-    case Abs(v, t1) =>
-      val fv = u.freeVariables
-      if (v == x) t
-      else if (!fv.contains(v)) {
-        Abs(v, substitute(t1, x, u))
-      }
-      else {
-        val freshVar = getRenaming(v, fv)
-        val newTerm = substitute(t1, v, freshVar)
-        Abs(freshVar, substitute(newTerm, x, u))
-      }
-  }
-}

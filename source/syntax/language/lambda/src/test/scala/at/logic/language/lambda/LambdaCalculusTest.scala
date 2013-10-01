@@ -13,7 +13,6 @@ import org.specs2.runner.JUnitRunner
 
 import types._
 import symbols._
-import typedLambdaCalculus._
 import types.Definitions._
 import scala.math.signum
 

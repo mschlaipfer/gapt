@@ -12,14 +12,13 @@ import org.specs2.runner.JUnitRunner
 import types._
 import types.Definitions._
 import symbols._
-import typedLambdaCalculus._
-import substitutions._
 import BetaReduction._
+import StrategyOuterInner._
+import StrategyLeftRight._
+import ImplicitStandardStrategy._
 
 @RunWith(classOf[JUnitRunner])
 class BetaReductionTest extends SpecificationWithJUnit {
-  import StrategyOuterInner._
-  import StrategyLeftRight._
 
   val v = Var("v", i); 
   val x = Var("x", i); 
@@ -77,14 +76,12 @@ class BetaReductionTest extends SpecificationWithJUnit {
         ( betaNormalize(e)(Innermost) ) must beEqualTo ( App(f,App(f,y)) )
     }
     "betaNormalize correctly with implicit standard strategy" in {
-        import ImplicitStandardStrategy._
         val er = App(Abs(v, App(Abs(x, App(f, x)),v)),y)
         val el = Abs(v, App(Abs(x, App(f, x)),v))
         val e = App(el,er)
         ( betaNormalize(e) ) must beEqualTo ( App(f,App(f,y)) )
     }
     "betaReduce correctly with implicit standard strategy" in {
-        import ImplicitStandardStrategy._
         val e = App(Abs(v, App(Abs(x, App(f, x)),v)),y)
         ( betaReduce(e) ) must beEqualTo ( App(Abs(x, App(f, x)),y) )
     }

@@ -1,0 +1,10 @@
+# Command: dot packages.gv -Tpng > packages.png
+
+digraph G {
+  node [shape=note];
+  lambda [label=< lambda<br/><font point-size="10pt">- typedLambdaCalculus.scala<br/>- substitutions.scala<br/>- BetaReduction.scala<br/>- replacements.scala (??)<br/>- longNormalForm.scala</font> >]
+  symbols [label=< symbols<br/><font point-size="10pt">- symbols.scala</font> >]
+  types [label=< types<br/><font point-size="10pt">- types.scala</font> >]
+  at -> logic -> language -> lambda -> symbols;
+  lambda -> types;
+}

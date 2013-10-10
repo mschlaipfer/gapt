@@ -9,14 +9,18 @@ import symbols._
  *  2) all mappings are applied simultaneously to a term i.e. {x |-> y, y |-> a}x = y and not a.
  */
 class Substitution(val map: Map[Var, LambdaExpression]) {
-  
+ 
+  // Require that each variable is substituted by a term of the same type
+  require( map.forall( s => s._1.exptype == s._2.exptype) )
+
   // Substitution (capture-avoinding)
   // as in http://en.wikipedia.org/wiki/Lambda_calculus#Capture-avoiding_substitutions   
-  def apply(t: LambdaExpression): LambdaExpression = t match {
-    case v : Var if map.contains(v) => map(v)
-    case v : Var if !map.contains(v) => v
+  def apply[T <: LambdaExpression](t: T): T = t match {
+    case v : Var if map.contains(v) => map(v).asInstanceOf[T]
+    case v : Var if !map.contains(v) => v.asInstanceOf[T]
     case Cons(_, _) => t
-    case App(t1, t2) => App(apply(t1), apply(t2))
+    case App(t1, t2) => //App(apply(t1), apply(t2))
+      t.factory.createApp( apply(t1), apply(t2) ).asInstanceOf[T]
     case Abs(v, t1) =>
       val fv = range
       val dom = domain
@@ -25,18 +29,21 @@ class Substitution(val map: Map[Var, LambdaExpression]) {
         // The replacement of v is not done, removing it from the substitution and applying to t1
         val newMap = map - v
         val newSub = Substitution(newMap)
-        Abs(v, newSub(t1))
+        //Abs(v, newSub(t1))
+        t.factory.createAbs(v, newSub(t1)).asInstanceOf[T]
       }
       else if (!fv.contains(v)) {
         // No variable capture
-        Abs(v, apply(t1))
+        //Abs(v, apply(t1))
+        t.factory.createAbs(v, apply(t1)).asInstanceOf[T]
       }
       else {
         // Variable captured, renaming the abstracted variable
-        val freshVar = getRenaming(v, fv)
+        val freshVar = v.rename(fv)
         val sub = Substitution(v, freshVar)
         val newTerm = sub(t1)
-        Abs(freshVar, apply(newTerm))
+        //Abs(freshVar, apply(newTerm))
+        t.factory.createAbs(freshVar, apply(newTerm)).asInstanceOf[T]
       }
   }
 
@@ -77,3 +84,4 @@ object Substitution {
   def apply(map: Map[Var, LambdaExpression]): Substitution = new Substitution( map )
   def apply() = new Substitution(Map())
 }
+

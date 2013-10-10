@@ -37,3 +37,23 @@ object StringSymbol {
   }
 }
 
+// Renames the variables in 'toRename' such that the new names do not clash
+// with variables in 'blackList'.
+object getRenaming {
+  def apply(toRename: SymbolA, blackList: List[SymbolA]) : SymbolA = apply(List(toRename), blackList).head
+  def apply(toRename: List[SymbolA], blackList: List[SymbolA]) : List[SymbolA] = toRename match {
+    case s :: tl => 
+      if ( blackList.exists(e => e == s) ) {
+        val newSym = s match {
+          case StringSymbol(n) => VariantSymbol(n, 0)
+          case VariantSymbol(n, i) => VariantSymbol(n, i+1)
+        }
+        // Put back in the list to check if the renaming does not clash again.
+        getRenaming(newSym::tl, blackList)
+      }
+      else s :: ( getRenaming(tl, blackList) )
+    case Nil => List()
+  }
+}
+
+

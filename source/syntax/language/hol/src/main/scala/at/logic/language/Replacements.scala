@@ -8,9 +8,10 @@
 package at.logic.language.hol
 
 import at.logic.language.hol._
-import at.logic.language.lambda.typedLambdaCalculus._
+import at.logic.language.lambda._
 
 package replacements {
+  /*
   case class Replacement(position: List[Int], expression: HOLExpression) {
     def apply(exp: HOLExpression):HOLExpression = replace(position, exp)
     private def replace(pos: List[Int], exp: HOLExpression):HOLExpression = {
@@ -75,4 +76,5 @@ package replacements {
     implicit def convertPairToReplacement(pair: Tuple2[List[Int],HOLExpression]):Replacement = Replacement(pair._1, pair._2)
     implicit def convertReplacementToPair(rep: Replacement):Tuple2[List[Int],HOLExpression] = (rep.position, rep.expression)
   }
+  */
 }

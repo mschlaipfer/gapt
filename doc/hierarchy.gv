@@ -1,0 +1,36 @@
+# Command: dot hierarchy.gv -Tpng > hierarchy.png
+
+digraph G {
+  LambdaExpression -> Var;
+  LambdaExpression -> Cons;
+  LambdaExpression -> App;
+  LambdaExpression -> Abs;
+  LambdaExpression -> Formula;
+  LambdaExpression -> HOLExpression;
+  HOLExpression -> HOLFormula;
+  Formula -> HOLFormula;
+  HOLExpression -> HOLVar;
+  Var -> HOLVar;
+  HOLExpression -> HOLConst;
+  Cons -> HOLConst;
+  HOLFormula -> HOLVarFormula;
+  Var -> HOLVarFormula;
+  HOLFormula -> HOLConstFormula;
+  Cons -> HOLConstFormula;
+  App -> HOLApp;
+  HOLExpression -> HOLApp;
+  HOLApp -> HOLAppFormula;
+  HOLFormula -> HOLAppFormula;
+  Abs -> HOLAbs;
+  HOLExpression -> HOLAbs;
+  HOLConst -> BottomC;
+  HOLConst -> TopC;
+  HOLConst -> NegC;
+  HOLConst -> AndC;
+  HOLConst -> OrC;
+  HOLConst -> ImpC;
+  HOLConst -> HArrayC; 
+  HOLConst -> ExQ;
+  HOLConst -> AllQ;
+  HOLConst -> EqC;
+}

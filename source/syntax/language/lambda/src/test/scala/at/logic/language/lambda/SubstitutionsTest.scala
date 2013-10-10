@@ -1,8 +1,5 @@
 /*
  * SubstitutionsTest.scala
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
  */
 
 package at.logic.language.lambda
@@ -40,7 +37,7 @@ class SubstitutionsTest extends SpecificationWithJUnit {
       val f = Var("f", i -> i)
       val e = App(f, x)
       val sigma = Substitution(v, e)
-      ( e ) must beEqualTo ( sigma(v) )
+      ( e ) must beEqualTo ( sigma( v.asInstanceOf[LambdaExpression] ) )
     }
     "substitute correctly when Substitution is applied (2)" in {
       val v = Var("v", i); val x = Var("x", i); val f = Var("f", i -> i)
@@ -58,14 +55,14 @@ class SubstitutionsTest extends SpecificationWithJUnit {
       ( Abs(y,App(f, App(f, x))) ) must beEqualTo ( sigma(expression) )
     }
     "substitute correctly when SingleSubstitution is applied, renaming bound variables (1)" in {
-        val v = Var("v", i); val x = Var("x", i); val f = Var("f", i -> i)
+        val v = Var("v", i); 
+        val x = Var("x", i); 
+        val f = Var("f", i -> i)
         val e = App(f, x)
         val sigma = Substitution(v,e)
         val exp1 = Abs(x, App(f, v))
         val exp2 = sigma(exp1)
-        debug(exp2.toString)
         val exp3 = Abs(x,App(f, App(f, x)))
-        val isDifferent = !(exp2==exp3)
         ( exp2 ) must be_!= ( exp3 )
     }
     "substitute correctly when SingleSubstitution is applied, renaming bound variables (2)" in {
@@ -74,9 +71,7 @@ class SubstitutionsTest extends SpecificationWithJUnit {
         val sigma = Substitution(v,e)
         val exp1 = Abs(f, App(f, v))
         val exp2 = sigma(exp1)
-        debug(exp2.toString)
         val exp3 = Abs(f,App(f, App(f, x)))
-        val isDifferent = !(exp2==exp3)
         ( exp2) must be_!= ( exp3 )
     }
     "substitute and normalize correctly when Substitution is applied" in {
@@ -141,6 +136,28 @@ class SubstitutionsTest extends SpecificationWithJUnit {
       val sub = Substitution(term1.variable, Abs(Var("x",i), App(Var("f",i->i),Var("x",i))))
       val term2 = Abs(Var("x",i), App(Abs(Var("x",i), App(Var("f",i->i),Var("x",i))),Var("x",i)))
       (sub(term1.term)) must beEqualTo (term2)
+    }
+    "not substitute terms with different types" in {
+      val x = Var("x", i)
+      val f = Var("f", i -> i)
+      val e = App(f, x)
+      val g = Var("g", i)
+      val result = try { Substitution(f, g); false } catch {
+        case ex: IllegalArgumentException => true
+        case _ => false
+      }
+
+      result must beTrue
+    }
+    "not substitute variables with different types" in {
+      val x = Var("x", i -> i)
+      val c = Var("c", i)
+      val result = try { Substitution(x, c); false } catch {
+        case ex: IllegalArgumentException => true
+        case _ => false
+      }
+
+      result must beTrue
     }
   }
 }

@@ -6,7 +6,7 @@
  */
 
 package at.logic.language.hol
-
+/*
 import org.specs2.mutable._
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
@@ -38,3 +38,4 @@ class ReplacementsTest extends SpecificationWithJUnit {
     }
   }
 }
+*/

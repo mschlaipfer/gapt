@@ -106,8 +106,8 @@ class BetaReductionTest extends SpecificationWithJUnit {
         val t1 = App(c1,App(x1,x2))
         val t2 = App(t1,App(x1,x3))
         val t3 = Abs(x4,x4)
-        val term1 = App(AbsN(x1::x2::x3::Nil, t2),t3)
-        val term2 = AbsN(x2::x3::Nil, App(App(c1,App(t3,x2)),App(t3,x3)))
+        val term1 = App(Abs(x1::x2::x3::Nil, t2),t3)
+        val term2 = Abs(x2::x3::Nil, App(App(c1,App(t3,x2)),App(t3,x3)))
         (betaReduce(term1)(Outermost, Leftmost)) must beEqualTo (term2)
       }
       "- 4" in {

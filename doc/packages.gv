@@ -5,6 +5,12 @@ digraph G {
   lambda [label=< lambda<br/><font point-size="10pt">- typedLambdaCalculus.scala<br/>- substitutions.scala<br/>- BetaReduction.scala<br/>- replacements.scala (??)<br/>- longNormalForm.scala</font> >]
   symbols [label=< symbols<br/><font point-size="10pt">- symbols.scala</font> >]
   types [label=< types<br/><font point-size="10pt">- types.scala</font> >]
+  hol [label=< hol<br/><font point-size="10pt">- hol.scala</font> >]
+  logicSymbols [label=< logicSymbols<br/><font point-size="10pt">- logicSymbols.scala</font> >]
+  skolemSymbols [label=< skolemSymbols<br/><font point-size="10pt">- skolemSymbols.scala</font> >]
   at -> logic -> language -> lambda -> symbols;
   lambda -> types;
+  language -> hol;
+  hol -> logicSymbols;
+  hol -> skolemSymbols;
 }

@@ -29,9 +29,9 @@ case class ->(val in: TA, val out: TA) extends TComplexA {
 }
 // Overloading the apply method so that it takes strings.
 object -> {
-  def apply(in: String, out: String) = new ->(stringToType(in), stringToType(out))
-  def apply(in: TA, out: String) = new ->(in, stringToType(out))
-  def apply(in: String, out: TA) = new ->(stringToType(in), out)
+  def apply(in: String, out: String) = new ->(Type(in), Type(out))
+  def apply(in: TA, out: String) = new ->(in, Type(out))
+  def apply(in: String, out: TA) = new ->(Type(in), out)
   def unapply(ta: TA) = ta match {
     case t: -> => Some((t.in, t.out))
     case _ => None
@@ -76,7 +76,7 @@ object  StringExtractor {
   }
 }
 
-object stringToType {
+object Type {
   def apply(s: String) : TA = StringExtractor.unapply(s) match {
     case Some(result) => result
     case None =>  throw new IllegalArgumentException("Bad syntax for types: "+s)

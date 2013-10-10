@@ -348,6 +348,7 @@ object Atom {
   //def apply(head: HOLVar, args: List[HOLExpression]): HOLExpression = apply_(head, args)
   //def apply(head: HOLConst, args: List[HOLExpression]): HOLExpression = apply_(head, args)
   def apply(head: String, args: List[HOLExpression]): HOLFormula = {
+    //TODO: Fix creation of Var here! Predicate symbols may be both constant and variable symbols!
     val pred = HOLVar(head, FunctionType( To(), args.map(a => a.exptype) ) )
     apply_(pred, args).asInstanceOf[HOLFormula]
   }

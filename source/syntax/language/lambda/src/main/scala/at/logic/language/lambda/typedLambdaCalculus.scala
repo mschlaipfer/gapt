@@ -198,6 +198,25 @@ object Abs {
   }
 }
 
+object AppN {
+  def apply[T <: LambdaExpression](head : T, tail : List[T]) : T = {
+    val factory = head.factory
+    tail.foldLeft[LambdaExpression](head)((r, x) => factory.createApp(r,x)  ).asInstanceOf[T]
+  }
+
+  def unapply(e : LambdaExpression) : Option[(LambdaExpression,List[LambdaExpression])] = e match {
+    case App(head, tail) => Some((head, unapply_(tail)))
+    case _ => None
+  }
+
+  private def unapply_(e : LambdaExpression) : List[LambdaExpression] = e match {
+    case App(head, tail) => head :: unapply_(tail)
+    case _ => List(e)
+  }
+
+}
+
+
 /*********************** Factories *****************************/
 
 trait FactoryA {

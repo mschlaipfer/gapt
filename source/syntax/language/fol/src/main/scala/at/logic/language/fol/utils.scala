@@ -7,13 +7,8 @@
 
 package at.logic.language.fol
 
-import at.logic.language.hol.logicSymbols.ConstantSymbolA
-import at.logic.language.hol.logicSymbols.ConstantStringSymbol
-import at.logic.language.lambda.substitutions.Substitution
-import at.logic.language.lambda.symbols.VariableSymbolA
-import at.logic.language.lambda.typedLambdaCalculus.{LambdaExpression}
-import at.logic.language.lambda.types.->
-import at.logic.language.lambda.types.{To, Ti, TA}
+import at.logic.language.lambda._
+import at.logic.language.lambda.types._
 
 object Utils {
   // universally closes off the given fol formula
@@ -68,52 +63,17 @@ object Utils {
           (r._1, ExVar(v, r._2))
 
       case AllVar(v, f)  =>
-        if ((v =^ variable) && (v != variable)) {
+        if ((v syntaxEquals variable) && (v != variable)) {
           println("Warning: comparing two variables, which have the same sytactic representatio but differ on other things (probably different binding context)")
         }
 
         if (v == variable) {
-          (true, AllVar(by, Substitution[LambdaExpression](variable, by).apply(f).asInstanceOf[FOLFormula]))
+          (true, AllVar(by, Substitution(variable, by)(f)))
         }
         else {
           val r = replaceLeftmostBoundOccurenceOf(variable, by, f)
           (r._1, AllVar(v, r._2))
         }
-
-       case _ => throw new Exception("Unknown operator encountered during renaming of outermost bound variable. Formula is: "+formula)
-
-    }
-  }
-
-
-  def replaceFreeOccurenceOf(variable : FOLVar, by : FOLVar, formula : FOLFormula) : FOLFormula = {
-    formula match {
-      case Atom(_, args) => Substitution[LambdaExpression](variable, by).apply(formula).asInstanceOf[FOLFormula]
-
-      case Neg(f) =>
-        Neg(replaceFreeOccurenceOf(variable, by, f ))
-
-      case And(f1,f2) =>
-        val r1 = replaceFreeOccurenceOf(variable, by, f1)
-        val r2 = replaceFreeOccurenceOf(variable, by, f2)
-        And(r1,r2)
-
-      case Or(f1,f2) =>
-        val r1 = replaceFreeOccurenceOf(variable, by, f1)
-        val r2 = replaceFreeOccurenceOf(variable, by, f2)
-        Or(r1,r2)
-
-      case ExVar(v, f)  =>
-        if (v.syntaxEquals(variable))
-          formula
-        else
-          ExVar(v, replaceFreeOccurenceOf(variable, by, f))
-
-      case AllVar(v, f)  =>
-        if (v.syntaxEquals(variable))
-          formula
-        else
-          AllVar(v, replaceFreeOccurenceOf(variable, by, f))
 
        case _ => throw new Exception("Unknown operator encountered during renaming of outermost bound variable. Formula is: "+formula)
 
@@ -153,11 +113,11 @@ object Utils {
   }
 
   // Constructs the FOLTerm f^k(a)
-  def iterateTerm( a: FOLTerm, f: ConstantStringSymbol, k: Int ) : FOLTerm =
+  def iterateTerm( a: FOLTerm, f: String, k: Int ) : FOLTerm =
     if ( k == 0 ) a else Function( f, iterateTerm( a, f, k-1 )::Nil )
 
   // Constructs the FOLTerm s^k(0)
-  def numeral( k: Int ) = iterateTerm( FOLConst( ConstantStringSymbol( "0" )), ConstantStringSymbol( "s" ), k )
+  def numeral( k: Int ) = iterateTerm( FOLConst( "0" ), "s" , k )
 
 
   // TODO: maybe these functions should go to listSupport in dssupport in the
@@ -165,6 +125,17 @@ object Utils {
 
   def removeDoubles[T](l : List[T]) : List[T] = {
     removeDoubles_(l.reverse).reverse
+  }
+
+  private def removeDoubles_[T](l : List[T]) : List[T] = {
+    l match {
+      case head :: tail =>
+        if (tail.contains(head))
+          removeDoubles(tail)
+        else
+          head :: removeDoubles(tail)
+      case Nil => Nil
+    }
   }
 
   //auxiliary function which removes duplications from list of type:
@@ -183,16 +154,6 @@ object Utils {
     }
   }
 
-  private def removeDoubles_[T](l : List[T]) : List[T] = {
-    l match {
-      case head :: tail =>
-        if (tail.contains(head))
-          removeDoubles(tail)
-        else
-          head :: removeDoubles(tail)
-      case Nil => Nil
-    }
-  }
 
   def between(lower :Int, upper : Int) : List[Int] = {
     if (lower > upper)

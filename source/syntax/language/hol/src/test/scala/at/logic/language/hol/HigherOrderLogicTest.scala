@@ -44,7 +44,8 @@ class HigherOrderLogicTest extends SpecificationWithJUnit {
       result must beTrue
     }
     "mix correctly the formula trait (3)" in {
-      val at1 = Atom("P", c2::a22::Nil)
+      val at1 = Atom(HOLVar("P", ->(c2.exptype, ->(a22.exptype, o))), c2::a22::Nil)
+      // Another way to construct P's type is: FunctionType(To(), args.map(a => a.exptype) )
       val result = at1 match {
         case x: HOLFormula => true
         case _ => false
@@ -158,15 +159,15 @@ class HigherOrderLogicTest extends SpecificationWithJUnit {
       val sCTn = Function(s0, Function( C, Function( T, HOLConst("n", i)::Nil)::Nil)::Nil )
       val u = HOLVar("u", i)
       val v = HOLVar("v", i)
-      val P1 = Atom( "P", sCTn::u::Nil)
-      val P2 = Atom( "P", sCTn::v::Nil)
+      val P1 = Atom( HOLVar("P", ->(sCTn.exptype, ->(i, o))), sCTn::u::Nil)
+      val P2 = Atom( HOLVar("P", ->(sCTn.exptype, ->(i, o))), sCTn::v::Nil)
       val q_form = AllVar(u, ExVar(v, Imp(P1, P2)))
       
       q_form match {
         case AllVar(x, f) => {
           val a = HOLConst("a", x.exptype)
           val sub = Substitution( x, a )
-          val P3 = Atom("P", sCTn::a::Nil)
+          val P3 = Atom(HOLVar("P", ->(sCTn.exptype, ->(a.exptype, o))), sCTn::a::Nil)
           val s = sub( f )
           val result = s match {
             case ExVar(v, Imp(P3, P2)) => true
@@ -181,7 +182,7 @@ class HigherOrderLogicTest extends SpecificationWithJUnit {
   "SkolemSymbolFactory" should {
       val x = HOLVar("x", i)
       val y = HOLVar("y", i)
-      val f = AllVar( x, Atom("P", x::Nil ) )
+      val f = AllVar( x, Atom(HOLVar("P", ->(i, o)), x::Nil ) )
       val s0 = new StringSymbol( "s_{0}" )
       val s1 = new StringSymbol( "s_{2}" )
       val s2 = new StringSymbol( "s_{4}" )
@@ -199,7 +200,7 @@ class HigherOrderLogicTest extends SpecificationWithJUnit {
 
   "Higher Order Formula matching" should {
     "not allow P and P match as an Atom " in {
-      val f = And(Atom("P",Nil), Atom("P",Nil))
+      val f = And(Atom(HOLVar("P", o),Nil), Atom(HOLVar("P", o),Nil))
 
       f must beLike {
         case Atom(_,_) => println("Is an atom"); ko

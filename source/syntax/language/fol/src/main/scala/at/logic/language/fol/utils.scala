@@ -10,10 +10,12 @@ package at.logic.language.fol
 import at.logic.language.lambda._
 import at.logic.language.lambda.types._
 
+// TODO: organize what goes here and what goes in FOLExpression/FOLFormula
+
 object Utils {
   // universally closes off the given fol formula
   def universal_closure_of(f : FOLFormula) : FOLFormula = {
-    val free_vars = getFreeVariablesFOL(f)
+    val free_vars = f.freeVariables
     free_vars.foldRight(f)((v : FOLVar, f : FOLFormula) => AllVar(v,f))
   }
 
@@ -114,10 +116,10 @@ object Utils {
 
   // Constructs the FOLTerm f^k(a)
   def iterateTerm( a: FOLTerm, f: String, k: Int ) : FOLTerm =
-    if ( k == 0 ) a else Function( f, iterateTerm( a, f, k-1 )::Nil )
+    if ( k == 0 ) a else Function( FOLConst(f), iterateTerm( a, f, k-1 )::Nil )
 
   // Constructs the FOLTerm s^k(0)
-  def numeral( k: Int ) = iterateTerm( FOLConst( "0" ), "s" , k )
+  def numeral( k: Int ) = iterateTerm( FOLConst( "0" ).asInstanceOf[FOLTerm], "s" , k )
 
 
   // TODO: maybe these functions should go to listSupport in dssupport in the

@@ -7,7 +7,9 @@ digraph G {
   LambdaExpression -> Abs;
   LambdaExpression -> Formula;
   LambdaExpression -> HOLExpression;
+  FactoryA -> LambdaFactory;
   HOLExpression -> HOLFormula;
+  FactoryA -> HOLFactory;
   Formula -> HOLFormula;
   HOLExpression -> HOLVar;
   Var -> HOLVar;
@@ -33,4 +35,26 @@ digraph G {
   HOLConst -> ExQ;
   HOLConst -> AllQ;
   HOLConst -> EqC;
+  HOLExpression -> FOLExpression;
+  FOLExpression -> FOLFormula;
+  Formula -> FOLFormula;
+  FOLExpression -> FOLTerm;
+  HOLApp -> FOLApp;
+  FOLExpression -> FOLApp;
+  HOLAbs -> FOLAbs;
+  FOLExpression -> FOLAbs;
+  HOLVar -> FOLVar;
+  FOLTerm -> FOLVar;
+  HOLConst -> FOLConst;
+  FOLExpression -> FOLConst;
+  FOLConst -> TopC;
+  FOLConst -> BottomC;
+  FOLConst -> NegC;
+  FOLConst -> AndC;
+  FOLConst -> OrC;
+  FOLConst -> ImpC;
+  FOLConst -> EqC;
+  FOLConst -> ExQ;
+  FOLConst -> AllQ;
+  FactoryA -> FOLFactory;
 }

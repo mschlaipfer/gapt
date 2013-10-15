@@ -145,6 +145,7 @@ trait HOLExpression extends LambdaExpression {
 
 }
 
+// Should this be here?
 trait Formula extends LambdaExpression {require(exptype == To())}
 
 trait HOLFormula extends HOLExpression with Formula {
@@ -154,9 +155,7 @@ trait HOLFormula extends HOLExpression with Formula {
   //def imp(that: HOLFormula) = Imp(this, that)
 }
 
-class HOLVar protected[hol] (sym: SymbolA, exptype: TA) extends Var(sym, exptype) with HOLExpression {
-  //def name = sym.toString
-}
+class HOLVar protected[hol] (sym: SymbolA, exptype: TA) extends Var(sym, exptype) with HOLExpression 
 object HOLVar {
   // If it is a formula, use the constructor for HOLConstFormula
   def apply(name: String, exptype: TA) = exptype match {
@@ -197,7 +196,7 @@ object HOLConstFormula {
   def apply(name: String) = new HOLConstFormula(StringSymbol(name))
 }
 
-class HOLApp protected[hol] (function: HOLExpression, argument: HOLExpression) extends App(function, argument) with HOLExpression
+class HOLApp protected[hol] (function: HOLExpression, arg: HOLExpression) extends App(function, arg) with HOLExpression
 object HOLApp {
   // If it is a formula, use the constructor for HOLAppFormula
   def apply(function: HOLExpression, argument: HOLExpression) = function.exptype match { 
@@ -219,7 +218,7 @@ object HOLAppFormula {
   def apply(function: HOLExpression, argument: HOLExpression) = new HOLAppFormula(function, argument)
 }
 
-class HOLAbs protected[hol] (variable: Var, expression: HOLExpression) extends Abs(variable, expression) with HOLExpression
+class HOLAbs protected[hol] (variable: Var, term: HOLExpression) extends Abs(variable, term) with HOLExpression
 object HOLAbs {
   def apply(variable: HOLVar, expression: HOLExpression) = new HOLAbs(variable, expression)
   def unapply(exp: HOLExpression) = exp match {
@@ -314,12 +313,15 @@ object BinaryFormula {
 }
 
 object Function {
-  //def apply(head: HOLVar, args: List[HOLExpression]): HOLExpression = apply_(head, args)
+  def apply(head: HOLVar, args: List[HOLExpression]): HOLExpression = apply_(head, args)
   def apply(head: HOLConst, args: List[HOLExpression]): HOLExpression = apply_(head, args)
+  
+  /*
   def apply(head: String, args: List[HOLExpression], returnType: TA): HOLExpression = {
     val pred = HOLVar(head, FunctionType( returnType, args.map(a => a.exptype) ) )
     apply_(pred, args)
   }
+  */
   private def apply_(head: HOLExpression, args: List[HOLExpression]): HOLExpression = args match {
     case Nil => head
     case t :: tl => apply_(HOLApp(head, t), tl)
@@ -345,13 +347,14 @@ object Function {
 
 // HOL formulas of the form P(t_1,...,t_n)
 object Atom {
-  //def apply(head: HOLVar, args: List[HOLExpression]): HOLExpression = apply_(head, args)
-  //def apply(head: HOLConst, args: List[HOLExpression]): HOLExpression = apply_(head, args)
+  def apply(head: HOLVar, args: List[HOLExpression]): HOLFormula = apply_(head, args).asInstanceOf[HOLFormula]
+  def apply(head: HOLConst, args: List[HOLExpression]): HOLFormula = apply_(head, args).asInstanceOf[HOLFormula]
+  /* Commenting out this and the constructor of Function that uses strings for the moment.
   def apply(head: String, args: List[HOLExpression]): HOLFormula = {
-    //TODO: Fix creation of Var here! Predicate symbols may be both constant and variable symbols!
     val pred = HOLVar(head, FunctionType( To(), args.map(a => a.exptype) ) )
     apply_(pred, args).asInstanceOf[HOLFormula]
   }
+  */
   private def apply_(head: HOLExpression, args: List[HOLExpression]): HOLExpression = args match {
     case Nil => head
     case t :: tl => apply_(HOLApp(head, t), tl)

@@ -8,9 +8,11 @@ digraph G {
   hol [label=< hol<br/><font point-size="10pt">- hol.scala</font> >]
   logicSymbols [label=< logicSymbols<br/><font point-size="10pt">- logicSymbols.scala</font> >]
   skolemSymbols [label=< skolemSymbols<br/><font point-size="10pt">- skolemSymbols.scala</font> >]
+  fol [label=< fol<br/><font point-size="10pt">- fol.scala<br/>- utils.scala</font> >]
   at -> logic -> language -> lambda -> symbols;
   lambda -> types;
   language -> hol;
   hol -> logicSymbols;
   hol -> skolemSymbols;
+  language -> fol;
 }

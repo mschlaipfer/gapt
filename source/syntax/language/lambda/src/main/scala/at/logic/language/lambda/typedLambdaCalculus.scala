@@ -17,6 +17,9 @@ abstract class LambdaExpression {
   // Syntactic equality
   def syntaxEquals(e: LambdaExpression): Boolean
 
+  // Alpha equality
+  def alphaEquals(a: Any, subs: Map[Var, Var]): Boolean
+
   // List of free variables
   def freeVariables: List[Var] = getFreeVariables(List())
   
@@ -45,6 +48,8 @@ class Var(val sym: SymbolA, val exptype: TA) extends LambdaExpression {
 
   def rename(blackList: List[Var]) : Var = new Var(getRenaming(sym, blackList.map(v => v.sym)), exptype)
 
+  override def equals(a: Any) = alphaEquals(a, Map[Var, Var]())
+
   // Syntactic equality
   def syntaxEquals(e: LambdaExpression) = e match {
     case Var(n, t) => (n == name && t == exptype)
@@ -52,9 +57,12 @@ class Var(val sym: SymbolA, val exptype: TA) extends LambdaExpression {
   }
 
   // Alpha-equality
-  // Two free variables are *not* alpha-equivalent if they don't have the same name and type.
-  override def equals(a: Any) = a match {
-    case Var(n, t) => (n == name && t == exptype)
+  // Two free variables are *not* alpha-equivalent if they don't have the same
+  // name and type or if they are not in the substitution list because of a
+  // binding.
+  def alphaEquals(a: Any, subs: Map[Var, Var]) = a match {
+    case Var(n, t) if !subs.contains(this) => (n == name && t == exptype)
+    case v: Var if subs(this).syntaxEquals(v) => true 
     case _ => false
   }
     
@@ -78,6 +86,8 @@ class Cons(val sym: SymbolA, val exptype: TA) extends LambdaExpression {
 
   def rename(blackList: List[Cons]) : Cons = new Cons(getRenaming(sym, blackList.map(c => c.sym)), exptype)
 
+  override def equals(a: Any) = alphaEquals(a, Map[Var, Var]())
+
   // Syntactic equality
   def syntaxEquals(e: LambdaExpression) = e match {
     case Cons(n, t) => (n == name && t == exptype)
@@ -86,8 +96,8 @@ class Cons(val sym: SymbolA, val exptype: TA) extends LambdaExpression {
     
   // Alpha-equality
   // Two constants are *not* alpha-equivalent if they don't have the same name and type.
-  override def equals(a: Any) = a match {
-    case Cons(n, t) => (n == name && t == exptype)
+  def alphaEquals(a: Any, subs: Map[Var, Var]) = a match {
+    case Cons(n, t) => n == name && t == exptype
     case _ => false
   }
   
@@ -123,7 +133,9 @@ class App(val function: LambdaExpression, val arg: LambdaExpression) extends Lam
         case ->(in,out) => out
     }
   }
-  
+ 
+  override def equals(a: Any) = alphaEquals(a, Map[Var, Var]())
+
   // Syntactic equality
   def syntaxEquals(e: LambdaExpression) = e match {
     case App(a,b) => (a.syntaxEquals(function) && b.syntaxEquals(arg) && e.exptype == exptype)
@@ -132,8 +144,8 @@ class App(val function: LambdaExpression, val arg: LambdaExpression) extends Lam
 
   // Alpha-equality
   // An application is alpha-equivalent if its terms are alpha-equivalent.
-  override def equals(a: Any) = a match {
-    case App(e1, e2) => e1 == function && e2 == arg
+  def alphaEquals(a: Any, subs: Map[Var, Var]) = a match {
+    case App(e1, e2) => e1.alphaEquals(function, subs) && e2.alphaEquals(arg, subs)
     case _ => false
   }
 
@@ -157,6 +169,8 @@ class Abs(val variable: Var, val term: LambdaExpression) extends LambdaExpressio
   // Abstraction type construction based on the types of the variable and term
   def exptype: TA = ->(variable.exptype, term.exptype)
   
+  override def equals(a: Any) = alphaEquals(a, Map[Var, Var]())
+  
   // Syntactic equality
   def syntaxEquals(e: LambdaExpression) = e match {
     case Abs(v, exp) => (v.syntaxEquals(variable) && exp.syntaxEquals(term) && e.exptype == exptype)
@@ -166,18 +180,10 @@ class Abs(val variable: Var, val term: LambdaExpression) extends LambdaExpressio
   // Alpha-equality
   // Two abstractions are alpha-equivalent if the terms are equivalent up to the
   // renaming of variables.
-  // TODO: this can be optimized. Instead of applying the substitutions, one can
-  // drag the substitutions and check them when getting to the variables.
-  override def equals(a: Any) = a match {
+  def alphaEquals(a: Any, subs: Map[Var, Var]) = a match {
     case Abs(v, t) =>
-      if ( v == variable) { t == term }
-      else if (v.exptype == variable.exptype) {
-        val blackList = term.freeVariables ++ t.freeVariables
-        val freshVar = Var("alpha", v.exptype).rename(blackList)
-        // t[v\freshVar] == term[variable\freshVar]
-        val s1 = Substitution(v, freshVar)
-        val s2 = Substitution(variable, freshVar)
-        s1(t) == s2(term)
+      if (v.exptype == variable.exptype) {
+        t.alphaEquals(term, subs + (variable -> v) + (v -> variable))
       }
       else false
     case _ => false
@@ -197,25 +203,6 @@ object Abs {
     case _ => None
   }
 }
-
-object AppN {
-  def apply[T <: LambdaExpression](head : T, tail : List[T]) : T = {
-    val factory = head.factory
-    tail.foldLeft[LambdaExpression](head)((r, x) => factory.createApp(r,x)  ).asInstanceOf[T]
-  }
-
-  def unapply(e : LambdaExpression) : Option[(LambdaExpression,List[LambdaExpression])] = e match {
-    case App(head, tail) => Some((head, unapply_(tail)))
-    case _ => None
-  }
-
-  private def unapply_(e : LambdaExpression) : List[LambdaExpression] = e match {
-    case App(head, tail) => head :: unapply_(tail)
-    case _ => List(e)
-  }
-
-}
-
 
 /*********************** Factories *****************************/
 

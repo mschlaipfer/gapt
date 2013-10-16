@@ -214,8 +214,8 @@ trait FactoryA {
 }
 
 object LambdaFactory extends FactoryA {
-  def createVar( name: String, exptype: TA )  = new Var( StringSymbol(name), exptype)
-  def createCons( name: String, exptype: TA )  = new Cons( StringSymbol(name), exptype)
-  def createAbs( variable: Var, exp: LambdaExpression ) = new Abs( variable, exp )
-  def createApp( fun: LambdaExpression, arg: LambdaExpression ) = new App( fun, arg )
+  def createVar( name: String, exptype: TA )  = Var( name, exptype)
+  def createCons( name: String, exptype: TA )  = Cons( name, exptype)
+  def createAbs( variable: Var, exp: LambdaExpression ) = Abs( variable, exp )
+  def createApp( fun: LambdaExpression, arg: LambdaExpression ) = App( fun, arg )
 }

@@ -4,24 +4,23 @@ import longNormalForm._
 import org.specs2.mutable._
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
-import types.Definitions._
 import symbols._
 import types. {Ti, ->}
 
 @RunWith(classOf[JUnitRunner])
 class EtaExpansionTest extends SpecificationWithJUnit {
-  val v = Var("v", i);
-  val x = Var("x", i);
-  val y = Var("y", i);
-  val z = Var("z", i);
-  val f = Var("f", i -> i);
-  val g = Var("g", i -> i)
-  val f2 = Var("f2", i -> i);
-  val g2 = Var("g2", i -> i)
-  val g3 = Var("g3", ->(Ti(),->(Ti(),Ti())))
+  val v = Var("v", Ti);
+  val x = Var("x", Ti);
+  val y = Var("y", Ti);
+  val z = Var("z", Ti);
+  val f = Var("f", Ti -> Ti);
+  val g = Var("g", Ti -> Ti)
+  val f2 = Var("f2", Ti -> Ti);
+  val g2 = Var("g2", Ti -> Ti)
+  val g3 = Var("g3", ->(Ti,->(Ti,Ti)))
   val g4 = Abs(x,g3)
   val g5 = Abs(x,App(g3,x))
-  val g6 = Var("g6", ->(->(Ti(),Ti()),->(Ti(),Ti())))
+  val g6 = Var("g6", ->(->(Ti,Ti),->(Ti,Ti)))
 
   "EtaExpansion" should {
     "expand correctly the lambda expressions f : (i->i) to lambda x. f(x)" in {

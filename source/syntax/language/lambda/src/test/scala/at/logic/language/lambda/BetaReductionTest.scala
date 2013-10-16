@@ -10,7 +10,6 @@ import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 
 import types._
-import types.Definitions._
 import symbols._
 import BetaReduction._
 import StrategyOuterInner._
@@ -20,13 +19,13 @@ import ImplicitStandardStrategy._
 @RunWith(classOf[JUnitRunner])
 class BetaReductionTest extends SpecificationWithJUnit {
 
-  val v = Var("v", i); 
-  val x = Var("x", i); 
-  val y = Var("y", i);
-  val f = Var("f", i -> i); 
-  val g = Var("g", i -> i)
-  val f2 = Var("f2", i -> i); 
-  val g2 = Var("g2", i -> i)
+  val v = Var("v", Ti); 
+  val x = Var("x", Ti); 
+  val y = Var("y", Ti);
+  val f = Var("f", Ti -> Ti); 
+  val g = Var("g", Ti -> Ti)
+  val f2 = Var("f2", Ti -> Ti); 
+  val g2 = Var("g2", Ti -> Ti)
 
   "BetaReduction" should {
     "betaReduce a simple redex" in {
@@ -87,22 +86,22 @@ class BetaReductionTest extends SpecificationWithJUnit {
     }
     "betaReduce correctly with regard to de Bruijn indices" in {
       "- 1" in {
-        val term1 = App(Abs(Var("x",i->i),Abs(Var("y",i),App(Var("x",i->i),Var("y",i)))),Abs(Var("z",i),Var("z",i)))
-        val term2 = Abs(Var("y",i),App(Abs(Var("z",i),Var("z",i)),Var("y",i)))
+        val term1 = App(Abs(Var("x",Ti->Ti),Abs(Var("y",Ti),App(Var("x",Ti->Ti),Var("y",Ti)))),Abs(Var("z",Ti),Var("z",Ti)))
+        val term2 = Abs(Var("y",Ti),App(Abs(Var("z",Ti),Var("z",Ti)),Var("y",Ti)))
         (betaReduce(term1)(Outermost, Leftmost)) must beEqualTo (term2)
       }
       "- 2" in {
-        val term1 = App(Abs(Var("x",i->i),Abs(Var("x",i),App(Var("x",i->i),Var("x",i)))),Abs(Var("x",i),Var("x",i)))
-        val term2 = Abs(Var("y",i),App(Abs(Var("z",i),Var("z",i)),Var("y",i)))
+        val term1 = App(Abs(Var("x",Ti->Ti),Abs(Var("x",Ti),App(Var("x",Ti->Ti),Var("x",Ti)))),Abs(Var("x",Ti),Var("x",Ti)))
+        val term2 = Abs(Var("y",Ti),App(Abs(Var("z",Ti),Var("z",Ti)),Var("y",Ti)))
         (betaReduce(term1)(Outermost, Leftmost)) must beEqualTo (term2)
       }
       "- 3" in {
-        val x1 = Var("x",i->i)
-        val x2 = Var("y",i)
-        val x3 = Var("z",i)
-        val x4 = Var("w",i)
-        val x5 = Var("v",i)
-        val c1 = Var("f", i->(i->i))
+        val x1 = Var("x",Ti->Ti)
+        val x2 = Var("y",Ti)
+        val x3 = Var("z",Ti)
+        val x4 = Var("w",Ti)
+        val x5 = Var("v",Ti)
+        val c1 = Var("f", Ti->(Ti->Ti))
         val t1 = App(c1,App(x1,x2))
         val t2 = App(t1,App(x1,x3))
         val t3 = Abs(x4,x4)
@@ -116,9 +115,9 @@ class BetaReductionTest extends SpecificationWithJUnit {
       }
     }
     "betaNormalize correctly with Abs terms built from variables obtained by the Abs extractor" in {
-      val x = Var("x", i)
-      val y = Var("", i)
-      val p = Var("p", i -> o)
+      val x = Var("x", Ti)
+      val y = Var("", Ti)
+      val p = Var("p", Ti -> To)
       val px = App( p, x )
       val py = App( p, y )
       val xpx = Abs(x, px)

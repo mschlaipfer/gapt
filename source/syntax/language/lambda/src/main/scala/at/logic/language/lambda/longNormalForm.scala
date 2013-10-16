@@ -19,8 +19,8 @@ object longNormalForm {
   def apply(term: LambdaExpression) : LambdaExpression = apply(term, List())
   def apply(term: LambdaExpression, disallowedVars: List[Var]) : LambdaExpression = term match {
     case Var(_, exptype) => exptype match {
-      case Ti() => term
-      case To() => term
+      case Ti => term
+      case To => term
       case FunctionType(_, args) => {
         val binders: List[Var] = args.foldRight(List[Var]()) ( (z, acc) => {
           val newVar = Var("eta", z) // Creating a new var of appropriate type
@@ -32,8 +32,8 @@ object longNormalForm {
     }
 
     case App(m,n) => term.exptype match {
-      case Ti() => term
-      case To() => term
+      case Ti => term
+      case To => term
       case FunctionType(_, args) => {
         val binders: List[Var] = args.foldRight(List[Var]()) ( (z, acc) => {
           val newVar = Var("eta", z) // Creating a new var of appropriate type

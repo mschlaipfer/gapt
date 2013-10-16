@@ -14,15 +14,16 @@ abstract class TAtomicA extends TA
 abstract class TComplexA extends TA
 object TAtomicA {
   def unapply(ta: TA) = ta match {
-    case Tindex() => Some(ta)
-    case Ti() => Some(ta)
-    case To() => Some(ta)
+    case Tindex => Some(ta)
+    case Ti => Some(ta)
+    case To => Some(ta)
     case _ => None
   }
 }
-case class Tindex() extends TAtomicA {override def toString = "ω"}//for indexed propositions. Look at schemata.
-case class Ti() extends TAtomicA {override def toString = "ι"}
-case class To() extends TAtomicA {override def toString = "ο"}
+
+case object Tindex extends TAtomicA {override def toString = "ω"} // for indexed propositions in schema
+case object Ti extends TAtomicA {override def toString = "ι"}
+case object To extends TAtomicA {override def toString = "ο"}
 
 case class ->(val in: TA, val out: TA) extends TComplexA {
   override def toString = "(" + in.toString + "->" + out.toString + ")"
@@ -38,11 +39,13 @@ object -> {
   }
 }
 
+/*
 object Definitions {
   def i = Ti()
   def o = To()
   def ind = Tindex()
 }
+*/
 
 // convenience factory to create function types
 // with argument types from and return type to
@@ -63,8 +66,8 @@ object FunctionType {
 
 object  StringExtractor {
   def apply(t:TA):String = t match {
-    case Ti() => "i"
-    case To() => "o"
+    case Ti => "i"
+    case To => "o"
     case ->(in,out) => "("+ apply(in) + " -> " + apply(out) +")"
   }
   def unapply(s:String):Option[TA] = {
@@ -85,9 +88,9 @@ object Type {
 
 trait Parsers extends JavaTokenParsers {
   def Type: Parser[TA] = (arrowType | iType | oType)
-  def iType: Parser[TA] = "i" ^^ {x => Ti()}
-  def oType: Parser[TA] = "o" ^^ {x => To()}
-  def indexType: Parser[TA] = "e" ^^ {x => Tindex()}
+  def iType: Parser[TA] = "i" ^^ {x => Ti}
+  def oType: Parser[TA] = "o" ^^ {x => To}
+  def indexType: Parser[TA] = "e" ^^ {x => Tindex}
   def arrowType: Parser[TA] = "("~> Type~"->"~Type <~")" ^^ {case in ~ "->" ~ out => ->(in,out)}
 }
 

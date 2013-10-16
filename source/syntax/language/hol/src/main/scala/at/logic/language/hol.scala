@@ -146,7 +146,7 @@ trait HOLExpression extends LambdaExpression {
 }
 
 // Should this be here?
-trait Formula extends LambdaExpression {require(exptype == To())}
+trait Formula extends LambdaExpression {require(exptype == To)}
 
 trait HOLFormula extends HOLExpression with Formula {
   // How often is this used?? maybe we can get rid of it
@@ -159,7 +159,9 @@ class HOLVar protected[hol] (sym: SymbolA, exptype: TA) extends Var(sym, exptype
 object HOLVar {
   // If it is a formula, use the constructor for HOLConstFormula
   def apply(name: String, exptype: TA) = exptype match {
-    case To() => new HOLVarFormula(StringSymbol(name))
+    case To => new HOLVarFormula(StringSymbol(name))
+    // In order to get rid of HOLVarFormula, this can be transformed to:
+    //case To => new HOLVar(StringSymbol(name)) with HOLFormula
     case _ => new HOLVar(StringSymbol(name), exptype)
   }
   def unapply(exp: HOLExpression) = exp match {
@@ -168,7 +170,7 @@ object HOLVar {
   }
 }
 
-class HOLVarFormula protected[hol] (name: SymbolA) extends HOLVar(name, To()) with HOLFormula
+class HOLVarFormula protected[hol] (name: SymbolA) extends HOLVar(name, To) with HOLFormula
 object HOLVarFormula {
   def apply(name: String) = new HOLVarFormula(StringSymbol(name))
 }
@@ -176,22 +178,21 @@ object HOLVarFormula {
 class HOLConst protected[hol] (sym: SymbolA, exptype: TA) extends Cons(sym, exptype) with HOLExpression {
   override def isLogicalSymbol: Boolean = sym.isInstanceOf[LogicalSymbolA]
   def isEqSymbol: Boolean = sym == EqSymbol
-  //def name = sym.toString
 }
 object HOLConst {
   // If it is a formula, use the constructor for HOLConstFormula
   def apply(name: String, exptype: TA) = exptype match {
-    case To() => new HOLConstFormula(StringSymbol(name))
+    case To => new HOLConstFormula(StringSymbol(name))
     case _ => new HOLConst(StringSymbol(name), exptype)
   }
-  def apply(name: String, exptype: String) = new HOLConst(StringSymbol(name), Type(exptype))
+  def apply(name: String, exptype: String) : HOLConst = HOLConst(name, Type(exptype))
   def unapply(exp: HOLExpression) = exp match {
     case c: HOLConst => Some( (c.name, c.exptype) )
     case _ => None
   }
 }
 
-class HOLConstFormula protected[hol] (name: SymbolA) extends HOLConst(name, To()) with HOLFormula
+class HOLConstFormula protected[hol] (name: SymbolA) extends HOLConst(name, To) with HOLFormula
 object HOLConstFormula {
   def apply(name: String) = new HOLConstFormula(StringSymbol(name))
 }
@@ -200,7 +201,7 @@ class HOLApp protected[hol] (function: HOLExpression, arg: HOLExpression) extend
 object HOLApp {
   // If it is a formula, use the constructor for HOLAppFormula
   def apply(function: HOLExpression, argument: HOLExpression) = function.exptype match { 
-    case ->(_, To()) => new HOLAppFormula(function, argument)
+    case ->(_, To) => new HOLAppFormula(function, argument)
     case _ => new HOLApp(function, argument)
   }
   def apply(function: HOLExpression, arguments: List[HOLExpression]) : HOLExpression = arguments match {
@@ -218,7 +219,7 @@ object HOLAppFormula {
   def apply(function: HOLExpression, argument: HOLExpression) = new HOLAppFormula(function, argument)
 }
 
-class HOLAbs protected[hol] (variable: Var, term: HOLExpression) extends Abs(variable, term) with HOLExpression
+class HOLAbs protected[hol] (variable: HOLVar, term: HOLExpression) extends Abs(variable, term) with HOLExpression
 object HOLAbs {
   def apply(variable: HOLVar, expression: HOLExpression) = new HOLAbs(variable, expression)
   def unapply(exp: HOLExpression) = exp match {
@@ -330,7 +331,7 @@ object Function {
   def unapply( expression: HOLExpression ) = expression match {
     case HOLApp(c: HOLConst,_) if c.isLogicalSymbol => None
     case HOLApp(HOLApp(c: HOLConst,_),_) if c.isLogicalSymbol => None
-    case HOLApp(_,_) if (expression.exptype != To()) => 
+    case HOLApp(_,_) if (expression.exptype != To) => 
       val t = unapply_(expression) 
       Some( (t._1, t._2, expression.exptype) )
     case _ => None
@@ -351,7 +352,7 @@ object Atom {
   def apply(head: HOLConst, args: List[HOLExpression]): HOLFormula = apply_(head, args).asInstanceOf[HOLFormula]
   /* Commenting out this and the constructor of Function that uses strings for the moment.
   def apply(head: String, args: List[HOLExpression]): HOLFormula = {
-    val pred = HOLVar(head, FunctionType( To(), args.map(a => a.exptype) ) )
+    val pred = HOLVar(head, FunctionType( To, args.map(a => a.exptype) ) )
     apply_(pred, args).asInstanceOf[HOLFormula]
   }
   */
@@ -363,9 +364,9 @@ object Atom {
   def unapply( expression: HOLExpression ) = expression match {
     case HOLApp(c: HOLConst,_) if c.isLogicalSymbol => None
     case HOLApp(HOLApp(c: HOLConst,_),_) if c.isLogicalSymbol => None
-    case HOLApp(_,_) if (expression.exptype == To()) => Some( unapply_(expression) )
-    case HOLConst(_,_) if (expression.exptype == To()) => Some( (expression, Nil) )
-    case HOLVar(_,_) if (expression.exptype == To()) => Some( (expression, Nil) )
+    case HOLApp(_,_) if (expression.exptype == To) => Some( unapply_(expression) )
+    case HOLConst(_,_) if (expression.exptype == To) => Some( (expression, Nil) )
+    case HOLVar(_,_) if (expression.exptype == To) => Some( (expression, Nil) )
     case _ => None
   }
   // Recursive unapply to get the head and args
@@ -435,21 +436,9 @@ object Quantifier {
 /*********************** Factories *****************************/
 
 object HOLFactory extends FactoryA {
-  def createVar(name: String, exptype: TA) : HOLVar = exptype match {
-    case To() => new HOLVarFormula(StringSymbol(name))
-    case _ => new HOLVar(StringSymbol(name), exptype)
-  }
-  
-  def createCons(name: String, exptype: TA) : HOLConst = exptype match {
-    case To() => new HOLConstFormula(StringSymbol(name))
-    case _ => new HOLConst(StringSymbol(name), exptype)
-  }
-
-  def createApp( fun: LambdaExpression, arg: LambdaExpression ) : HOLApp = fun.exptype match {
-    case ->(_, To()) => new HOLAppFormula(fun.asInstanceOf[HOLExpression], arg.asInstanceOf[HOLExpression])
-    case _ => new HOLApp(fun.asInstanceOf[HOLExpression], arg.asInstanceOf[HOLExpression])
-  }
-
-  def createAbs( variable: Var, exp: LambdaExpression ) : HOLAbs  = new HOLAbs( variable.asInstanceOf[HOLVar], exp.asInstanceOf[HOLExpression] )
+  def createVar(name: String, exptype: TA) : HOLVar = HOLVar(name, exptype)
+  def createCons(name: String, exptype: TA) : HOLConst = HOLConst(name, exptype)
+  def createApp( fun: LambdaExpression, arg: LambdaExpression ) : HOLApp = HOLApp(fun.asInstanceOf[HOLExpression], arg.asInstanceOf[HOLExpression])
+  def createAbs( variable: Var, exp: LambdaExpression ) : HOLAbs  = HOLAbs( variable.asInstanceOf[HOLVar], exp.asInstanceOf[HOLExpression] )
 }
 

@@ -5,7 +5,7 @@
 package at.logic.language.fol
 
 import at.logic.language.lambda._
-import at.logic.language.hol.{HOLExpression, HOLVar, HOLConst, HOLApp, HOLAbs, Formula}
+import at.logic.language.hol.{HOLExpression, HOLVar, HOLConst, HOLApp, HOLAbs, HOLFormula}
 import at.logic.language.lambda.symbols._
 import at.logic.language.lambda.types._
 import at.logic.language.hol.logicSymbols._
@@ -69,7 +69,7 @@ trait FOLExpression extends HOLExpression {
 
 }
 
-trait FOLFormula extends FOLExpression with Formula {
+trait FOLFormula extends FOLExpression with HOLFormula {
 
   // Instantiates a term in a quantified formula (using the first quantifier).
   def instantiate(t: FOLTerm) = this match {
@@ -168,13 +168,13 @@ trait FOLFormula extends FOLExpression with Formula {
   }
 }
 
-trait FOLTerm extends FOLExpression { require( exptype == Ti() ) }
+trait FOLTerm extends FOLExpression { require( exptype == Ti ) }
 
 class FOLApp protected[fol] (function: FOLExpression, arg: FOLExpression) extends HOLApp(function, arg) with FOLExpression
 object FOLApp {
   def apply(f: FOLExpression, arg: FOLExpression) = f.exptype match {
-    case ->(_, To()) => new FOLApp(f, arg) with FOLFormula
-    case ->(_, Ti()) => new FOLApp(f, arg) with FOLTerm
+    case ->(_, To) => new FOLApp(f, arg) with FOLFormula
+    case ->(_, Ti) => new FOLApp(f, arg) with FOLTerm
     case _ => new FOLApp(f, arg)
   }
   def unapply(e: FOLExpression) = e match {
@@ -192,7 +192,7 @@ object FOLAbs {
   }
 }
 
-class FOLVar (sym: SymbolA) extends HOLVar(sym, Ti()) with FOLTerm
+class FOLVar (sym: SymbolA) extends HOLVar(sym, Ti) with FOLTerm
 object FOLVar {
   def apply(name: String) = new FOLVar(StringSymbol(name))
   def unapply(exp: FOLExpression) = exp match {
@@ -203,10 +203,10 @@ object FOLVar {
 
 class FOLConst (sym: SymbolA, exptype: TA) extends HOLConst(sym, exptype) with FOLExpression
 object FOLConst {
-  def apply(name: String) = new FOLConst(StringSymbol(name), Ti()) with FOLTerm
+  def apply(name: String) = new FOLConst(StringSymbol(name), Ti) with FOLTerm
   def apply(name: String, exptype: TA) = exptype match {
-    case To() => new FOLConst(StringSymbol(name), exptype) with FOLFormula
-    case Ti() => new FOLConst(StringSymbol(name), exptype) with FOLTerm
+    case To => new FOLConst(StringSymbol(name), exptype) with FOLFormula
+    case Ti => new FOLConst(StringSymbol(name), exptype) with FOLTerm
     case _ => new FOLConst(StringSymbol(name), exptype)
   }
   def unapply(exp: FOLExpression) = exp match {
@@ -215,13 +215,13 @@ object FOLConst {
   }
 }
 
-case object TopC extends FOLConst(TopSymbol, To()) with FOLFormula
-case object BottomC extends FOLConst(BottomSymbol, To()) with FOLFormula
-case object NegC extends FOLConst(NegSymbol, To() -> To() )
-case object AndC extends FOLConst(AndSymbol, To() -> (To() -> To()))
-case object OrC extends FOLConst(OrSymbol,   To() -> (To() -> To()))
-case object ImpC extends FOLConst(ImpSymbol, To() -> (To() -> To()))
-case object EqC extends FOLConst(EqSymbol,   Ti() -> (Ti() -> To()))
+case object TopC extends FOLConst(TopSymbol, To) with FOLFormula
+case object BottomC extends FOLConst(BottomSymbol, To) with FOLFormula
+case object NegC extends FOLConst(NegSymbol, To -> To )
+case object AndC extends FOLConst(AndSymbol, To -> (To -> To))
+case object OrC extends FOLConst(OrSymbol,   To -> (To -> To))
+case object ImpC extends FOLConst(ImpSymbol, To -> (To -> To))
+case object EqC extends FOLConst(EqSymbol,   Ti -> (Ti -> To))
 
 object Equation {
     def apply(left: FOLTerm, right: FOLTerm) = {
@@ -245,9 +245,9 @@ object Atom {
   def unapply( expression: FOLExpression ) = expression match {
     case FOLApp(c: FOLConst,_) if c.isLogicalSymbol => None
     case FOLApp(FOLApp(c: FOLConst,_),_) if c.isLogicalSymbol => None
-    case FOLApp(_,_) if (expression.exptype == To()) => Some( unapply_(expression) )
-    case FOLConst(_) if (expression.exptype == To()) => Some( (expression, Nil) )
-    case FOLVar(_) if (expression.exptype == To()) => Some( (expression, Nil) )
+    case FOLApp(_,_) if (expression.exptype == To) => Some( unapply_(expression) )
+    case FOLConst(_) if (expression.exptype == To) => Some( (expression, Nil) )
+    case FOLVar(_) if (expression.exptype == To) => Some( (expression, Nil) )
     case _ => None
   }
   // Recursive unapply to get the head and args
@@ -272,7 +272,7 @@ object Function {
   def unapply( expression: FOLExpression ) = expression match {
     case FOLApp(c: FOLConst,_) if c.isLogicalSymbol => None
     case FOLApp(FOLApp(c: FOLConst,_),_) if c.isLogicalSymbol => None
-    case FOLApp(_,_) if (expression.exptype != To()) => 
+    case FOLApp(_,_) if (expression.exptype != To) => 
       val t = unapply_(expression) 
       Some( (t._1, t._2) )
     case _ => None
@@ -327,7 +327,7 @@ object Imp {
   }
 }
 
-class ExQ protected[fol] extends FOLConst(ExistsSymbol, ->(->(Ti(), To()), To()) )
+class ExQ protected[fol] extends FOLConst(ExistsSymbol, ->(->(Ti, To), To) )
 object ExQ {
   def unapply(v: FOLConst) = v match {
     case vo: ExQ => Some()
@@ -335,7 +335,7 @@ object ExQ {
   }
 }
 
-class AllQ protected[fol] extends FOLConst( ForallSymbol, ->(->(Ti(), To()), To()) )
+class AllQ protected[fol] extends FOLConst( ForallSymbol, ->(->(Ti, To), To) )
 object AllQ {
   def unapply(v: FOLConst) = v match {
     case vo: AllQ => Some()
@@ -389,21 +389,15 @@ object BinaryLogicSymbol {
 /*********************** Factories *****************************/
 
 object FOLFactory extends FactoryA {
+  
   def createVar( name: String, exptype: TA ) : FOLVar = exptype match {
-    case Ti() => new FOLVar(StringSymbol(name))
-    case To() => throw new Exception("In FOL, of type 'o' only constants may be created.")
+    // Needed because the apply method of FOLVar does not take the type parameter
+    case Ti => new FOLVar(StringSymbol(name))
+    case To => throw new Exception("In FOL, of type 'o' only constants may be created.")
     case ->(tr, ta) => throw new Exception("In FOL, of type 'a -> b' only constants may be created.")
   }
-
-  def createCons( name: String, exptype: TA ) : FOLConst = exptype match {
-    case Ti() => new FOLConst(StringSymbol(name), Ti())
-    case To() => new FOLConst(StringSymbol(name), To()) with FOLFormula
-    case FunctionType(Ti(), _) => new FOLConst(StringSymbol(name), exptype) with FOLExpression
-    case FunctionType(To(),_) =>  new FOLConst(StringSymbol(name), exptype) with FOLFormula
-  }
-
-
-  def createVar( name: String ) : FOLVar = createVar( name, Ti() )
+  def createCons( name: String, exptype: TA ) : FOLConst = FOLConst(name, exptype)
+  def createVar( name: String ) : FOLVar = createVar( name, Ti )
 
   //remark: in contrast to earlier times, you can only create fol applications from fol expressions
   def createApp( fun: LambdaExpression, arg: LambdaExpression ) : FOLApp = {
@@ -413,15 +407,10 @@ object FOLFactory extends FactoryA {
       "You are trying to use the FOL factory to create an application of a non-fol second argument "+arg+"!")
     val fun_ = fun.asInstanceOf[FOLExpression]
     val arg_ = arg.asInstanceOf[FOLExpression]
-    fun.exptype match {
-      case ->(_, To()) => new FOLApp(fun_, arg_) with FOLFormula
-      case ->(_, Ti()) => new FOLApp(fun_, arg_) with FOLTerm
-      case _ =>  new FOLApp(fun_, arg_)
-    }
+    FOLApp(fun_, arg_)
   }
 
-   def createAbs( variable: Var, exp: LambdaExpression ) : FOLAbs =
-     new FOLAbs( variable.asInstanceOf[FOLVar], exp.asInstanceOf[FOLExpression] )
+   def createAbs( variable: Var, exp: LambdaExpression ) : FOLAbs = FOLAbs( variable.asInstanceOf[FOLVar], exp.asInstanceOf[FOLExpression] )
 }
 
 

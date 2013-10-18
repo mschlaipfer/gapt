@@ -71,7 +71,21 @@ class SubstitutionsTest extends SpecificationWithJUnit {
         val exp1 = Abs(f, App(f, v))
         val exp2 = sigma(exp1)
         val exp3 = Abs(f,App(f, App(f, x)))
-        ( exp2) must be_!= ( exp3 )
+        ( exp2 ) must be_!= ( exp3 )
+    }
+    "substitute correctly in presence of variant variables" in {
+      val x = Var( "x", Ti )
+      val xprime = x.rename( List( x ))
+      val y = Var( "y", Ti )
+      val z = Var( "z", Ti )
+      val f = Var( "f", Ti->(Ti->(Ti->Ti)) )
+      val M = Abs( x, App( f, List( x, y, z )))
+      val sigma = Substitution( List(( y, x ), ( z, xprime )))
+      val w = Var( "w", Ti )
+      val Msigma = sigma( M )
+      val Msigma_correct = Abs( w, App( f, List( w, x, xprime )))
+
+      ( Msigma ) must beEqualTo ( Msigma_correct )
     }
     "substitute and normalize correctly when Substitution is applied" in {
       val x = Var("X", Ti -> To )

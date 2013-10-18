@@ -46,11 +46,13 @@ class Var(val sym: SymbolA, val exptype: TA) extends LambdaExpression {
   // The name of the variable should be obtained with this method.
   def name : String = sym.toString
 
+  // get a new variable (similar to) the current and different from all variables in the blackList,
+  // returns this variable if this variable is not in the blackList
   def rename(blackList: List[Var]) : Var = new Var(getRenaming(sym, blackList.map(v => v.sym)), exptype)
 
   override def equals(a: Any) = alphaEquals(a, Map[Var, Var]())
 
-  // Syntactic equality
+  // Syntactic equality: two variables are equal if they have the same name and the same type
   def syntaxEquals(e: LambdaExpression) = e match {
     case Var(n, t) => (n == name && t == exptype)
     case _ => false
@@ -154,6 +156,7 @@ class App(val function: LambdaExpression, val arg: LambdaExpression) extends Lam
 }
 object App {
   def apply(f: LambdaExpression, a: LambdaExpression) = new App(f, a)
+  // create an n-ary application with left-associative parentheses
   def apply(function: LambdaExpression, arguments:List[LambdaExpression]): LambdaExpression = arguments match {
     case Nil => function
     case x::ls => apply(App(function, x), ls)

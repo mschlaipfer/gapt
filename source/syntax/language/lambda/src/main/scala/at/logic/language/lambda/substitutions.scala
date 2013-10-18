@@ -4,9 +4,14 @@ package at.logic.language.lambda
 import symbols._
 
 /* 
- * Substitution preserves the following:
- *  1) it is a valid function, i.e. order of elements is irrelevant and each variable is mapped to only one element
- *  2) all mappings are applied simultaneously to a term i.e. {x |-> y, y |-> a}x = y and not a.
+ * A substitution is a mapping from variables to lambda-expressions which differs from the identity
+ * on finitely many variables. Therefore:
+ *  1) each variable is mapped to only one lambda expression
+ *  2) the order of the variab:le-mappings is irrelevant
+ *  3) all variable-mappings are applied simultaneously to a term i.e. {x |-> y, y |-> a}x = y and not a.
+ *
+ * As the lambda calculus contains variable binders, substitution can only be defined up to alpha-equivalence.
+ * When applying a substitution, bound variables are renamed if needed.
  */
 class Substitution(val map: Map[Var, LambdaExpression]) {
  
@@ -58,7 +63,7 @@ class Substitution(val map: Map[Var, LambdaExpression]) {
     case _ => false
   }
 
-  //an identity function maps all terms to themselves
+  // an identity function maps all variables to themselves
   def isIdentity = map.filterNot((p : (Var, LambdaExpression)) => p._1 == p._2).isEmpty
 
   // make sure the overriden keys are of the applying sub

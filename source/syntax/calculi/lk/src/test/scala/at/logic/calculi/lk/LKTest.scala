@@ -1,30 +1,19 @@
 /*
 * LKTest.scala
 *
-* To change this template, choose Tools | Template Manager
-* and open the template in the editor.
 */
 
 package at.logic.calculi.lk
 
-import at.logic.language.lambda.substitutions.Substitution
+import at.logic.language.lambda.Substitution
 import org.specs2.mutable._
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 
 import at.logic.language.hol._
-import at.logic.language.lambda.typedLambdaCalculus._
 import at.logic.language.lambda.types._
-import at.logic.language.lambda.types.Definitions._
 import at.logic.language.hol.logicSymbols._
-import propositionalRules._
 import base._
-import quantificationRules._
-import at.logic.language.lambda.types.ImplicitConverters._
-import at.logic.calculi.lk.lkSpecs.beMultisetEqual
-import at.logic.language.lambda.symbols.ImplicitConverters._
-import at.logic.language.lambda.symbols.VariableStringSymbol
-import macroRules._
 
 /**
 * The following properties of each rule are tested:
@@ -40,13 +29,13 @@ import macroRules._
 @RunWith(classOf[JUnitRunner])
 class LKTest extends SpecificationWithJUnit {
 
-  val c1 = HOLVar("a", i->o)
-  val v1 = HOLVar("x", i)
+  val c1 = HOLVar("a", Ti->To)
+  val v1 = HOLVar("x", Ti)
   val f1 = HOLAppFormula(c1,v1)
   val ax = Axiom(f1::Nil, f1::Nil)
   val a1 = ax // Axiom return a pair of the proof and a mapping and we want only the proof here
-  val c2 = HOLVar("b", i->o)
-  val v2 = HOLVar("c", i)
+  val c2 = HOLVar("b", Ti->To)
+  val v2 = HOLVar("c", Ti)
   val f2 = HOLAppFormula(c1,v1)
   val f3 = HOLVarFormula("e")
   val a2 = Axiom(f2::f3::Nil, f2::f3::Nil)
@@ -212,7 +201,6 @@ class LKTest extends SpecificationWithJUnit {
       }
       "- Principal formula must be contained in the right part of the sequent" in {
         (a.root.antecedent) must contain(a.prin.head)
-        //(a.root.antecedent) must contain(And(f1,f3)) // occurrences are compared and therefore the test fails
       }
 
       "- Lower sequent must not contain the auxiliary formulas" in {
@@ -386,15 +374,15 @@ class LKTest extends SpecificationWithJUnit {
     }
 
     "work for ForallLeftRule" in {
-      val q = HOLVar( "q", i -> o )
-      val x = HOLVar( "X", i )
+      val q = HOLVar( "q", Ti -> To )
+      val x = HOLVar( "X", Ti )
       val subst = HOLAbs( x, HOLApp( q, x ) ) // lambda x. q(x)
-      val p = HOLVar( "p", (i -> o) -> o )
-      val a = HOLVar( "a", i )
+      val p = HOLVar( "p", (Ti -> To) -> To )
+      val a = HOLVar( "a", Ti )
       val qa = HOLAppFormula( q, a )
       val pl = HOLAppFormula( p, subst )
       val aux = Or( pl, qa )                  // p(lambda x. q(x)) or q(a)
-      val z = HOLVar( "Z", i -> o )
+      val z = HOLVar( "Z", Ti -> To )
       val pz = HOLAppFormula( p, z )
       val za = HOLAppFormula( z, a )
       val main = AllVar( z, Or( pz, za ) )    // forall lambda z. p(z) or z(a)
@@ -407,19 +395,19 @@ class LKTest extends SpecificationWithJUnit {
       "- Principal formula must be contained in the right part of the sequent" in {
         (ant) must contain(prin1)
       }
-      /*"- Lower sequent must not contain the auxiliary formulas" in {
+      "- Lower sequent must not contain the auxiliary formulas" in {
         (ant) must not contain(aux1)
-      }     */
+      }
     }
 
     "work for ForallRightRule" in {
-      val x = HOLVar( "X", i -> o)            // eigenvar
-      val p = HOLVar( "p", (i -> o) -> o )
-      val a = HOLVar( "a", i )
+      val x = HOLVar( "X", Ti -> To)            // eigenvar
+      val p = HOLVar( "p", (Ti -> To) -> To )
+      val a = HOLVar( "a", Ti )
       val xa = HOLAppFormula( x, a )
       val px = HOLAppFormula( p, x )
       val aux = Or( px, xa )                  // p(x) or x(a)
-      val z = HOLVar( "Z", i -> o )
+      val z = HOLVar( "Z", Ti -> To )
       val pz = HOLAppFormula( p, z )
       val za = HOLAppFormula( z, a )
       val main = AllVar( z, Or( pz, za ) )    // forall lambda z. p(z) or z(a)
@@ -432,16 +420,16 @@ class LKTest extends SpecificationWithJUnit {
       "- Principal formula must be contained in the right part of the sequent" in {
         (succ) must contain(prin1)
       }
-      /*"- Lower sequent must not contain the auxiliary formulas" in {
+      "- Lower sequent must not contain the auxiliary formulas" in {
         (succ) must not contain(aux1)
-      } */
+      }
     }
 
     "work for weak quantifier rules" in {
-      val List(x,y,z) = List(("x", i->i),("y",i->i) ,("z", i->i)) map (u => HOLVar(VariableStringSymbol(u._1),u._2))
-      val List(p,a,b) = List(("P", (i->i) -> ((i->i) -> ((i->i) -> o))),
-                             ("a", i->i) ,
-                             ("b", i->i)) map (u => HOLConst(ConstantStringSymbol(u._1),u._2))
+      val List(x,y,z) = List(("x", Ti->Ti),("y",Ti->Ti) ,("z", Ti->Ti)) map (u => HOLVar(u._1,u._2))
+      val List(p,a,b) = List(("P", (Ti->Ti) -> ((Ti->Ti) -> ((Ti->Ti) -> To))),
+                             ("a", Ti->Ti) ,
+                             ("b", Ti->Ti)) map (u => HOLConst(u._1,u._2))
       val paba = Atom(p,List(a,b,a))
       val pxba = Atom(p,List(x,b,a))
       val expxba = ExVar(x,pxba)

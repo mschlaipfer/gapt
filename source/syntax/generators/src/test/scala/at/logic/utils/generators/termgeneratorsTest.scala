@@ -1,6 +1,8 @@
 /* Test cases for the term generator.
 */
 
+// NOT USED ANYWHERE. DELETE?
+/*
 package at.logic.utils.generators
 
 import scala.util.Random
@@ -77,19 +79,16 @@ class termgeneratorTest extends SpecificationWithJUnit {
             prop must bePassed
         }
 
-      /*
-        "generate first order variables" in {
-            var generator = new FOLtermGenerator(seed)
-            val l = generator.generateSymbols(10,5,6,5)
-            generator.generateVariable(l) match {
-                case x:FOLVar =>
-                    x.name.toString must be matching ("x_[0-9]+")
-                    x.exptype  must beEqualTo (i)
-                case _ => true must beEqualTo (false)
-            }
-
-
-        }*/
+       // "generate first order variables" in {
+       //     var generator = new FOLtermGenerator(seed)
+       //     val l = generator.generateSymbols(10,5,6,5)
+       //     generator.generateVariable(l) match {
+       //         case x:FOLVar =>
+       //             x.name.toString must be matching ("x_[0-9]+")
+       //             x.exptype  must beEqualTo (i)
+       //         case _ => true must beEqualTo (false)
+       //     }
+       // }
 
         "generate first order functions" in {
             //symbol names must be in the language
@@ -123,3 +122,4 @@ class termgeneratorTest extends SpecificationWithJUnit {
         }
     }
 }
+*/

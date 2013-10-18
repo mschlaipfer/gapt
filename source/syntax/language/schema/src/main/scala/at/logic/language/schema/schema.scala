@@ -308,7 +308,7 @@ object BigAnd {
   // TODO: recursive unapply?
   def unapply(exp : LambdaExpression) = exp match {
     case AppN(BigAndC, SchemaAbs(v, formula)::(init : IntegerTerm)::(end : IntegerTerm)::Nil) =>
-      Some(v, formula, init, end)
+      Some( (v, formula, init, end) )
     case _ => None
   }
 }
@@ -323,7 +323,7 @@ object BigOr {
   // TODO: recursive unapply?
   def unapply(exp : LambdaExpression) = exp match {
     case AppN(BigOrC, SchemaAbs(v, formula)::(init : IntegerTerm)::(end : IntegerTerm)::Nil) =>
-      Some(v, formula, init, end)
+      Some( (v, formula, init, end) )
     case _ => None
   }
 }

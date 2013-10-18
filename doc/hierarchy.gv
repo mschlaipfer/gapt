@@ -37,7 +37,7 @@ digraph G {
   HOLConst -> EqC;
   HOLExpression -> FOLExpression;
   FOLExpression -> FOLFormula;
-  Formula -> FOLFormula;
+  HOLFormula -> FOLFormula;
   FOLExpression -> FOLTerm;
   HOLApp -> FOLApp;
   FOLExpression -> FOLApp;

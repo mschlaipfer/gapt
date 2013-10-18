@@ -1,6 +1,9 @@
 /* Generator for First Order Terms
  * function symbols with the same name but different arity will not be constructed */
 
+// NOT USED ANYWHERE. DELETE??
+
+/*
 package at.logic.utils.generators
 
 import scala.util.Random
@@ -44,19 +47,18 @@ object Language {
                 l1.foldRight[List[FOLTerm]](List(FOLConst(x)))(fun)  // concatenate the function symbol and the lists
         }
     }
-    /*
-   def prefixFoldLeftTerm[A,B] : (FOLTerm, (FOLTerm => B),((B, FOLTerm) => B),(B) => List[B]) =
-     ((t:FOLTerm, f:(FOLTerm => B),g: ((B, FOLTerm) => B), h:(B)) => {
-        t match {
-                            case x : FOLVar => List(f(x))
-                            case x : FOLConst => List(f(x))
-                            case Function(x,params) =>
-                                val l = (f(FOLConst(x))::Nil)
-                                val r = (params.foldLeft(h)(g))
-                                l :: List(r)
-                        }
-         })
-     */
+    
+   //def prefixFoldLeftTerm[A,B] : (FOLTerm, (FOLTerm => B),((B, FOLTerm) => B),(B) => List[B]) =
+   //  ((t:FOLTerm, f:(FOLTerm => B),g: ((B, FOLTerm) => B), h:(B)) => {
+   //     t match {
+   //                         case x : FOLVar => List(f(x))
+   //                         case x : FOLConst => List(f(x))
+   //                         case Function(x,params) =>
+   //                             val l = (f(FOLConst(x))::Nil)
+   //                             val r = (params.foldLeft(h)(g))
+   //                             l :: List(r)
+   //                     }
+   //      })
 
    def printTerm[A,B] : (FOLTerm => String) =
      ((t:FOLTerm) => {
@@ -92,9 +94,9 @@ class FOLtermGenerator {
         random = new Random(seed);
     }
 
-    /* generates a given number of different variable symbols
-        returns a triple of variable, constant and function symbols with
-        corresponding arity*/
+    // generates a given number of different variable symbols
+    // returns a triple of variable, constant and function symbols with
+    // corresponding arity
     def generateSymbols(vars : Int, consts :Int, functions : Int, maxArity : Int) :
         (List[(VariableSymbolA,Int)], List[(ConstantSymbolA,Int)],List[(ConstantSymbolA,Int)]) = {
         var vs : List[(VariableSymbolA,Int)] = Nil
@@ -145,11 +147,11 @@ class FOLtermGenerator {
         FOLConst(lang.cs(position)._1)
     }
 
-    /* generates a new function term from a given language, with a chance of
-        nestedFunProb / 100 of having a nested function as parameter term,
-        nestedConst /100 of having a constant term and
-        a variable else
-        maxdepth is the maximum term depth */
+    // generates a new function term from a given language, with a chance of
+    // nestedFunProb / 100 of having a nested function as parameter term,
+    // nestedConst /100 of having a constant term and
+    // a variable else
+    // maxdepth is the maximum term depth 
     def generateFunction(lang : Language, pNestedFun : Int, pNestedConst : Int, maxdepth : Int) : FOLTerm = {
         val position = random.nextInt(lang.fs.length)
         val symbol = lang.fs(position)
@@ -160,7 +162,7 @@ class FOLtermGenerator {
                 args = generateFunction(lang,pNestedFun,pNestedConst, maxdepth-1) :: args
             } else if (p< pNestedConst+pNestedFun) {
                 args = generateConstant(lang) :: args
-            } else /* variable */ {
+            } else { // variable 
                 args = generateVariable(lang) :: args
                 //args = Faulty111generateVariable(lang) :: args
             }
@@ -169,8 +171,5 @@ class FOLtermGenerator {
         Function(symbol._1.asInstanceOf[ConstantSymbolA], args);
 
     }
-
-
-
-
 }
+*/

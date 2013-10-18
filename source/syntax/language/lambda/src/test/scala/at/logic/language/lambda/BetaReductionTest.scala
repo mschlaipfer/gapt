@@ -84,16 +84,16 @@ class BetaReductionTest extends SpecificationWithJUnit {
         val e = App(Abs(v, App(Abs(x, App(f, x)),v)),y)
         ( betaReduce(e) ) must beEqualTo ( App(Abs(x, App(f, x)),y) )
     }
-    "betaReduce correctly with regard to de Bruijn indices" in {
+    "betaReduce correctly the terms" in {
       "- 1" in {
         val term1 = App(Abs(Var("x",Ti->Ti),Abs(Var("y",Ti),App(Var("x",Ti->Ti),Var("y",Ti)))),Abs(Var("z",Ti),Var("z",Ti)))
         val term2 = Abs(Var("y",Ti),App(Abs(Var("z",Ti),Var("z",Ti)),Var("y",Ti)))
-        (betaReduce(term1)(Outermost, Leftmost)) must beEqualTo (term2)
+        (betaReduce(term1.asInstanceOf[LambdaExpression])(Outermost, Leftmost)) must beEqualTo (term2)
       }
       "- 2" in {
         val term1 = App(Abs(Var("x",Ti->Ti),Abs(Var("x",Ti),App(Var("x",Ti->Ti),Var("x",Ti)))),Abs(Var("x",Ti),Var("x",Ti)))
         val term2 = Abs(Var("y",Ti),App(Abs(Var("z",Ti),Var("z",Ti)),Var("y",Ti)))
-        (betaReduce(term1)(Outermost, Leftmost)) must beEqualTo (term2)
+        (betaReduce(term1.asInstanceOf[LambdaExpression])(Outermost, Leftmost)) must beEqualTo (term2)
       }
       "- 3" in {
         val x1 = Var("x",Ti->Ti)
@@ -107,11 +107,11 @@ class BetaReductionTest extends SpecificationWithJUnit {
         val t3 = Abs(x4,x4)
         val term1 = App(Abs(x1::x2::x3::Nil, t2),t3)
         val term2 = Abs(x2::x3::Nil, App(App(c1,App(t3,x2)),App(t3,x3)))
-        (betaReduce(term1)(Outermost, Leftmost)) must beEqualTo (term2)
+        (betaReduce(term1.asInstanceOf[LambdaExpression])(Outermost, Leftmost)) must beEqualTo (term2)
       }
       "- 4" in {
         val e = Abs(x, App(Abs(g, App(g,x)), f))
-        (betaReduce(e)(Outermost, Leftmost)) must beEqualTo (Abs(y, App(f, y)))
+        (betaReduce(e.asInstanceOf[LambdaExpression])(Outermost, Leftmost)) must beEqualTo (Abs(y, App(f, y)))
       }
     }
     "betaNormalize correctly with Abs terms built from variables obtained by the Abs extractor" in {

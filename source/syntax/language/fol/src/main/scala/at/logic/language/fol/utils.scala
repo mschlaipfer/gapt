@@ -1,13 +1,10 @@
 /**
- * Created by IntelliJ IDEA.
- * User: marty
- * Date: 10/3/11
- * Time: 5:16 PM
+ * Helper functions for first order logic
  */
 
 package at.logic.language.fol
 
-import at.logic.language.lambda._
+import at.logic.language.lambda.Substitution
 import at.logic.language.lambda.types._
 
 // TODO: organize what goes here and what goes in FOLExpression/FOLFormula
@@ -21,14 +18,14 @@ object Utils {
 
   def isFirstOrderType( exptype: TA ) = isFunctionType( exptype ) || isPredicateType( exptype )
 
-  def isFunctionType( exptype: TA ) = checkType( exptype, Ti(), Ti() )
+  def isFunctionType( exptype: TA ) = checkType( exptype, Ti, Ti )
 
-  def isPredicateType( exptype: TA ) = checkType( exptype, To(), Ti() )
+  def isPredicateType( exptype: TA ) = checkType( exptype, To, Ti )
 
   def checkType( toCheck: TA, retType : TA, argType: TA ) : Boolean =
     toCheck match {
-      case t : Ti => t == retType
-      case t : To => t == retType
+      case Ti => toCheck == retType
+      case To => toCheck == retType
       case ->(ta, tr) => ta == argType && checkType( tr, retType, argType )
   }
 
@@ -93,25 +90,9 @@ object Utils {
         case a => (ant, a::succ)
       }
     }
-    val conj = andN(ant)
-    val disj = orN(succ)
+    val conj = And(ant)
+    val disj = Or(succ)
     Imp(conj, disj)
-  }
-
-  // Iterated disjunction
-  // Assume that fs is nonempty
-  def orN(fs: List[FOLFormula]) : FOLFormula = fs match {
-    case Nil => throw new Exception("ERROR: Cannot generate a disjunction of an empty list.")
-    case f::Nil => f
-    case f::rest => Or(f, orN( rest ) )
-  }
-  
-  // Iterated conjunction
-  // Assume that fs is nonempty
-  def andN(fs: List[FOLFormula]) : FOLFormula = fs match {
-    case Nil => throw new Exception("ERROR: Cannot generate a conjunction of an empty list.")
-    case f::Nil => f
-    case f::rest => And(f, andN( rest ) )
   }
 
   // Constructs the FOLTerm f^k(a)

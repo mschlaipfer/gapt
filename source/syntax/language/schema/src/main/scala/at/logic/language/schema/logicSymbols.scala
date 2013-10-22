@@ -30,7 +30,7 @@ case object TimesSymbol extends LogicalSymbolA {
 
 // Helpers to represent preconditions in construction of characteristic clause set
 case object BiggerThanSymbol extends SymbolA {
-  override def unique = "BiggerThanSymbol"
+  def unique = "BiggerThanSymbol"
   override def toString = ">"
   def toCode = "BiggerThanSymbol"
 
@@ -40,7 +40,7 @@ case object BiggerThanSymbol extends SymbolA {
 }
 
 case object LessThanSymbol extends SymbolA {
-  override def unique = "LessThanSymbol"
+  def unique = "LessThanSymbol"
   override def toString = "<"
   def toCode = "LessThanSymbol"
   /*
@@ -50,7 +50,7 @@ case object LessThanSymbol extends SymbolA {
 }
 
 case object LeqSymbol extends SymbolA {
-  override def unique = "LeqSymbol"
+  def unique = "LeqSymbol"
   override def toString = "≤"
   def toCode = "LeqSymbol"
   /*

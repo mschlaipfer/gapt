@@ -24,7 +24,6 @@ trait SchemaExpression extends HOLExpression {
         if (i == IntZero()) {
           val base = dbTRS.map.get(func).get._1._2
           val new_map = Map[Var, HOLExpression]() + Pair(x, arg.head)
-          //val subst = new SchemaSubstitution2[HOLExpression](new_map)
           val subst = Substitution(new_map)
           subst[SchemaExpression](base)
         }
@@ -53,7 +52,6 @@ trait SchemaExpression extends HOLExpression {
         else {
           val step = dbTRS.map.get(func).get._2._2
           val new_map = Map[Var, SchemaExpression]() + Pair(k, Pred(i.asInstanceOf[IntegerTerm]))
-          //val subst = new SchemaSubstitution2[HOLExpression](new_map)
           val subst = Substitution(new_map)
           subst(step)
         }
@@ -68,11 +66,12 @@ trait SchemaExpression extends HOLExpression {
 trait SchemaFormula extends SchemaExpression with HOLFormula {
 
   def unfoldSFormula : SchemaFormula = this match {
-    case Atom(name, args) => Atom(name, args.map(t => t.unfoldSTerm))
+    case Atom(name, args) if name.isInstanceOf[SchemaVar] => Atom(name.asInstanceOf[SchemaVar], args.map(t => t.unfoldSTerm))
+    case Atom(name, args) if name.isInstanceOf[SchemaConst] => Atom(name.asInstanceOf[SchemaConst], args.map(t => t.unfoldSTerm))
     case Imp(f1, f2) => Imp(f1.unfoldSFormula, f2.unfoldSFormula)
     case ExVar(v, f) => ExVar(v, f.unfoldSFormula)
     case AllVar(v, f) => AllVar(v, f.unfoldSFormula)
-    case _ => f
+    case _ => this
   }
 
   override def isAtom : Boolean = this match {
@@ -99,12 +98,12 @@ object SchemaVar {
 
 class SchemaConst protected[schema] (sym: SymbolA, exptype: TA) extends HOLConst(sym, exptype) with SchemaExpression
 object SchemaConst {
-  def apply(name: String, exptype: TA) = exptype match {
+  def apply(name: String, exptype: TA) : SchemaConst = exptype match {
     case To => new SchemaConst(StringSymbol(name), exptype) with SchemaFormula
     case Tindex => new IntConst(StringSymbol(name))
     case _ => new SchemaConst(StringSymbol(name), exptype)
   }
-  def apply(name: String, exptype: String) = SchemaConst(name, Type(exptype))
+  def apply(name: String, exptype: String) : SchemaConst = SchemaConst(name, Type(exptype))
   def unapply(exp: SchemaExpression) = exp match {
     case c: SchemaConst => Some( (c.name, c.exptype) )
     case _ => None
@@ -115,6 +114,7 @@ class SchemaApp private[schema] (function: SchemaExpression, arg: SchemaExpressi
 object SchemaApp {
   def apply(function: SchemaExpression, argument: SchemaExpression) = function.exptype match {
     case ->(_, To) => new SchemaApp(function, argument) with SchemaFormula
+    case ->(_, Tindex) => new SchemaApp(function, argument) with IntegerTerm
     case _ => new SchemaApp(function, argument)
   }
   def apply(function: SchemaExpression, arguments: List[SchemaExpression]) : SchemaExpression = arguments match {
@@ -127,9 +127,9 @@ object SchemaApp {
   }
 }
 
-class SchemaAbs private[schema] (variable: IntVar, expression: SchemaExpression) extends HOLAbs(variable, expression) with SchemaExpression
+class SchemaAbs private[schema] (variable: SchemaVar, expression: SchemaExpression) extends HOLAbs(variable, expression) with SchemaExpression
 object SchemaAbs {
-  def apply(v: IntVar, e: SchemaExpression) = new SchemaAbs(v, e)
+  def apply(v: SchemaVar, e: SchemaExpression) = new SchemaAbs(v, e)
   def unapply(e: SchemaExpression) = e match {
     case a: SchemaAbs => Some( (a.variable.asInstanceOf[IntVar], a.term.asInstanceOf[SchemaExpression]) )
     case _ => None
@@ -162,15 +162,27 @@ object IndexedPredicate {
     val pred = SchemaConst( name, FunctionType( To, indexTerms.head.exptype::Nil ) )
     SchemaApp(pred, indexTerms.head::Nil).asInstanceOf[SchemaFormula]
   }
-  def apply(name: String, indexTerm: IntegerTerm): SchemaFormula = apply(sym, indexTerm::Nil)
+  def apply(name: String, indexTerm: IntegerTerm): SchemaFormula = apply(name, indexTerm::Nil)
 
-  def unapply(e: SchemaExpression) = e match {
-    case AppN(f : HOLConst with Schema, ts) if ts.forall( t => t.exptype == Tindex ) && e.exptype == To => Some((f, ts))
+  def unapply( expression: SchemaExpression ) = expression match {
+    case SchemaApp(_,_) if expression.exptype == To => 
+      val p = unapply_(expression)
+      if (p._2.forall(t => t.exptype == Tindex) ) {
+        Some( p )
+      } else None
     case _ => None
   }
+  // Recursive unapply to get the head and args
+  private def unapply_(e: SchemaExpression) : (SchemaConst, List[SchemaExpression]) = e match {
+    case c: SchemaConst => (c, Nil)
+    case SchemaApp(e1, e2) => 
+      val t = unapply_(e1)
+      (t._1, t._2 :+ e2)
+  }
+
 }
 
-class indexedFOVar(val sym: SymbolA, val index: HOLExpression) extends HOLVar(sym, Ti) {
+class indexedFOVar(sym: SymbolA, val index: SchemaExpression) extends SchemaVar(sym, Ti) {
   override def toString = name.toString+"("+index+")"+":"+exptype.toString
   override def equals(a: Any): Boolean = a match {
     case v:indexedFOVar if v.name.toString() == this.name.toString() && v.index == this.index => true
@@ -178,14 +190,14 @@ class indexedFOVar(val sym: SymbolA, val index: HOLExpression) extends HOLVar(sy
   }
 }
 object indexedFOVar {
-  def apply(name: String, i: HOLExpression): HOLVar = new indexedFOVar(StringSymbol(name), i)
-  def unapply(s: HOLExpression) = s match {
+  def apply(name: String, i: SchemaExpression): SchemaVar = new indexedFOVar(StringSymbol(name), i)
+  def unapply(s: SchemaExpression) = s match {
     case v: indexedFOVar => Some(v.name, v.index)
     case _ => None
   }
 }
 
-class indexedOmegaVar(val sym: SymbolA, val index: HOLExpression) extends HOLVar(sym, Tindex) {
+class indexedOmegaVar(sym: SymbolA, val index: SchemaExpression) extends SchemaVar(sym, Tindex) {
   override def toString = name.toString+"("+index+")"+":"+exptype.toString
   override def equals(a: Any): Boolean = a match {
     case v:indexedOmegaVar if v.name == this.name && v.index == this.index => true
@@ -254,6 +266,8 @@ case object NegC extends SchemaConst(NegSymbol, ->(To, To))
 case object AndC extends SchemaConst(AndSymbol, ->(To, ->(To, To)))
 case object OrC extends SchemaConst(OrSymbol, ->(To, ->(To, To)))
 case object ImpC extends SchemaConst(ImpSymbol, ->(To, ->(To, To)))
+class ExQ(e:TA) extends SchemaConst(ExistsSymbol, ->(e,"o"))
+class AllQ(e:TA) extends SchemaConst(ForallSymbol, ->(e,"o"))
 
 // Schema-specific objects
 case object BigAndC extends SchemaConst(BigAndSymbol, ->(->(Tindex, To), ->(Tindex, ->(Tindex, To))))
@@ -298,6 +312,51 @@ object Imp {
   }
 }
 
+object ExQ {
+  def unapply(v: SchemaConst) = v match {
+    case vo: ExQ => Some(vo.exptype)
+    case _ => None
+  }
+}
+object AllQ {
+  def unapply(v: SchemaConst) = v match {
+    case vo: AllQ => Some(vo.exptype)
+    case _ => None
+  }
+}
+
+object Ex {
+  def apply(sub: SchemaExpression) = SchemaApp(new ExQ(sub.exptype),sub).asInstanceOf[SchemaFormula]
+  def unapply(expression: SchemaExpression) = expression match {
+    case SchemaApp(ExQ(t),sub) => Some( (sub, t) )
+    case _ => None
+  }
+}
+
+object All {
+  def apply(sub: SchemaExpression) = SchemaApp(new AllQ(sub.exptype),sub).asInstanceOf[SchemaFormula]
+  def unapply(expression: SchemaExpression) = expression match {
+    case SchemaApp(AllQ(t),sub) => Some( (sub, t) )
+    case _ => None
+  }
+}
+
+object ExVar {
+  def apply(variable: SchemaVar, sub: SchemaFormula) = Ex(SchemaAbs(variable, sub))
+  def unapply(expression: SchemaExpression) = expression match {
+    case Ex(SchemaAbs(variable, sub), _) => Some( (variable, sub.asInstanceOf[SchemaFormula]) )
+    case _ => None
+  }
+}
+
+object AllVar {
+  def apply(variable: SchemaVar, sub: SchemaFormula) = All(SchemaAbs(variable, sub))
+  def unapply(expression: SchemaExpression) = expression match {
+    case All(SchemaAbs(variable, sub), _) => Some( (variable, sub.asInstanceOf[SchemaFormula]) )
+    case _ => None
+  }
+}
+
 object BigAnd {
   def apply(i: IntVar, iter: SchemaFormula, init: IntegerTerm, end: IntegerTerm) : SchemaFormula =
     apply(new SchemaAbs(i, iter), init, end)
@@ -305,10 +364,9 @@ object BigAnd {
   def apply(iter: SchemaAbs, init: IntegerTerm , end: IntegerTerm) : SchemaFormula =
     SchemaApp(BigAndC, iter::init::end::Nil).asInstanceOf[SchemaFormula]
   
-  // TODO: recursive unapply?
-  def unapply(exp : LambdaExpression) = exp match {
-    case AppN(BigAndC, SchemaAbs(v, formula)::(init : IntegerTerm)::(end : IntegerTerm)::Nil) =>
-      Some( (v, formula, init, end) )
+  def unapply( expression: SchemaExpression ) = expression match {
+    case SchemaApp(SchemaApp(SchemaApp(BigAndC, SchemaAbs(v, formula)), init: IntegerTerm), end: IntegerTerm) => 
+      Some( v, formula, init, end )
     case _ => None
   }
 }
@@ -320,10 +378,9 @@ object BigOr {
   def apply(iter: SchemaAbs, init: IntegerTerm, end: IntegerTerm) : SchemaFormula =
     SchemaApp(BigOrC, iter::init::end::Nil).asInstanceOf[SchemaFormula]
 
-  // TODO: recursive unapply?
-  def unapply(exp : LambdaExpression) = exp match {
-    case AppN(BigOrC, SchemaAbs(v, formula)::(init : IntegerTerm)::(end : IntegerTerm)::Nil) =>
-      Some( (v, formula, init, end) )
+  def unapply( expression: SchemaExpression ) = expression match {
+    case SchemaApp(SchemaApp(SchemaApp(BigOrC, SchemaAbs(v, formula)), init: IntegerTerm), end: IntegerTerm) => 
+      Some( v, formula, init, end )
     case _ => None
   }
 }
@@ -343,7 +400,7 @@ object Succ extends SchemaConst(StringSymbol("s"), ->(Tindex, Tindex)) {
     case SchemaApp(Succ, t) => "s("+t.toString+")"
     case _ => "ERROR in Succ"
   }
-  def apply(t: IntegerTerm): IntegerTerm  = SchemaApp(Succ, t)
+  def apply(t: IntegerTerm): IntegerTerm  = SchemaApp(Succ, t).asInstanceOf[IntegerTerm]
   def apply(t: SchemaExpression): SchemaExpression  = SchemaApp(Succ, t)
   def unapply(p: SchemaExpression) = p match {
     case SchemaApp(Succ, t : IntegerTerm) => Some(t)
@@ -421,7 +478,7 @@ object foTerm {
     val v = SchemaVar(name, args.head.exptype -> Ti)
     SchemaApp(v, args.head)
   }
-  def apply(v: SchemaConst, args: List[SchemaExpression]): SchemaExpression = {
+  def apply(v: SchemaExpression, args: List[SchemaExpression]): SchemaExpression = {
     SchemaApp(v, args.head)
   }
   def unapply(s: SchemaExpression) = s match {
@@ -517,216 +574,8 @@ object isBiggerThan {
 
 object SchemaFactory extends FactoryA {
   def createVar( name: String, exptype: TA) : SchemaVar = SchemaVar(name, exptype)
-  def createConst(name: String, exptype: TA) : SchemaConst = SchemaConst(name, exptype)
+  def createCons(name: String, exptype: TA) : SchemaConst = SchemaConst(name, exptype)
   def createAbs( variable: Var, exp: LambdaExpression ): SchemaAbs = SchemaAbs( variable.asInstanceOf[IntVar], exp.asInstanceOf[SchemaExpression] )
-
   def createApp( fun: LambdaExpression, arg: LambdaExpression ): SchemaApp = SchemaApp(fun.asInstanceOf[SchemaExpression], arg.asInstanceOf[SchemaExpression])
 }
-
-
-//this substitution works for IntVar Only. It gives an instance of a schema.
-/* All substitutions should die
-class SchemaSubstitution[T <: HOLExpression](map: Map[Var, T]) extends Substitution[T](map) {
-   override def applyWithChangeDBIndices(expression: T, protectedVars: List[Var]): T = expression match {
-      case x:IntVar if !(protectedVars.contains(x)) => {
-          map.get(x) match {
-            case Some(t) => {
-              //println("substituting " + t.toStringSimple + " for " + x.toStringSimple)
-              t
-            }
-            case None => {
-              //println(x + " is free, but we don't substitute for it")
-              x.asInstanceOf[T]
-            }
-        }
-      }
-      case x:IntVar => {
-        if (map.contains( x ) )
-          println("WARNING: trying to substitute for a bound variable, ignoring!")
-       expression
-      }
-      case App(m,n) => App(applyWithChangeDBIndices(m.asInstanceOf[T], protectedVars), applyWithChangeDBIndices(n.asInstanceOf[T], protectedVars)).asInstanceOf[T]
-      case abs: Abs => Abs(abs.variable, applyWithChangeDBIndices(abs.expressionInScope.asInstanceOf[T], abs.variable::protectedVars)).asInstanceOf[T]
-      case _ => expression
-  }
-}
-*/
-
-/* All substitutions should die
-class SchemaSubstitution1[T <: HOLExpression](val map: Map[Var, T])  {
-  def apply(expression: T): T =  {
-//    println("sub1, expression = "+expression)
-    expression match {
-      case x:IntVar => {
-        //      println("\nIntVar = "+x)
-        map.get(x) match {
-          case Some(t) => {
-            //          println("substituting " + t.toStringSimple + " for " + x.toStringSimple)
-            t
-          }
-          case _ => {
-            //          println(x + " Error in schema subst 1")
-            x.asInstanceOf[T]
-          }
-        }
-      }
-      case iov:indexedOmegaVar => {
-        indexedOmegaVar(iov.name, apply(iov.index.asInstanceOf[T])).asInstanceOf[T]
-      }
-      case IndexedPredicate(pointer @ f, l @ ts) => IndexedPredicate(pointer.name.asInstanceOf[ConstantSymbolA], apply(l.head.asInstanceOf[T]).asInstanceOf[IntegerTerm]).asInstanceOf[T]
-      case BigAnd(v, formula, init, end) => BigAnd(v, formula, apply(init.asInstanceOf[T]).asInstanceOf[IntegerTerm], apply(end.asInstanceOf[T]).asInstanceOf[IntegerTerm] ).asInstanceOf[T]
-      case BigOr(v, formula, init, end) =>   BigOr(v, formula, apply(init.asInstanceOf[T]).asInstanceOf[IntegerTerm], apply(end.asInstanceOf[T]).asInstanceOf[IntegerTerm] ).asInstanceOf[T]
-      case Succ(n) => Succ(apply(n.asInstanceOf[T]).asInstanceOf[IntegerTerm]).asInstanceOf[T]
-      case Or(l @ left, r @ right) => Or(apply(l.asInstanceOf[T]).asInstanceOf[SchemaFormula], apply(r.asInstanceOf[T]).asInstanceOf[SchemaFormula]).asInstanceOf[T]
-      case And(l @ left, r @ right) => And(apply(l.asInstanceOf[T]).asInstanceOf[SchemaFormula], apply(r.asInstanceOf[T]).asInstanceOf[SchemaFormula]).asInstanceOf[T]
-      case Neg(l @ left) => Neg(apply(l.asInstanceOf[T]).asInstanceOf[SchemaFormula]).asInstanceOf[T]
-      case Imp(l, r) => Imp(apply(l.asInstanceOf[T]).asInstanceOf[HOLFormula], apply(r.asInstanceOf[T]).asInstanceOf[HOLFormula]).asInstanceOf[T]
-      case AllVar(v, f) => AllVar(v, apply(f.asInstanceOf[T]).asInstanceOf[HOLFormula]).asInstanceOf[T]
-      case at @ Atom(name, args) => {
-//        println("\nAtom begin")
-        val atom = Atom(name, args.map(x => apply(x.asInstanceOf[T]).asInstanceOf[HOLExpression])).asInstanceOf[T]
-//        println("Atom end\n")
-        atom
-      }
-      case ifo: indexedFOVar => indexedFOVar(ifo.name, apply(ifo.index.asInstanceOf[T]).asInstanceOf[IntegerTerm]).asInstanceOf[T]
-      case st @ sTerm(name, i, args) => {
-//        println("\nsTerm")
-        sTerm(name.asInstanceOf[HOLConst], apply(i.asInstanceOf[T]), args.map(x => apply(x.asInstanceOf[T]))).asInstanceOf[T]
-      }
-      case foTerm(v, arg) => foTerm(v.asInstanceOf[HOLConst], apply(arg.asInstanceOf[T])::Nil).asInstanceOf[T]
-      case _ => {
-        //      println("\n SchemaSubstitution1: case _ => " + expression.toString + " : "+expression.getClass)
-        expression
-      }
-    }
-  }
-}
-*/
-
-/* All substitutions should die
-class SchemaSubstitution2[T <: HOLExpression](val map: Map[Var, T])  {
-  def apply(expression: T): T = {
-//    println("subst")
-    expression match {
-      case x:IntVar => {
-        //      println("\nIntVar = "+x)
-        map.get(x) match {
-          case Some(t) => {
-            //          println("substituting " + t.toStringSimple + " for " + x.toStringSimple)
-            t
-          }
-          case _ => {
-            //          println(x + " Error in schema subst 1")
-            x.asInstanceOf[T]
-          }
-        }
-      }
-      case x:foVar => {
-//        println("\nfoVar = "+x)
-        map.get(x) match {
-          case Some(t) => {
-            //          println("substituting " + t.toStringSimple + " for " + x.toStringSimple)
-            t
-          }
-          case _ => {
-            //          println(x + " Error in schema subst 1")
-            x.asInstanceOf[T]
-          }
-        }
-      }
-      case IndexedPredicate(pointer @ f, l @ ts) => IndexedPredicate(pointer.name.asInstanceOf[ConstantSymbolA], apply(l.head.asInstanceOf[T]).asInstanceOf[IntegerTerm]).asInstanceOf[T]
-      case BigAnd(v, formula, init, end) => BigAnd(v, formula, apply(init.asInstanceOf[T]).asInstanceOf[IntegerTerm], apply(end.asInstanceOf[T]).asInstanceOf[IntegerTerm] ).asInstanceOf[T]
-      case BigOr(v, formula, init, end) =>   BigOr(v, formula, apply(init.asInstanceOf[T]).asInstanceOf[IntegerTerm], apply(end.asInstanceOf[T]).asInstanceOf[IntegerTerm] ).asInstanceOf[T]
-      case Succ(n) => Succ(apply(n.asInstanceOf[T]).asInstanceOf[IntegerTerm]).asInstanceOf[T]
-      case Or(l @ left, r @ right) => Or(apply(l.asInstanceOf[T]).asInstanceOf[SchemaFormula], apply(r.asInstanceOf[T]).asInstanceOf[SchemaFormula]).asInstanceOf[T]
-      case And(l @ left, r @ right) => And(apply(l.asInstanceOf[T]).asInstanceOf[SchemaFormula], apply(r.asInstanceOf[T]).asInstanceOf[SchemaFormula]).asInstanceOf[T]
-      case Neg(l @ left) => Neg(apply(l.asInstanceOf[T]).asInstanceOf[SchemaFormula]).asInstanceOf[T]
-      case Imp(l, r) => Imp(apply(l.asInstanceOf[T]).asInstanceOf[HOLFormula], apply(r.asInstanceOf[T]).asInstanceOf[HOLFormula]).asInstanceOf[T]
-      case AllVar(v, f) => AllVar(v, apply(f.asInstanceOf[T]).asInstanceOf[HOLFormula]).asInstanceOf[T]
-      case at @ Atom(name, args) => {
-        Atom(name, args.map(x => apply(x.asInstanceOf[T]).asInstanceOf[HOLExpression])).asInstanceOf[T]
-      }
-      case ifo: indexedFOVar => indexedFOVar(ifo.name, apply(ifo.index.asInstanceOf[T]).asInstanceOf[IntegerTerm]).asInstanceOf[T]
-      case st @ sTerm(name, i, args) => {
-        sTerm(name.asInstanceOf[HOLConst], apply(i.asInstanceOf[T]).asInstanceOf[IntegerTerm], apply(args.asInstanceOf[T])::Nil).asInstanceOf[T]
-      }
-      case foTerm(v, arg) => foTerm(v.asInstanceOf[HOLConst], apply(arg.asInstanceOf[T])::Nil).asInstanceOf[T]
-      case sIndTerm(func, i) => {
-        sIndTerm(func.toString, apply(i.asInstanceOf[T]).asInstanceOf[IntegerTerm]).asInstanceOf[T]
-      }
-      case _ => {
-        //      println("\ncase _ =>")
-        //      println(expression)
-        expression
-      }
-    }
-  }
-}
-*/
-
-
-/* All substitutions should die
-class SchemaSubstitutionCNF(val map: Map[Var, HOLExpression])  {
-  def apply(expression: HOLExpression): HOLExpression = {
-    //    println("subst")
-    expression match {
-      case x:IntVar => {
-        //      println("\nIntVar = "+x)
-        map.get(x) match {
-          case Some(t) => {
-            //          println("substituting " + t.toStringSimple + " for " + x.toStringSimple)
-            t
-          }
-          case _ => {
-            //          println(x + " Error in schema subst 1")
-            x.asInstanceOf[HOLExpression]
-          }
-        }
-      }
-      case x:foVar => {
-        //        println("\nfoVar = "+x)
-        map.get(x) match {
-          case Some(t) => {
-            //          println("substituting " + t.toStringSimple + " for " + x.toStringSimple)
-            t
-          }
-          case _ => {
-            //          println(x + " Error in schema subst 1")
-            x.asInstanceOf[HOLExpression]
-          }
-        }
-      }
-      case v: indexedOmegaVar => indexedOmegaVar(v.name, apply(v.index))
-      case IndexedPredicate(pointer @ f, l @ ts) => IndexedPredicate(pointer.name.asInstanceOf[ConstantSymbolA], apply(l.head.asInstanceOf[HOLExpression]).asInstanceOf[IntegerTerm]).asInstanceOf[HOLExpression]
-      case Succ(n) => Succ(apply(n.asInstanceOf[HOLExpression]).asInstanceOf[IntegerTerm]).asInstanceOf[HOLExpression]
-      case at.logic.language.hol.Or(l @ left, r @ right) => at.logic.language.hol.Or(apply(l.asInstanceOf[HOLExpression]).asInstanceOf[HOLFormula], apply(r.asInstanceOf[HOLExpression]).asInstanceOf[HOLFormula]).asInstanceOf[HOLExpression]
-      case at.logic.language.hol.And(l @ left, r @ right) => at.logic.language.hol.And(apply(l.asInstanceOf[HOLExpression]).asInstanceOf[HOLFormula], apply(r.asInstanceOf[HOLExpression]).asInstanceOf[HOLFormula]).asInstanceOf[HOLExpression]
-      case at.logic.language.hol.Neg(l @ left) => at.logic.language.hol.Neg(apply(l.asInstanceOf[HOLExpression]).asInstanceOf[HOLFormula]).asInstanceOf[HOLExpression]
-      case at.logic.language.hol.Atom(name, args) => {
-        at.logic.language.hol.Atom(name, args.map(x => apply(x.asInstanceOf[HOLExpression]))).asInstanceOf[HOLExpression]
-      }
-      case ifo: indexedFOVar => indexedFOVar(ifo.name, apply(ifo.index.asInstanceOf[HOLExpression]).asInstanceOf[IntegerTerm]).asInstanceOf[HOLExpression]
-      case st @ sTerm(name, i, args) => {
-//        println("\n st = "+st)
-        sTerm(name, apply(i), apply(args.head)::Nil)
-      }
-      case foTerm(v, arg) => foTerm(v.asInstanceOf[HOLConst], apply(arg.asInstanceOf[HOLExpression])::Nil).asInstanceOf[HOLExpression]
-      case sIndTerm(func, i) => {
-        sIndTerm(func.toString, apply(i).asInstanceOf[IntegerTerm])
-      }
-      case App(App(f,t1),t2) => {
-//        println("\nAppN: " + expression)
-        val rez = AppN(f, apply(t1.asInstanceOf[HOLFormula])::apply(t2.asInstanceOf[HOLFormula])::Nil).asInstanceOf[HOLExpression]
-//        println("\nsub AppN: " + rez)
-        rez
-      }
-      case _ => {
-//        println("\ncase _ =>")
-//        println(expression)
-        expression
-      }
-    }
-  }
-}
-*/
 

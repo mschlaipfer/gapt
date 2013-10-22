@@ -296,7 +296,7 @@ object Neg {
 }
 
 object And {
-  def apply(fs: Seq[FOLFormula]) : FOLFormula = fs match {
+  def apply(fs: List[FOLFormula]) : FOLFormula = fs match {
     case Nil => TopC
     case f::fs => fs.foldLeft(f)( (d, f) => And(d, f) )
   }
@@ -308,7 +308,7 @@ object And {
 }
 
 object Or {
-    def apply(fs: Seq[FOLFormula]) : FOLFormula = fs match {
+    def apply(fs: List[FOLFormula]) : FOLFormula = fs match {
       case Nil => BottomC
       case f::fs => fs.foldLeft(f)( (d, f) => Or(d, f) )
     }

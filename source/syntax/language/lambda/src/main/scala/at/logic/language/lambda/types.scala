@@ -1,5 +1,5 @@
 /*
- * abstractTypedLambdaCalculus.scala
+ * types.scala
  *
  */
 

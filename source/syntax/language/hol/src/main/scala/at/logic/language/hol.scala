@@ -6,9 +6,8 @@ package at.logic.language.hol
 
 import at.logic.language.lambda.symbols._
 import at.logic.language.hol.logicSymbols._
-import at.logic.language.lambda._
+import at.logic.language.lambda.{LambdaExpression, Var, Cons, App, Abs, FactoryA}
 import at.logic.language.lambda.types._
-import collection.Seq
 
 trait HOLExpression extends LambdaExpression {
 
@@ -46,7 +45,7 @@ trait HOLExpression extends LambdaExpression {
     case _ => false
   }
 
-  def subTerms: Seq[HOLExpression] = this match {
+  def subTerms: List[HOLExpression] = this match {
     case HOLVar(_,_) => List(this)
     case HOLConst(_,_) => List(this)
     case Atom(_, args) =>  this +: args.flatMap(_.subTerms)

@@ -7,7 +7,7 @@
 package at.logic.language.schema
 
 import at.logic.language.lambda.types._
-import at.logic.language.lambda._
+import at.logic.language.lambda.{LambdaExpression, App, Abs, Var, Cons, FactoryA}
 import at.logic.language.lambda.symbols._
 import at.logic.language.hol.{HOLFormula, HOLExpression, HOLVar, HOLConst, HOLApp, HOLAbs}
 import at.logic.language.hol.logicSymbols._
@@ -23,9 +23,9 @@ trait SchemaExpression extends HOLExpression {
       case sTerm(func, i, arg) if dbTRS.map.contains(func) => {
         if (i == IntZero()) {
           val base = dbTRS.map.get(func).get._1._2
-          val new_map = Map[Var, HOLExpression]() + Pair(x, arg.head)
+          val new_map = Map[SchemaVar, SchemaExpression]() + Pair(x, arg.head)
           val subst = Substitution(new_map)
-          subst[SchemaExpression](base)
+          subst(base)
         }
         else if (i == k) this
         else i match {
@@ -51,7 +51,7 @@ trait SchemaExpression extends HOLExpression {
         else if (i == k) this
         else {
           val step = dbTRS.map.get(func).get._2._2
-          val new_map = Map[Var, SchemaExpression]() + Pair(k, Pred(i.asInstanceOf[IntegerTerm]))
+          val new_map = Map[SchemaVar, SchemaExpression]() + Pair(k, Pred(i.asInstanceOf[IntegerTerm]))
           val subst = Substitution(new_map)
           subst(step)
         }
@@ -468,7 +468,7 @@ object leq {
 
 object aTerm {
   def apply(name: SchemaConst, ind: IntegerTerm): IntegerTerm = {
-    SchemaFactory.createApp(name, ind).asInstanceOf[IntegerTerm]
+    SchemaApp(name, ind).asInstanceOf[IntegerTerm]
   }
 }
 

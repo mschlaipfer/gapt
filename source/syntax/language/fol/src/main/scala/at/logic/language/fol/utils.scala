@@ -4,7 +4,6 @@
 
 package at.logic.language.fol
 
-import at.logic.language.lambda.Substitution
 import at.logic.language.lambda.types._
 
 // TODO: organize what goes here and what goes in FOLExpression/FOLFormula

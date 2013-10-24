@@ -14,6 +14,7 @@ import at.logic.language.hol._
 import at.logic.language.lambda.types._
 import at.logic.language.hol.logicSymbols._
 import base._
+import at.logic.language.fol.FOLConst
 
 /**
 * The following properties of each rule are tested:
@@ -443,6 +444,20 @@ class LKTest extends SpecificationWithJUnit {
       val ax2 = Axiom(Nil, paba::Nil)
       ExistsRightRule(ax2, ax2.root.occurrences(0), expxba, a).root.occurrences(0).formula must_==(expxba)
       ExistsRightRule(ax2, ax2.root.occurrences(0), expxba, b).root.occurrences(0).formula must_==(expxba) must throwAn[Exception]()
+    }
+
+    "work for first order proofs" in {
+      skipped("does not work yet")
+      import at.logic.language.fol
+      val List(a,b) = List("a","b") map (fol.FOLConst(_))
+      val List(x,y) = List("x","y") map (fol.FOLVar(_))
+      val p = fol.FOLConst("P", Ti -> (Ti -> To))
+      val pab = fol.Atom(p, List(a,b))
+      val allxpax = fol.AllVar(x,fol.Atom(p, List(a,x)))
+      val ax = Axiom(List(pab), List(pab))
+      val i1 = ForallRightRule(ax, ax.root.succedent(0), allxpax, x)
+
+
     }
   }
 }

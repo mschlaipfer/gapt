@@ -66,6 +66,22 @@ object Axiom {
     new LeafTree[Sequent](seq) with NullaryLKProof {def rule = InitialRuleType}
   }
 
+  /** <pre>Creates an axiom with the sequent seq (consisting of the
+    * antecedent sL and the succedent sR).
+    * sL and sR have to have a shared formula.
+    *
+    * The rule:
+    *
+    * ------------(Axiom)
+    *   sL |- sR
+    * </pre>
+    *
+    * @param s1 The sequent of the axiom as FSequent.
+    * @return The LKProof consisting of s1 as its axiom.
+    */
+  def apply(seq: FSequent) : LeafTree[Sequent] with NullaryLKProof = apply(seq.antecedent, seq.succedent)
+
+
   /** <pre>Creates an axiom consisting of the antecedent ant and
     * the succeedent suc. ant and suc have to have a shared formula.
     *

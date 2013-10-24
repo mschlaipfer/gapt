@@ -6,7 +6,7 @@ package at.logic.language.hol
 
 import at.logic.language.lambda.symbols._
 import at.logic.language.hol.logicSymbols._
-import at.logic.language.lambda.{LambdaExpression, Var, Cons, App, Abs, FactoryA}
+import at.logic.language.lambda.{LambdaExpression, Var, Const, App, Abs, FactoryA}
 import at.logic.language.lambda.types._
 
 trait HOLExpression extends LambdaExpression {
@@ -156,7 +156,7 @@ trait HOLFormula extends HOLExpression with Formula {
 
 class HOLVar protected[hol] (sym: SymbolA, exptype: TA) extends Var(sym, exptype) with HOLExpression 
 object HOLVar {
-  // If it is a formula, use the constructor for HOLConstFormula
+  // If it is a formula, use the constructor for HOLVarFormula
   def apply(name: String, exptype: TA) = exptype match {
     case To => new HOLVarFormula(StringSymbol(name))
     // In order to get rid of HOLVarFormula, this can be transformed to:
@@ -174,7 +174,7 @@ object HOLVarFormula {
   def apply(name: String) = new HOLVarFormula(StringSymbol(name))
 }
 
-class HOLConst protected[hol] (sym: SymbolA, exptype: TA) extends Cons(sym, exptype) with HOLExpression {
+class HOLConst protected[hol] (sym: SymbolA, exptype: TA) extends Const(sym, exptype) with HOLExpression {
   override def isLogicalSymbol: Boolean = sym.isInstanceOf[LogicalSymbolA]
   def isEqSymbol: Boolean = sym == EqSymbol
 }
@@ -199,7 +199,7 @@ object HOLConstFormula {
 class HOLApp protected[hol] (function: HOLExpression, arg: HOLExpression) extends App(function, arg) with HOLExpression
 object HOLApp {
   // If it is a formula, use the constructor for HOLAppFormula
-  def apply(function: HOLExpression, argument: HOLExpression) = function.exptype match { 
+  def apply(function: HOLExpression, argument: HOLExpression) = function.exptype match {
     case ->(_, To) => new HOLAppFormula(function, argument)
     case _ => new HOLApp(function, argument)
   }
@@ -380,14 +380,14 @@ object Atom {
 
 // TODO: Is it possible to simplify the quantifiers? There are too many objects for that...
 object ExQ {
-  def unapply(v: HOLConst) = v match {
-    case vo: ExQ => Some(vo.exptype)
+  def unapply(v: HOLConst) = (v, v.sym) match {
+    case (vo@HOLConst(_, t), ExistsSymbol) => Some(t)
     case _ => None
   }
 }
 object AllQ {
-  def unapply(v: HOLConst) = v match {
-    case vo: AllQ => Some(vo.exptype)
+  def unapply(v: HOLConst) = (v, v.sym) match {
+    case (vo@HOLConst(_, t), ForallSymbol) => Some(t)
     case _ => None
   }
 }
@@ -436,7 +436,7 @@ object Quantifier {
 
 object HOLFactory extends FactoryA {
   def createVar(name: String, exptype: TA) : HOLVar = HOLVar(name, exptype)
-  def createCons(name: String, exptype: TA) : HOLConst = HOLConst(name, exptype)
+  def createConst(name: String, exptype: TA) : HOLConst = HOLConst(name, exptype)
   def createApp( fun: LambdaExpression, arg: LambdaExpression ) : HOLApp = HOLApp(fun.asInstanceOf[HOLExpression], arg.asInstanceOf[HOLExpression])
   def createAbs( variable: Var, exp: LambdaExpression ) : HOLAbs  = HOLAbs( variable.asInstanceOf[HOLVar], exp.asInstanceOf[HOLExpression] )
 }

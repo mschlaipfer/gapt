@@ -10,8 +10,7 @@ package at.logic.calculi.lksk
 import at.logic.calculi.occurrences._
 import at.logic.calculi.proofs._
 import at.logic.language.hol._
-import at.logic.language.lambda.typedLambdaCalculus._
-import at.logic.language.lambda.substitutions._
+import at.logic.language.hol
 import scala.collection.immutable.HashMap
 
 import at.logic.calculi.lk.base.{FormulaNotExistsException,AuxiliaryFormulas,PrincipalFormulas,Sequent}
@@ -51,12 +50,12 @@ package base {
         throw new Exception("ancestors not labelled")
     }
 
-    def createContextFormulaOccurrenceWithSubst(formula: HOLFormula, current: FormulaOccurrence, ancestors: List[FormulaOccurrence], sub: Substitution[HOLExpression]) = {
+    def createContextFormulaOccurrenceWithSubst(formula: HOLFormula, current: FormulaOccurrence, ancestors: List[FormulaOccurrence], sub: hol.Substitution) = {
       assert( ancestors.forall( _.isInstanceOf[LabelledFormulaOccurrence] ) )
       val l_ancestors = ancestors.map( _.asInstanceOf[LabelledFormulaOccurrence] )
       val l = l_ancestors.head.skolem_label
       assert( l_ancestors.forall( a => a.skolem_label == l ) )
-      new LabelledFormulaOccurrence(sub(formula).asInstanceOf[HOLFormula], l_ancestors, l.map( sub(_) ) )
+      new LabelledFormulaOccurrence(sub(formula), l_ancestors, l.map( sub(_) ) )
     }
 
     def createOccurrence(formula: HOLFormula, ancestors: List[LabelledFormulaOccurrence]) : LabelledFormulaOccurrence = {

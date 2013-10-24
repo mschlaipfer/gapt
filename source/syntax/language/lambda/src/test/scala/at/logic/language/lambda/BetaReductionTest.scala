@@ -129,10 +129,14 @@ class BetaReductionTest extends SpecificationWithJUnit {
     "betaNormalize correctly including a simple variable renaming" in {
       val x = Var( "x", Ti )
       val z = Var( "z", Ti )
-      val f = Cons( "f", Ti->(Ti->Ti) )
+      val f = Const( "f", Ti->(Ti->Ti) )
       val M = App( Abs( x::z::Nil, App( f, x::z::Nil )), z )
       val N = Abs( x, App( f, z::x::Nil ))
       val M_normalized = betaNormalize( M )( Innermost )
+
+      // TODO: when I(Stefan) uncomment the above line I get:
+      // java.lang.ClassCastException: at.logic.language.lambda.Abs cannot be cast to at.logic.language.lambda.App
+      // what am I doing wrong?
 
       M_normalized must beEqualTo ( N )
     }

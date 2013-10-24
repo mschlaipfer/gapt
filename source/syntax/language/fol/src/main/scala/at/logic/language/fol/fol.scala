@@ -4,7 +4,7 @@
 
 package at.logic.language.fol
 
-import at.logic.language.lambda.{LambdaExpression, Var, Cons, App, Abs, FactoryA}
+import at.logic.language.lambda.{LambdaExpression, Var, Const, App, Abs, FactoryA}
 import at.logic.language.hol.{HOLExpression, HOLVar, HOLConst, HOLApp, HOLAbs, HOLFormula}
 import at.logic.language.lambda.symbols._
 import at.logic.language.lambda.types._
@@ -246,7 +246,7 @@ object Atom {
     case FOLApp(c: FOLConst,_) if c.isLogicalSymbol => None
     case FOLApp(FOLApp(c: FOLConst,_),_) if c.isLogicalSymbol => None
     case FOLApp(_,_) if (expression.exptype == To) => Some( unapply_(expression) )
-    case FOLConst(_) if (expression.exptype == To) => Some( (expression, Nil) )
+    case FOLConst(_,_) if (expression.exptype == To) => Some( (expression, Nil) )
     case FOLVar(_) if (expression.exptype == To) => Some( (expression, Nil) )
     case _ => None
   }
@@ -396,7 +396,7 @@ object FOLFactory extends FactoryA {
     case To => throw new Exception("In FOL, of type 'o' only constants may be created.")
     case ->(tr, ta) => throw new Exception("In FOL, of type 'a -> b' only constants may be created.")
   }
-  def createCons( name: String, exptype: TA ) : FOLConst = FOLConst(name, exptype)
+  def createConst( name: String, exptype: TA ) : FOLConst = FOLConst(name, exptype)
   def createVar( name: String ) : FOLVar = createVar( name, Ti )
 
   //remark: in contrast to earlier times, you can only create fol applications from fol expressions

@@ -60,7 +60,7 @@ object BetaReduction {
       }
     case Abs(x,m) => expression.factory.createAbs(x,betaNormalize(m))
     case x: Var => x
-    case x: Cons => x
+    case x: Const => x
   }
 
   def betaReduce(expression: LambdaExpression)(implicit strategyOI: StrategyOuterInner.Value, strategyLR: StrategyLeftRight.Value): LambdaExpression = expression match {

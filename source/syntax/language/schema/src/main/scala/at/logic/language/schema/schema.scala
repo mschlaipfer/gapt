@@ -7,7 +7,7 @@
 package at.logic.language.schema
 
 import at.logic.language.lambda.types._
-import at.logic.language.lambda.{LambdaExpression, App, Abs, Var, Cons, FactoryA}
+import at.logic.language.lambda.{LambdaExpression, App, Abs, Var, Const, FactoryA}
 import at.logic.language.lambda.symbols._
 import at.logic.language.hol.{HOLFormula, HOLExpression, HOLVar, HOLConst, HOLApp, HOLAbs}
 import at.logic.language.hol.logicSymbols._
@@ -428,8 +428,8 @@ object Atom {
     case SchemaApp(c: SchemaConst,_) if c.isLogicalSymbol => None
     case SchemaApp(SchemaApp(c: SchemaConst,_),_) if c.isLogicalSymbol => None
     case SchemaApp(_,_) if (expression.exptype == To) => Some( unapply_(expression) )
-    case SchemaConst(_) if (expression.exptype == To) => Some( (expression, Nil) )
-    case SchemaVar(_) if (expression.exptype == To) => Some( (expression, Nil) )
+    case SchemaConst(_,_) if (expression.exptype == To) => Some( (expression, Nil) )
+    case SchemaVar(_,_) if (expression.exptype == To) => Some( (expression, Nil) )
     case _ => None
   }
   // Recursive unapply to get the head and args
@@ -574,7 +574,7 @@ object isBiggerThan {
 
 object SchemaFactory extends FactoryA {
   def createVar( name: String, exptype: TA) : SchemaVar = SchemaVar(name, exptype)
-  def createCons(name: String, exptype: TA) : SchemaConst = SchemaConst(name, exptype)
+  def createConst(name: String, exptype: TA) : SchemaConst = SchemaConst(name, exptype)
   def createAbs( variable: Var, exp: LambdaExpression ): SchemaAbs = SchemaAbs( variable.asInstanceOf[IntVar], exp.asInstanceOf[SchemaExpression] )
   def createApp( fun: LambdaExpression, arg: LambdaExpression ): SchemaApp = SchemaApp(fun.asInstanceOf[SchemaExpression], arg.asInstanceOf[SchemaExpression])
 }

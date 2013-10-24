@@ -8,6 +8,7 @@ import org.specs2.mutable._
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import at.logic.language.lambda.types._
+import at.logic.language.hol
 
 @RunWith(classOf[JUnitRunner])
 class FirstOrderLogicTest extends SpecificationWithJUnit {
@@ -81,6 +82,62 @@ class FirstOrderLogicTest extends SpecificationWithJUnit {
         case _ => ko
       }
     }
+  }
+
+  "First order formulas matching against higher order contructors" should {
+    "work for propositional logical operators" in {
+      val List(x,y) = List("x","y") map (FOLVar(_))
+      val p = FOLConst("P", Ti -> (Ti -> To))
+      val pab = Atom(p, List(x,y))
+
+      And(pab,pab) match {
+        case hol.And(a,b) =>
+          a mustEqual(pab)
+          b mustEqual(pab)
+        case _ => ko("FOL Conjunction did not match against HOL Conjunction!")
+      }
+
+      Or(pab,pab) match {
+        case hol.Or(a,b) =>
+          a mustEqual(pab)
+          b mustEqual(pab)
+        case _ => ko("FOL Disjunction did not match against HOL Conjunction!")
+      }
+
+      Neg(pab) match {
+        case hol.Neg(a) =>
+          a mustEqual(pab)
+        case _ => ko("FOL Negation did not match against HOL Conjunction!")
+      }
+    }
+
+    "work for quantifiers" in {
+      val List(a,b) = List("a","b") map (FOLConst(_))
+      val List(x,y) = List("x","y") map (FOLVar(_))
+      val p = FOLConst("P", Ti -> (Ti -> To))
+      val pab = Atom(p, List(a,b))
+
+      AllVar(x,pab) match {
+        case hol.AllVar(v,f) =>
+          v mustEqual(x)
+          f mustEqual(pab)
+        case _ => ko("FOL AllVar did not match against HOL Conjunction!")
+      }
+
+      ExVar(x,pab) match {
+        case hol.ExVar(v,f) =>
+          v mustEqual(x)
+          f mustEqual(pab)
+        case hol.Ex(_,_) =>
+          println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+          ko("!!!!!!!!!")
+        case Ex(_) =>
+          println("++++++")
+          ko("+++++")
+        case _ => ko("FOL ExVar did not match against HOL Conjunction!")
+      }
+    }
+
   }
 
 }

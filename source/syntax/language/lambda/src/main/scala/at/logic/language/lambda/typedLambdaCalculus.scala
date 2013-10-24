@@ -27,7 +27,7 @@ abstract class LambdaExpression {
     case v : Var =>
       if (!bound.contains(v)) List(v)
       else List()
-    case Cons(_) => List()
+    case Const(_,_) => List()
     case App(exp, arg) => exp.getFreeVariables(bound) ++ arg.getFreeVariables(bound)
     case Abs(v, exp) => exp.getFreeVariables(v :: bound)
   }
@@ -81,25 +81,25 @@ object Var {
 }
 
 // TODO: sym should be private!!
-class Cons(val sym: SymbolA, val exptype: TA) extends LambdaExpression {
+class Const(val sym: SymbolA, val exptype: TA) extends LambdaExpression {
 
   // The name of the variable should be obtained with this method.
   def name : String = sym.toString
 
-  def rename(blackList: List[Cons]) : Cons = new Cons(getRenaming(sym, blackList.map(c => c.sym)), exptype)
+  def rename(blackList: List[Const]) : Const = new Const(getRenaming(sym, blackList.map(c => c.sym)), exptype)
 
   override def equals(a: Any) = alphaEquals(a, Map[Var, Var]())
 
   // Syntactic equality
   def syntaxEquals(e: LambdaExpression) = e match {
-    case Cons(n, t) => (n == name && t == exptype)
+    case Const(n, t) => (n == name && t == exptype)
     case _ => false
   }
     
   // Alpha-equality
   // Two constants are *not* alpha-equivalent if they don't have the same name and type.
   def alphaEquals(a: Any, subs: Map[Var, Var]) = a match {
-    case Cons(n, t) => n == name && t == exptype
+    case Const(n, t) => n == name && t == exptype
     case _ => false
   }
   
@@ -107,11 +107,11 @@ class Cons(val sym: SymbolA, val exptype: TA) extends LambdaExpression {
   override def toString() = "Cons(" + name + "," + exptype + ")"
 
 }
-object Cons {
-  def apply(name: String, exptype: TA) = new Cons(StringSymbol(name), exptype)
-  def apply(name: String, exptype: String) = new Cons(StringSymbol(name), Type(exptype))
+object Const {
+  def apply(name: String, exptype: TA) = new Const(StringSymbol(name), exptype)
+  def apply(name: String, exptype: String) = new Const(StringSymbol(name), Type(exptype))
   def unapply(e: LambdaExpression) = e match {
-    case c : Cons => Some(c.name, c.exptype)
+    case c : Const => Some(c.name, c.exptype)
     case _ => None
   }
 }
@@ -211,14 +211,14 @@ object Abs {
 
 trait FactoryA {
   def createVar( name: String, exptype: TA ) : Var
-  def createCons( name: String, exptype: TA ) : Cons
+  def createConst( name: String, exptype: TA ) : Const
   def createAbs( variable: Var, exp: LambdaExpression ) : Abs
   def createApp( fun: LambdaExpression, arg: LambdaExpression ) : App
 }
 
 object LambdaFactory extends FactoryA {
   def createVar( name: String, exptype: TA )  = Var( name, exptype)
-  def createCons( name: String, exptype: TA )  = Cons( name, exptype)
+  def createConst( name: String, exptype: TA )  = Const( name, exptype)
   def createAbs( variable: Var, exp: LambdaExpression ) = Abs( variable, exp )
   def createApp( fun: LambdaExpression, arg: LambdaExpression ) = App( fun, arg )
 }

@@ -6,8 +6,10 @@
 package at.logic.language.fol
 
 import at.logic.language.lambda.{Substitution => SubstitutionLambda, LambdaExpression, Var}
+import at.logic.language.hol
+import at.logic.language.hol.{HOLExpression, HOLVar}
 
-class Substitution(val map: Map[FOLVar, FOLExpression]) {
+class Substitution(val folmap: Map[FOLVar, FOLExpression]) extends hol.Substitution(folmap.asInstanceOf[Map[HOLVar, HOLExpression]]) {
   def apply(t: FOLExpression): FOLExpression = {
     val s = SubstitutionLambda(map.asInstanceOf[Map[Var, LambdaExpression]])
     s(t).asInstanceOf[FOLExpression]

@@ -7,7 +7,7 @@ import symbols._
  * A substitution is a mapping from variables to lambda-expressions which differs from the identity
  * on finitely many variables. Therefore:
  *  1) each variable is mapped to only one lambda expression
- *  2) the order of the variab:le-mappings is irrelevant
+ *  2) the order of the variable-mappings is irrelevant
  *  3) all variable-mappings are applied simultaneously to a term i.e. {x |-> y, y |-> a}x = y and not a.
  *
  * As the lambda calculus contains variable binders, substitution can only be defined up to alpha-equivalence.
@@ -23,7 +23,7 @@ class Substitution(val map: Map[Var, LambdaExpression]) {
   def apply(t: LambdaExpression): LambdaExpression = t match {
     case v : Var if map.contains(v) => map(v)
     case v : Var if !map.contains(v) => v
-    case Cons(_, _) => t
+    case Const(_, _) => t
     case App(t1, t2) => 
       t.factory.createApp( apply(t1), apply(t2) )
     case Abs(v, t1) =>

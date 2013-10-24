@@ -10,14 +10,13 @@ digraph G {
   skolemSymbols [label=< skolemSymbols<br/><font point-size="10pt">- skolemSymbols.scala</font> >]
   replacements [label=< replacements<br/><font point-size="10pt">- Replacements.scala (???)</font> >]
   fol [label=< fol<br/><font point-size="10pt">- fol.scala<br/>- utils.scala<br/>- substitution.scala<br/>- betaReduction.scala</font> >]
-  equations [label=< equations<br/><font point-size="10pt">- equational_theories.scala (???)</font> >]
   schema [label=< schema<br/><font point-size="10pt">- schema.scala<br/>- substitution.scala<br/>- betaReduction.scala</font> >]
   logicSymbols_schema [label=< logicSymbols<br/><font point-size="10pt">- logicSymbols.scala</font> >]
-  generators [label=< generators<br/><font point-size="10pt">- termgenerator.scala (???)</font> >]
   calculi [label=< calculi<br/><font point-size="10pt">- occurrences.scala</font> >]
   proofs [label=< proofs<br/><font point-size="10pt">- treeProofs.scala<br/>- proofs.scala<br/>- agraphProofs.scala</font> >]
   lk [label=< lk<br/><font point-size="10pt">- definitionRules.scala<br/>- equationalRules.scala<br/>- propositionalRules.scala<br/>- quantificationRules.scala<br/>- lkExtractors.scala<br/>- macroRules.scala</font> >]
   base [label=< base<br/><font point-size="10pt">- base.scala<br/>- lkSpecs.scala</font> >]
+  lksk [label=< base<br/><font point-size="10pt">- base.scala<br/>- lksk.scala<br/>- lkskExtractors.scala</font> >]
   at -> logic -> language -> lambda -> symbols;
   lambda -> types;
   language -> hol;
@@ -25,13 +24,12 @@ digraph G {
   hol -> skolemSymbols;
   hol -> replacements;
   language -> fol;
-  fol -> equations;
   language -> schema;
   schema -> logicSymbols_schema;
   logic -> utils;
-  utils -> generators;
   logic -> calculi;
   calculi -> proofs;
   calculi -> lk;
   lk -> base;
+  calculi -> lksk;
 }

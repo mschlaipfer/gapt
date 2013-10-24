@@ -73,11 +73,6 @@ class Substitution(val map: Map[Var, LambdaExpression]) {
 
   def isRenaming = map.forall( p => p._2.isInstanceOf[Var] )
 
-  def getTerm(v: Var) = map.get(v) match {
-    case Some(t) => t
-    case None => throw new Exception("ERROR: No term associated with variable " + v + " in substitution " + this)
-  }
-
 }
 
 object Substitution {

@@ -9,12 +9,12 @@ import at.logic.language.lambda.Substitution
 import org.specs2.mutable._
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
-
 import at.logic.language.hol._
 import at.logic.language.lambda.types._
 import at.logic.language.hol.logicSymbols._
 import base._
 import at.logic.language.fol.FOLConst
+import at.logic.language.fol
 
 /**
 * The following properties of each rule are tested:
@@ -448,7 +448,6 @@ class LKTest extends SpecificationWithJUnit {
 
     "work for first order proofs" in {
       skipped("does not work yet")
-      import at.logic.language.fol
       val List(a,b) = List("a","b") map (fol.FOLConst(_))
       val List(x,y) = List("x","y") map (fol.FOLVar(_))
       val p = fol.FOLConst("P", Ti -> (Ti -> To))

@@ -1,10 +1,10 @@
 package at.logic.calculi.expansionTrees
 
 import at.logic.language.hol._
-import at.logic.language.fol.{FOLFormula, FOLTerm, FOLExpression}
+import at.logic.language.fol.{FOLFormula, FOLTerm, FOLExpression, AllVar => AllVarFOL, ExVar => ExVarFOL}
 import at.logic.language.hol.{Atom => AtomHOL, And => AndHOL, Or => OrHOL, Imp => ImpHOL}
 import at.logic.utils.ds.trees._
-import at.logic.language.lambda.substitutions._
+import at.logic.language.fol.Substitution
 import at.logic.algorithms.unification.fol.FOLUnificationAlgorithm
 import at.logic.calculi.lk.base._
 import at.logic.calculi.occurrences._
@@ -107,17 +107,16 @@ object prenexToExpansionTree {
         }
     }
     
-    // TODO: merge edges with the same term.
     WeakQuantifier(f, children)
   }
 
-  def apply_(f: FOLFormula, sub: Substitution[FOLExpression]) : ExpansionTree = f match {
-    case AllVar(v, _) => //v What is this 'v' doing here?
-      val t = sub.getTerm(v)
+  def apply_(f: FOLFormula, sub: Substitution) : ExpansionTree = f match {
+    case AllVarFOL(v, _) =>
+      val t = sub.map(v)
       val newf = f.instantiate(t.asInstanceOf[FOLTerm])
       WeakQuantifier(f, List(Pair(apply_(newf, sub), t)))
-    case ExVar(v, _) => //v
-      val t = sub.getTerm(v)
+    case ExVarFOL(v, _) => 
+      val t = sub.map(v)
       val newf = f.instantiate(t.asInstanceOf[FOLTerm])
       WeakQuantifier(f, List(Pair(apply_(newf, sub), t)))
     case _ => qFreeToExpansionTree(f)

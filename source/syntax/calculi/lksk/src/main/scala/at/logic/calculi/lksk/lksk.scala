@@ -1,31 +1,21 @@
 /*
- * propositionalRules.scala
+ * lksk.scala
  *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
  */
 
 package at.logic.calculi.lksk
 
-import _root_.at.logic.language.lambda.types.->
+import at.logic.language.lambda.types.->
 import at.logic.calculi.occurrences._
 import at.logic.calculi.proofs._
 import at.logic.language.hol._
-import at.logic.language.lambda.typedLambdaCalculus._
 import at.logic.utils.ds.trees._
-import scala.collection.mutable.{Map,HashMap}
-import base._
-import base.LabelledFormulaOccurence.lfo2fo
-import base.TypeSynonyms._
-import at.logic.calculi.lk.base.types._
-
-import at.logic.calculi.lk.base.{Sequent,AuxiliaryFormulas,PrincipalFormulas, SubstitutionTerm}
-import at.logic.calculi.lk.propositionalRules.{InitialRuleType, WeakeningLeftRuleType, WeakeningRightRuleType}
-import at.logic.calculi.lk.propositionalRules.{Axiom => LKAxiom}
-import at.logic.calculi.lk.quantificationRules._
+import at.logic.calculi.lk.base.{Sequent, FSequent, AuxiliaryFormulas, PrincipalFormulas, SubstitutionTerm}
+import at.logic.calculi.lk.{InitialRuleType, WeakeningLeftRuleType, WeakeningRightRuleType, Axiom => LKAxiom, _}
 import at.logic.calculi.lk.base.{NullaryLKProof, LKProof,createContext,UnaryLKProof,LKRuleCreationException}
 import at.logic.calculi.occurrences.FormulaOccurrence
 
+import TypeSynonyms._
 
 // lksk proofs
 // rules are extracted in the form (UpperSequent(s), LowerSequent, AuxialiaryFormula(s), PrincipalFormula(s))

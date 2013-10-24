@@ -10,13 +10,12 @@ package at.logic.algorithms.unification.fol
 import at.logic.language.lambda.typedLambdaCalculus._
 import at.logic.algorithms.unification.UnificationAlgorithm
 import at.logic.language.fol._
-import at.logic.language.lambda.substitutions.Substitution
 import at.logic.calculi.lk.base.Sequent
 import at.logic.calculi.lk.base.types._
 
 object FOLUnificationAlgorithm extends UnificationAlgorithm[FOLExpression] {
 
-  def unify(seq1: FSequent, seq2: FSequent) : List[Substitution[FOLExpression]] = {
+  def unify(seq1: FSequent, seq2: FSequent) : List[Substitution] = {
     require( (seq1._1 ++ seq1._2 ++ seq2._1 ++ seq2._2).forall( _.isInstanceOf[FOLFormula] ) )
 
     val seq1ord = new FSequent(seq1._1.sortBy(x => x.toString), seq1._2.sortBy(x => x.toString))

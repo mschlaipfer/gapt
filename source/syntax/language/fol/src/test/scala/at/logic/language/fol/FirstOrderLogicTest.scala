@@ -129,10 +129,8 @@ class FirstOrderLogicTest extends SpecificationWithJUnit {
           v mustEqual(x)
           f mustEqual(pab)
         case hol.Ex(_,_) =>
-          println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
           ko("!!!!!!!!!")
         case Ex(_) =>
-          println("++++++")
           ko("+++++")
         case _ => ko("FOL ExVar did not match against HOL Conjunction!")
       }

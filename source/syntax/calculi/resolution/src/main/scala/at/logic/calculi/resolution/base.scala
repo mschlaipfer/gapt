@@ -1,8 +1,6 @@
  /*
  * base.scala
  *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
  */
 
 package at.logic.calculi.resolution
@@ -10,51 +8,22 @@ package at.logic.calculi.resolution
 import at.logic.calculi.occurrences._
 import at.logic.calculi.proofs._
 import at.logic.language.hol._
-import at.logic.language.lambda.symbols._
-import at.logic.language.lambda.typedLambdaCalculus._
 import at.logic.utils.ds.acyclicGraphs._
 import scala.collection.mutable.Map
-import at.logic.language.lambda.substitutions._
 import at.logic.calculi.lk.base._
 import at.logic.utils.traits.Occurrence
-
-package base {
-
 import at.logic.calculi.agraphProofs._
 
-/*
-  object RunningId {
-    var id = 0
-    def nextId = {id = id + 1; id}
-  }
-*/
+trait ResolutionProof[V <: Sequent] extends AGraphProof[V]
 
-  trait ResolutionProof[V <: Sequent] extends AGraphProof[V]
-
-  trait NullaryResolutionProof[V <: Sequent] extends NullaryAGraphProof[V] with ResolutionProof[V] with NullaryProof[V]
-  trait UnaryResolutionProof[V <: Sequent] extends UnaryAGraphProof[V] with ResolutionProof[V] with UnaryProof[V] {
-    override def uProof = t.asInstanceOf[ResolutionProof[V]]
-  }
-  trait BinaryResolutionProof[V <: Sequent] extends BinaryAGraphProof[V] with ResolutionProof[V] with BinaryProof[V] {
-    override def uProof1 = t1.asInstanceOf[ResolutionProof[V]]
-    override def uProof2 = t2.asInstanceOf[ResolutionProof[V]]
-  }
-
-/*
-  trait LiteralId {
-    def literalId: Int
-  }
-
-  trait LiteralIds {
-    def literalIdLeft: Int
-    def literalIdRight: Int
-  }
-
-  trait LiteralIdsSets {
-    def literalIdsLeft: List[Int]
-    def literalIdsRight: List[Int]
-  }
-*/
+trait NullaryResolutionProof[V <: Sequent] extends NullaryAGraphProof[V] with ResolutionProof[V] with NullaryProof[V]
+trait UnaryResolutionProof[V <: Sequent] extends UnaryAGraphProof[V] with ResolutionProof[V] with UnaryProof[V] {
+  override def uProof = t.asInstanceOf[ResolutionProof[V]]
+}
+trait BinaryResolutionProof[V <: Sequent] extends BinaryAGraphProof[V] with ResolutionProof[V] with BinaryProof[V] {
+  override def uProof1 = t1.asInstanceOf[ResolutionProof[V]]
+  override def uProof2 = t2.asInstanceOf[ResolutionProof[V]]
+}
 
 trait CNF extends Sequent {require((antecedent++succedent).forall(x => x.formula match {case Atom(_,_) => true; case _ => false}))}
 
@@ -144,7 +113,7 @@ object Clause {
     def term: HOLExpression
   }
   trait AppliedSubstitution[T <: LambdaExpression] {
-    def substitution: Substitution[T]
+    def substitution: Substitution
   }
 
   case object InitialType extends NullaryRuleTypeA
@@ -163,4 +132,3 @@ object Clause {
   // exceptions
   class ResolutionRuleException(msg: String) extends RuleException(msg)
   class ResolutionRuleCreationException(msg: String) extends ResolutionRuleException(msg)
-}

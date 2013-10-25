@@ -408,7 +408,7 @@ class StrongRuleHelper(polarity : Boolean) extends QuantifierRuleHelper(polarity
           //This check does the following: if we conclude exists x.A[x] from A[t] then A[x\t] must be A[t].
           //If it fails, you are doing something seriously wrong!
           //In any case do NOT remove it without telling everyone!
-          assert( betaNormalize( HOLApp( sub, eigen_var ) ) == aux_fo.formula , "\n\nassert 2 in getTerms of String Quantifier Rule fails!\n\n")
+          assert( betaNormalize( HOLApp( sub, eigen_var ) ) == aux_fo.formula , "assert 2 in getTerms of String Quantifier Rule fails!\n"+betaNormalize( HOLApp( sub, eigen_var ) )+" != "+aux_fo.formula)
           aux_fo
 
         case Ex( sub, _ ) =>

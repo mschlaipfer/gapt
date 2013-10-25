@@ -446,17 +446,43 @@ class LKTest extends SpecificationWithJUnit {
       ExistsRightRule(ax2, ax2.root.occurrences(0), expxba, b).root.occurrences(0).formula must_==(expxba) must throwAn[Exception]()
     }
 
-    "work for first order proofs" in {
-      skipped("does not work yet")
+    "work for first order proofs (1)" in {
       val List(a,b) = List("a","b") map (fol.FOLConst(_))
       val List(x,y) = List("x","y") map (fol.FOLVar(_))
       val p = fol.FOLConst("P", Ti -> (Ti -> To))
-      val pab = fol.Atom(p, List(a,b))
+      val pay = fol.Atom(p, List(a,y))
       val allxpax = fol.AllVar(x,fol.Atom(p, List(a,x)))
-      val ax = Axiom(List(pab), List(pab))
-      val i1 = ForallRightRule(ax, ax.root.succedent(0), allxpax, x)
+      val ax = Axiom(List(pay), List(pay))
+      val i1 = ForallLeftRule(ax, ax.root.antecedent(0), allxpax, y)
+      val i2 = ForallRightRule(i1, i1.root.succedent(0), allxpax, y)
 
-
+      i2.root.toFSequent match {
+        case FSequent(List(f1), List(f2)) =>
+          f1 mustEqual(allxpax)
+          f2 mustEqual(allxpax)
+        case fs @ _ =>
+          ko("Wrong result sequent "+fs)
+      }
     }
+
+    "work for first order proofs (2)" in {
+      import at.logic.language.fol
+      val List(a,b) = List("a","b") map (fol.FOLConst(_))
+      val List(x,y) = List("x","y") map (fol.FOLVar(_))
+      val p = fol.FOLConst("P", Ti -> (Ti -> To))
+      val pay = fol.Atom(p, List(a,y))
+      val allxpax = fol.ExVar(x,fol.Atom(p, List(a,x)))
+      val ax = Axiom(List(pay), List(pay))
+      val i1 = ExistsRightRule(ax, ax.root.succedent(0), allxpax, y)
+      val i2 = ExistsLeftRule(i1, i1.root.antecedent(0), allxpax, y)
+      i2.root.toFSequent match {
+        case FSequent(List(f1), List(f2)) =>
+          f1 mustEqual(allxpax)
+          f2 mustEqual(allxpax)
+        case fs @ _ =>
+          ko("Wrong result sequent "+fs)
+      }
+    }
+
   }
 }

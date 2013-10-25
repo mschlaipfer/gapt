@@ -132,9 +132,57 @@ class BetaReductionTest extends SpecificationWithJUnit {
       val f = Const( "f", Ti->(Ti->Ti) )
       val M = App( Abs( x::z::Nil, App( f, x::z::Nil )), z )
       val N = Abs( x, App( f, z::x::Nil ))
-      val M_normalized = betaNormalize( M )( Innermost )
+      val M_normalized = betaNormalize( M )
 
       M_normalized must beEqualTo ( N )
+    }
+    "betaNormalize correctly 1+2=3 using Church numerals" in {
+      val x = Var( "x", Ti )
+      val f = Var( "f", Ti->Ti )
+      // a church numeral is of type (Ti->Ti)->(Ti->Ti)
+      val m = Var( "m", (Ti->Ti)->(Ti->Ti) )
+      val n = Var( "n", (Ti->Ti)->(Ti->Ti) )
+
+      val one = Abs( f::x::Nil, App( f, x ))
+      val two = Abs( f::x::Nil, App( f, App( f, x )))
+      val three = Abs( f::x::Nil, App( f, App( f, App( f, x ))))
+
+      val add = Abs( m::n::f::x::Nil, App( m, f::App( n, f::x::Nil )::Nil ) )
+
+      val result = betaNormalize( App( add, one::two::Nil ))
+
+      ( result ) must beEqualTo ( three )
+    }
+    "betaNormalize correctly 8+3=11 using Church numerals" in {
+      val x = Var( "x", Ti )
+      val f = Var( "f", Ti->Ti )
+      // a church numeral is of type (Ti->Ti)->(Ti->Ti)
+      val m = Var( "m", (Ti->Ti)->(Ti->Ti) )
+      val n = Var( "n", (Ti->Ti)->(Ti->Ti) )
+
+      val three = Abs( f::x::Nil, App( f, App( f, App( f, x ))))
+      val eight = Abs( f::x::Nil, App( f, App( f, App( f, App( f, App( f, App( f, App( f, App( f, x )))))))))
+      val eleven = Abs( f::x::Nil, App( f, App( f, App( f, App( f, App( f, App( f, App( f, App( f, App( f, App( f, App( f, x ))))))))))))
+
+      val add = Abs( m::n::f::x::Nil, App( m, f::App( n, f::x::Nil )::Nil ) )
+
+      val result = betaNormalize( App( add, eight::three::Nil ))
+
+      ( result ) must beEqualTo ( eleven )
+    }
+    "betaNormalize correctly 2^3=8 using Church numerals" in {
+      val x = Var( "x", Ti )
+      val f = Var( "f", Ti->Ti )
+      val two = Abs( f::x::Nil, App( f, App( f, x )))
+      val eight = Abs( f::x::Nil, App( f, App( f, App( f, App( f, App( f, App( f, App( f, App( f, x )))))))))
+
+      val y = Var( "y", Ti->Ti )
+      val g = Var( "g", (Ti->Ti)->(Ti->Ti) )
+      val to_power_three = Abs( g::y::Nil, App( g, App( g, App( g, y ))))
+
+      val result = betaNormalize( App( to_power_three, two ))
+
+      ( result ) must beEqualTo ( eight )
     }
   }
 }

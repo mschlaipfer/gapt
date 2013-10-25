@@ -46,7 +46,7 @@ class Var(val sym: SymbolA, val exptype: TA) extends LambdaExpression {
   // The name of the variable should be obtained with this method.
   def name : String = sym.toString
 
-  // get a new variable (similar to) the current and different from all variables in the blackList,
+  // get a new variable (similar to the current and) different from all variables in the blackList,
   // returns this variable if this variable is not in the blackList
   def rename(blackList: List[Var]) : Var = new Var(getRenaming(sym, blackList.map(v => v.sym)), exptype)
 

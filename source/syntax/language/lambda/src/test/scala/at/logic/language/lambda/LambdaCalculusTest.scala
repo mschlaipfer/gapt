@@ -40,6 +40,31 @@ class LambdaCalculusTest extends SpecificationWithJUnit {
   }
   
   "Equality" should {
+    "distinguish variables with same name but different type" in {
+      val xi = Var( "x", Ti )
+      val xii = Var( "x", Ti->Ti )
+
+      ( xi ) must not be equalTo ( xii )
+      ( xi.syntaxEquals( xii )) must beEqualTo ( false )
+    }
+
+    "distinguish the constant x from the variable x" in {
+      val x_const = Const( "x", Ti )
+      val x_var = Var( "x", Ti )
+
+      ( x_const ) must not be equalTo ( x_var )
+      ( x_const.syntaxEquals( x_var )) must beEqualTo ( false )
+    }
+
+    "equate variables with same name (but different symbols)" in {
+      val v = Var( "v", Ti )
+      val v0 = Var( "v0", Ti )
+      val v_renamed = v.rename( List( v ))
+
+      v_renamed must beEqualTo ( v0 )
+      ( v_renamed.syntaxEquals( v0 ) ) must beEqualTo ( true )
+    }
+
     "work correctly for alpha conversion" in {
       val a0 = Abs(Var("x", Ti->Ti), App(Var("x",Ti->Ti),Var("y",Ti)))
       val b0 = Abs(Var("x", Ti->Ti), App(Var("x",Ti->Ti),Var("y",Ti)))
@@ -86,25 +111,28 @@ class LambdaCalculusTest extends SpecificationWithJUnit {
     }
   }
 
-  "TypedLambdaCalculus" should {
-    "correctly equate variables" in {
-      val xi = Var( "x", Ti )
-      val xii = Var( "x", Ti->Ti )
+  "Variable renaming" should {
+    "produce a new variable different from all in the blacklist" in {
+      val x = Var( "x", Ti )
+      val y = Var( "y", Ti )
+      val z = Var( "z", Ti )
+      val blacklist = x::y::z::Nil
+      val x_renamed = x.rename( blacklist )
 
-      ( xi ) must not be equalTo ( xii )
-      ( xi.syntaxEquals( xii )) must beEqualTo ( false )
+      ( blacklist.contains( x_renamed ) ) must beEqualTo ( false )
     }
 
-    "correctly equate variables" in {
+    "produce a new variable different from all in the blacklist (in presence of maliciously chosen variable names)" in {
       val v = Var( "v", Ti )
       val v0 = Var( "v0", Ti )
-      val v_renamed = v.rename( List( v ))
-
-      v_renamed must beEqualTo ( v0 )
-      // TODO: this unit test currently passes - but is it intended behaviour?
-      // two variables with different symbols are equal because these symbols have the same string representation
+      val v_renamed = v.rename( v::v0::Nil )
+   
+      ( v_renamed ) must not be equalTo ( v0 )
+      ( v_renamed.syntaxEquals( v0 ) ) must beEqualTo ( false )
     }
+  }
 
+  "TypedLambdaCalculus" should {
     "extract free variables correctly" in {
       val x = Var("X", Ti -> To )
       val y = Var("y", Ti )

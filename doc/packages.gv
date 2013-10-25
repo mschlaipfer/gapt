@@ -19,6 +19,7 @@ digraph G {
   lksk [label=< lksk<br/><font point-size="10pt">- base.scala<br/>- lksk.scala<br/>- lkskExtractors.scala</font> >]
   resolution [label=< resolution<br/><font point-size="10pt">- base.scala<br/>- instance.scala<br/>- robinson.scala<br/>- andrews.scala (commented out)<br/>- ral.scala(commented out)</font> >]
   slk [label=< slk<br/><font point-size="10pt">- slk.scala<br/>- macroRules.scala</font> >]
+  expansionTrees [label=< expansionTrees<br/><font point-size="10pt">- expansionTrees.scala<br/>- multiExpansionTrees.scala</font> >]
   at -> logic -> language -> lambda -> symbols;
   lambda -> types;
   language -> hol;
@@ -36,4 +37,5 @@ digraph G {
   calculi -> lksk;
   calculi -> resolution;
   calculi -> slk;
+  calculi -> expansionTrees;
 }

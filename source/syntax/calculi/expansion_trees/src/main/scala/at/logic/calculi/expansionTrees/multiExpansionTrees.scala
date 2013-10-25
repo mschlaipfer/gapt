@@ -1,7 +1,7 @@
+
 package at.logic.calculi.expansionTrees
 
-import at.logic.language.hol._
-import at.logic.language.hol.{Atom => AtomHOL, And => AndHOL, Or => OrHOL, Imp => ImpHOL}
+import at.logic.language.hol.{Atom => AtomHOL, And => AndHOL, Or => OrHOL, Imp => ImpHOL, _}
 import at.logic.utils.ds.trees._
 
 /**

@@ -16,6 +16,8 @@ class Substitution(val folmap: Map[FOLVar, FOLExpression]) extends SubstitutionH
     val s = SubstitutionHOL(map.asInstanceOf[Map[HOLVar, HOLExpression]])
     s(t).asInstanceOf[FOLFormula]
   }
+  
+  def compose(sub: Substitution): Substitution = Substitution(folmap ++ sub.folmap.map(x => (x._1, apply(x._2))))
 }
 object Substitution {
   def apply(subs: List[(FOLVar, FOLExpression)]): Substitution = new Substitution(Map() ++ subs)

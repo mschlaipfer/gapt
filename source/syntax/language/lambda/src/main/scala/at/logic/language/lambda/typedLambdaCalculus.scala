@@ -70,6 +70,8 @@ class Var(val sym: SymbolA, val exptype: TA) extends LambdaExpression {
     
   // Printing
   override def toString() = "Var(" + name + "," + exptype + ")"
+
+  override def hashCode() = (41 * name.hashCode) + exptype.hashCode
 }
 object Var {
   def apply(name: String, exptype: TA) = new Var(StringSymbol(name), exptype)
@@ -106,6 +108,7 @@ class Const(val sym: SymbolA, val exptype: TA) extends LambdaExpression {
   // Printing
   override def toString() = "Cons(" + name + "," + exptype + ")"
 
+  override def hashCode() = (41 * name.hashCode) + exptype.hashCode
 }
 object Const {
   def apply(name: String, exptype: TA) = new Const(StringSymbol(name), exptype)
@@ -153,6 +156,8 @@ class App(val function: LambdaExpression, val arg: LambdaExpression) extends Lam
 
   // Printing
   override def toString() = "App(" + function + "," + arg + ")"
+  
+  override def hashCode() = (41 * function.hashCode) + arg.hashCode
 }
 object App {
   def apply(f: LambdaExpression, a: LambdaExpression) = new App(f, a)
@@ -194,6 +199,8 @@ class Abs(val variable: Var, val term: LambdaExpression) extends LambdaExpressio
 
   // Printing
   override def toString() = "Abs(" + variable + "," + term + ")"
+  
+  override def hashCode() = (41 * variable.hashCode) + term.hashCode
 }
 object Abs {
   def apply(v: Var, t: LambdaExpression) = new Abs(v, t)

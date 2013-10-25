@@ -16,6 +16,8 @@ class Substitution(val holmap: Map[HOLVar, HOLExpression]) extends SubstitutionL
     val s = SubstitutionLambda(map.asInstanceOf[Map[Var, LambdaExpression]])
     s(t).asInstanceOf[HOLFormula]
   }
+  
+  def compose(sub: Substitution): Substitution = Substitution(holmap ++ sub.holmap.map(x => (x._1, apply(x._2))))
 }
 object Substitution {
   def apply(subs: List[(HOLVar, HOLExpression)]): Substitution = new Substitution(Map() ++ subs)

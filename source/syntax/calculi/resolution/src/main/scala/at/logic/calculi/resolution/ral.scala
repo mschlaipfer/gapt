@@ -5,19 +5,18 @@
  * are defined.
  */
 
-package at.logic.calculi.resolution.ral
+/*
+package at.logic.calculi.resolution
 
 import at.logic.language.lambda.types._
 import at.logic.calculi.occurrences._
 import at.logic.calculi.proofs._
 import at.logic.language.hol._
 import at.logic.utils.ds.acyclicGraphs._
-import scala.collection.immutable.HashSet
-import scala.collection.mutable.Map
 import at.logic.utils.labeling._
 import at.logic.language.hol.skolemSymbols.TypeSynonyms._
-import at.logic.calculi.lksk.base._
-import at.logic.calculi.lksk.base.TypeSynonyms._
+import at.logic.calculi.lksk._
+import at.logic.calculi.lksk.TypeSynonyms._
 import at.logic.calculi.lk.base.{Sequent,createContext => lkCreateContext,AuxiliaryFormulas,PrincipalFormulas, SubstitutionTerm}
 import at.logic.utils.traits.Occurrence
 import util.grammar.LabelledRHS
@@ -37,7 +36,6 @@ object Definitions {
   def computeSkolemTerm( sk: SkolemSymbol, t: TA, label: Label ) =
     Function(sk, label.toList, t)
 }
-
 
 object Cut {
   def apply[V <: Sequent](s1: ResolutionProof[V], s2: ResolutionProof[V], term1ocs: List[Occurrence], term2ocs: List[Occurrence]) = {
@@ -184,11 +182,12 @@ object Sub {
         p.root.antecedent.map(x => LKskFOFactory.createContextFormulaOccurrenceWithSubst( betaNormalize( sub(x.formula) ), x, x::Nil, sub)),
         p.root.succedent.map(x => LKskFOFactory.createContextFormulaOccurrenceWithSubst( betaNormalize( sub(x.formula) ), x, x::Nil, sub))),
       p)
-        with UnaryResolutionProof[V] with AppliedSubstitution[HOLExpression] {def rule = SubType; def substitution = sub}
+        with UnaryResolutionProof[V] with AppliedSubstitution {def rule = SubType; def substitution = sub}
 
-  def unapply[V <: Sequent](proof: ResolutionProof[V] with AppliedSubstitution[HOLExpression]) = if (proof.rule == SubType) {
-      val pr = proof.asInstanceOf[UnaryResolutionProof[V] with AppliedSubstitution[HOLExpression]]
+  def unapply[V <: Sequent](proof: ResolutionProof[V] with AppliedSubstitution) = if (proof.rule == SubType) {
+      val pr = proof.asInstanceOf[UnaryResolutionProof[V] with AppliedSubstitution]
       Some((pr.root, pr.uProof, pr.substitution))
   }
 }
+*/
 

@@ -82,6 +82,16 @@ class FirstOrderLogicTest extends SpecificationWithJUnit {
         case _ => ko
       }
     }
+    "match Equation with Atom" in {
+      val a = FOLConst("a")
+      val b = FOLConst("b")
+      val eq = Equation(a, b)
+
+      eq must beLike {
+        case Atom(_,_) => ok
+        case _ => ko
+      }
+    }
   }
 
   "First order formulas matching against higher order contructors" should {

@@ -65,6 +65,9 @@ trait HOLExpression extends LambdaExpression {
 
   // Factory for App, Abs and Var
   override def factory : FactoryA = HOLFactory
+  
+  // List of free variables
+  override def freeVariables: List[HOLVar] = super.freeVariables.asInstanceOf[List[HOLVar]]
 
   // How many toString methods does one need??
   override def toString = this match {

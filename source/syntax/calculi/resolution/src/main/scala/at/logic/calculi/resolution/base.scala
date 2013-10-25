@@ -9,10 +9,8 @@ import at.logic.calculi.occurrences._
 import at.logic.calculi.proofs._
 import at.logic.language.hol._
 import at.logic.utils.ds.acyclicGraphs._
-import scala.collection.mutable.Map
 import at.logic.calculi.lk.base._
 import at.logic.utils.traits.Occurrence
-import at.logic.calculi.agraphProofs._
 
 trait ResolutionProof[V <: Sequent] extends AGraphProof[V]
 
@@ -25,7 +23,14 @@ trait BinaryResolutionProof[V <: Sequent] extends BinaryAGraphProof[V] with Reso
   override def uProof2 = t2.asInstanceOf[ResolutionProof[V]]
 }
 
-trait CNF extends Sequent {require((antecedent++succedent).forall(x => x.formula match {case Atom(_,_) => true; case _ => false}))}
+trait CNF extends Sequent {
+  require( (antecedent++succedent).forall(x => 
+    x.formula match {
+      case Atom(_,_) => true; 
+      case _ => false
+    })
+  )
+}
 
 object IsNeg {
   def apply(formula: HOLFormula) = formula match {
@@ -109,26 +114,26 @@ object Clause {
   }
 }
 
-  trait InstantiatedVariable {
-    def term: HOLExpression
-  }
-  trait AppliedSubstitution[T <: LambdaExpression] {
-    def substitution: Substitution
-  }
+trait InstantiatedVariable {
+  def term: HOLExpression
+}
+trait AppliedSubstitution {
+  def substitution: Substitution
+}
 
-  case object InitialType extends NullaryRuleTypeA
+case object InitialType extends NullaryRuleTypeA
 
-  object InitialSequent {
-    def apply[V <: Sequent](ant: Seq[HOLFormula], suc: Seq[HOLFormula]) (implicit factory: FOFactory) = {
-      val left: Seq[FormulaOccurrence] = ant.map(factory.createFormulaOccurrence(_,Nil))
-      val right: Seq[FormulaOccurrence] = suc.map(factory.createFormulaOccurrence(_,Nil))
-      new LeafAGraph[Sequent](Sequent(left, right)) with NullaryResolutionProof[V] {def rule = InitialType}
-    }
-
-    def unapply[V <: Sequent](proof: ResolutionProof[V]) = if (proof.rule == InitialType) Some((proof.root)) else None
-    // should be optimized as it was done now just to save coding time
+object InitialSequent {
+  def apply[V <: Sequent](ant: Seq[HOLFormula], suc: Seq[HOLFormula]) (implicit factory: FOFactory) = {
+    val left: Seq[FormulaOccurrence] = ant.map(factory.createFormulaOccurrence(_,Nil))
+    val right: Seq[FormulaOccurrence] = suc.map(factory.createFormulaOccurrence(_,Nil))
+    new LeafAGraph[Sequent](Sequent(left, right)) with NullaryResolutionProof[V] {def rule = InitialType}
   }
 
-  // exceptions
-  class ResolutionRuleException(msg: String) extends RuleException(msg)
-  class ResolutionRuleCreationException(msg: String) extends ResolutionRuleException(msg)
+  def unapply[V <: Sequent](proof: ResolutionProof[V]) = if (proof.rule == InitialType) Some((proof.root)) else None
+  // should be optimized as it was done now just to save coding time
+}
+
+// exceptions
+class ResolutionRuleException(msg: String) extends RuleException(msg)
+class ResolutionRuleCreationException(msg: String) extends ResolutionRuleException(msg)

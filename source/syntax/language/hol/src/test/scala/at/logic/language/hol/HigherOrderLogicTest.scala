@@ -12,8 +12,7 @@ import at.logic.language.lambda._
 import at.logic.language.lambda.symbols._
 import logicSymbols._
 import skolemSymbols._
-import at.logic.language.lambda.BetaReduction._
-import at.logic.language.lambda.BetaReduction.ImplicitStandardStrategy._
+import at.logic.language.hol.BetaReduction._
 
 @RunWith(classOf[JUnitRunner])
 class HigherOrderLogicTest extends SpecificationWithJUnit {

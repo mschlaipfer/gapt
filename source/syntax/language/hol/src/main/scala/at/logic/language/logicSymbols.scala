@@ -17,8 +17,8 @@ object LogicalSymbolA {
   }
 }
 
-object EqSymbol extends LogicalSymbolA {
-  override def unique = "EqSymbol"
+object EqSymbol extends SymbolA {
+  def unique = "EqSymbol"
   override def toString = "="
   def toCode = "EqSymbol"
 }

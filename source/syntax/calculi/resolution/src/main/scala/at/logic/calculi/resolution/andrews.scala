@@ -5,7 +5,8 @@
  * for additional connectives.
  */
 
-package at.logic.calculi.resolution.andrews
+/*
+package at.logic.calculi.resolution
 
 import at.logic.language.lambda.types._
 import at.logic.calculi.occurrences._
@@ -18,7 +19,6 @@ import at.logic.utils.labeling._
 import at.logic.language.hol.BetaReduction._
 import at.logic.language.hol.skolemSymbols.TypeSynonyms._
 import at.logic.utils.traits.Occurrence
-import at.logic.calculi.resolution._
 
 object Definitions {
   def computeSkolemTerm( sk: SkolemSymbol, t: TA, sub: HOLExpression ) =
@@ -464,15 +464,16 @@ object ExistsT {
 }
 
 object Sub {
-  def apply[V <: Sequent](p: ResolutionProof[V], sub: Substitution[HOLExpression]) =
+  def apply[V <: Sequent](p: ResolutionProof[V], sub: Substitution) =
     new UnaryAGraph[Sequent](Sequent(
       p.root.antecedent.map(x => x.factory.createFormulaOccurrence( betaNormalize( sub(x.formula) ), x::Nil)),
       p.root.succedent.map(x => x.factory.createFormulaOccurrence( betaNormalize( sub(x.formula) ), x::Nil))),
       p)
-        with UnaryResolutionProof[V] with AppliedSubstitution[HOLExpression] {def rule = SubType; def substitution = sub}
+        with UnaryResolutionProof[V] with AppliedSubstitution {def rule = SubType; def substitution = sub}
 
-  def unapply[V <: Sequent](proof: ResolutionProof[V] with AppliedSubstitution[HOLExpression]) = if (proof.rule == SubType) {
-      val pr = proof.asInstanceOf[UnaryResolutionProof[V] with AppliedSubstitution[HOLExpression]]
+  def unapply[V <: Sequent](proof: ResolutionProof[V] with AppliedSubstitution) = if (proof.rule == SubType) {
+      val pr = proof.asInstanceOf[UnaryResolutionProof[V] with AppliedSubstitution]
       Some((pr.root, pr.uProof, pr.substitution))
   }
 }
+*/

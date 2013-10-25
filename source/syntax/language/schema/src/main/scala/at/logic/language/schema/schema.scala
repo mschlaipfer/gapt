@@ -366,7 +366,7 @@ object BigAnd {
   
   def unapply( expression: SchemaExpression ) = expression match {
     case SchemaApp(SchemaApp(SchemaApp(BigAndC, SchemaAbs(v, formula)), init: IntegerTerm), end: IntegerTerm) => 
-      Some( v, formula, init, end )
+      Some( v, formula.asInstanceOf[SchemaFormula], init, end )
     case _ => None
   }
 }
@@ -380,7 +380,7 @@ object BigOr {
 
   def unapply( expression: SchemaExpression ) = expression match {
     case SchemaApp(SchemaApp(SchemaApp(BigOrC, SchemaAbs(v, formula)), init: IntegerTerm), end: IntegerTerm) => 
-      Some( v, formula, init, end )
+      Some( v, formula.asInstanceOf[SchemaFormula], init, end )
     case _ => None
   }
 }

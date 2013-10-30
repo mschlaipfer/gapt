@@ -95,6 +95,7 @@ class HigherOrderLogicTest extends SpecificationWithJUnit {
         result must beTrue
       }
     }
+
     "substitute and normalize correctly when Substitution is applied" in {
       val x = HOLVar("X", Ti -> To )
       val f = HOLVar("f", (Ti -> To) -> Ti )
@@ -104,12 +105,31 @@ class HigherOrderLogicTest extends SpecificationWithJUnit {
       val p = HOLVar("P", Ti -> To)
       val Pz = HOLApp( p, z )
       val t = HOLAbs( z, Pz )
+      val pft = HOLApp( p, HOLApp( f, t ))
 
       val sigma = Substitution( x, t )
 
-      betaNormalize( sigma( xfx ) ) must beEqualTo( HOLApp( p, HOLApp( f, t ) ) )
+      betaNormalize( sigma( xfx ) ) must beEqualTo( pft )
+    }
+
+    "substitute and normalize correctly when Substitution is applied on the formula level" in {
+      val x = HOLVar("X", Ti -> To )
+      val f = HOLVar("f", (Ti -> To) -> Ti )
+      val xfx : HOLFormula = HOLAppFormula(x, HOLApp( f, x ) )
+
+      val z = HOLVar("z", Ti)
+      val p = HOLVar("P", Ti -> To)
+      val Pz = HOLApp( p, z )
+      val t = HOLAbs( z, Pz )
+      val pft : HOLFormula = HOLAppFormula( p, HOLApp( f, t ))
+
+      val sigma = Substitution( x, t )
+      val xfx_sigma : HOLFormula = betaNormalize( sigma( xfx ) )
+
+      xfx_sigma must beEqualTo( pft )
     }
   }
+
   "Exists quantifier" should {
     val c1 = HOLConst("a", Ti->To)
     val v1 = HOLVar("x", Ti)

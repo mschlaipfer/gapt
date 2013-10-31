@@ -36,7 +36,7 @@ class SubstitutionsTest extends SpecificationWithJUnit {
       val f = Var("f", Ti -> Ti)
       val e = App(f, x)
       val sigma = Substitution(v, e)
-      ( e ) must beEqualTo ( sigma( v.asInstanceOf[LambdaExpression] ) )
+      ( e ) must beEqualTo ( sigma( v ) )
     }
     "substitute correctly when Substitution is applied (2)" in {
       val v = Var("v", Ti); val x = Var("x", Ti); val f = Var("f", Ti -> Ti)
@@ -75,7 +75,7 @@ class SubstitutionsTest extends SpecificationWithJUnit {
     }
     "substitute correctly in presence of variant variables" in {
       val x = Var( "x", Ti )
-      val xprime = x.rename( List( x ))
+      val xprime = rename( x, List( x ))
       val y = Var( "y", Ti )
       val z = Var( "z", Ti )
       val f = Var( "f", Ti->(Ti->(Ti->Ti)) )

@@ -699,8 +699,8 @@ object sCutRule {
   }
   // convenient method to choose the first two formulas
   def apply(s1: LKProof, s2: LKProof, term: SchemaFormula): BinaryTree[Sequent] with BinaryLKProof with AuxiliaryFormulas  = {
-    val succ = s1.root.succedent.filter(x => x.formula.asInstanceOf[SchemaFormula].unfoldSFormula == term.unfoldSFormula).toList
-    val ant = s2.root.antecedent.filter(x => x.formula.asInstanceOf[SchemaFormula].unfoldSFormula == term.unfoldSFormula).toList
+    val succ = s1.root.succedent.filter(x => unfoldSFormula(x.formula.asInstanceOf[SchemaFormula]) == unfoldSFormula(term)).toList
+    val ant = s2.root.antecedent.filter(x => unfoldSFormula(x.formula.asInstanceOf[SchemaFormula]) == unfoldSFormula(term)).toList
     (succ, ant) match {
       case ((x::_),(y::_)) => apply(s1, s2, x, y)
       case _ => throw new LKRuleCreationException("Not matching formula occurrences found for application of the rule with the given formula")
@@ -720,7 +720,7 @@ object sCutRule {
     else {
       val term1 = term1op.get
       val term2 = term2op.get
-      if (term1.formula.asInstanceOf[SchemaFormula].unfoldSFormula != term2.formula.asInstanceOf[SchemaFormula].unfoldSFormula) throw new LKRuleCreationException("Formulas to be cut are not identical")
+      if (unfoldSFormula(term1.formula.asInstanceOf[SchemaFormula]) != unfoldSFormula(term2.formula.asInstanceOf[SchemaFormula])) throw new LKRuleCreationException("Formulas to be cut are not identical")
       else {
         (term1, term2)
       }
@@ -766,7 +766,7 @@ object sContractionLeftRule {
   }
   // convenient method to choose the first two formulas
   def apply(s1: LKProof, term1: SchemaFormula): UnaryTree[Sequent] with UnaryLKProof with AuxiliaryFormulas with PrincipalFormulas  = {
-    (s1.root.antecedent.filter(x => x.formula.asInstanceOf[SchemaFormula].unfoldSFormula == term1.unfoldSFormula)).toList match {
+    (s1.root.antecedent.filter(x => unfoldSFormula(x.formula.asInstanceOf[SchemaFormula]) == unfoldSFormula(term1))).toList match {
       case (x::y::_) => apply(s1, x, y)
       case _ => throw new LKRuleCreationException("No matching formulas found to contract.")
     }
@@ -778,7 +778,7 @@ object sContractionLeftRule {
     else {
       val term1 = term1op.get
       val term2 = term2op.get
-      if (term1.formula.asInstanceOf[SchemaFormula].unfoldSFormula != term2.formula.asInstanceOf[SchemaFormula].unfoldSFormula) 
+      if (unfoldSFormula(term1.formula.asInstanceOf[SchemaFormula]) != unfoldSFormula(term2.formula.asInstanceOf[SchemaFormula])) 
         throw new LKRuleCreationException("Formulas to be contracted are not identical: term1.formula = " + term1.formula.toString + ", term2.formula = " + term2.formula.toString)
       else if (term1 == term2) throw new LKRuleCreationException("Formulas to be contracted are of the same occurrence")
       else {
@@ -827,7 +827,7 @@ object sContractionRightRule {
   }
   // convenient method to choose the first two formulas
   def apply(s1: LKProof, term1: SchemaFormula): UnaryTree[Sequent] with UnaryLKProof with AuxiliaryFormulas with PrincipalFormulas  = {
-    (s1.root.succedent.filter(x => x.formula.asInstanceOf[SchemaFormula].unfoldSFormula == term1.unfoldSFormula)).toList match {
+    (s1.root.succedent.filter(x => unfoldSFormula(x.formula.asInstanceOf[SchemaFormula]) == unfoldSFormula(term1))).toList match {
       case (x::y::_) => apply(s1, x, y)
       case _ => throw new LKRuleCreationException("Not matching formula occurrences found for application of the rule with the given formula")
     }
@@ -839,7 +839,7 @@ object sContractionRightRule {
     else {
       val term1 = term1op.get
       val term2 = term2op.get
-      if (term1.formula.asInstanceOf[SchemaFormula].unfoldSFormula != term2.formula.asInstanceOf[SchemaFormula].unfoldSFormula) 
+      if (unfoldSFormula(term1.formula.asInstanceOf[SchemaFormula]) != unfoldSFormula(term2.formula.asInstanceOf[SchemaFormula])) 
         throw new LKRuleCreationException("Formulas to be contracted are not identical: term1.formula = " + term1.formula.toString + ", term2.formula = " + term2.formula.toString)
       else if (term1 == term2) throw new LKRuleCreationException("Formulas to be contracted are of the same occurrence")
       else {
@@ -871,7 +871,7 @@ object sContractionRightRule {
 
 object trsArrowRule {
   def apply(s1: LKProof, auxf: FormulaOccurrence) = {
-    val prinFormula = factory.createFormulaOccurrence( auxf.formula.asInstanceOf[SchemaFormula].unfoldSFormula, auxf  +: Seq.empty[FormulaOccurrence] )
+    val prinFormula = factory.createFormulaOccurrence( unfoldSFormula(auxf.formula.asInstanceOf[SchemaFormula]), auxf  +: Seq.empty[FormulaOccurrence] )
     def createSide( s : Seq[FormulaOccurrence] ) =
       if ( s.contains(auxf) )
         prinFormula +: createContext( s.filter(_ != auxf) )
@@ -888,7 +888,7 @@ object trsArrowRule {
   }
 
   def apply(s1: LKProof, auxf: SchemaFormula): UnaryTree[Sequent] with UnaryLKProof with AuxiliaryFormulas with PrincipalFormulas = {
-    ((s1.root.antecedent ++ s1.root.succedent).filter(x => x.formula.asInstanceOf[SchemaFormula].unfoldSFormula == auxf.unfoldSFormula)).toList match {
+    ((s1.root.antecedent ++ s1.root.succedent).filter(x => unfoldSFormula(x.formula.asInstanceOf[SchemaFormula]) == unfoldSFormula(auxf))).toList match {
       case (x::_) => apply(s1, x)
       case _ => throw new LKRuleCreationException("Not matching formula occurrences found for application of the trsArrowRule with the given formula")
     }
@@ -905,7 +905,7 @@ object trsArrowRule {
 
 object trsArrowRightRule {
   def apply(s1: LKProof, auxf: SchemaFormula): UnaryTree[Sequent] with UnaryLKProof with AuxiliaryFormulas with PrincipalFormulas = {
-    ((s1.root.succedent).filter(x => x.formula.asInstanceOf[SchemaFormula].unfoldSFormula == auxf.unfoldSFormula)).toList match {
+    ((s1.root.succedent).filter(x => unfoldSFormula(x.formula.asInstanceOf[SchemaFormula]) == unfoldSFormula(auxf))).toList match {
       case (x::_) => trsArrowRule.apply(s1, x)
       case _ => throw new LKRuleCreationException("Not matching formula occurrences in the right side found for application of the trsArrowRightRule with the given formula")
     }
@@ -942,7 +942,7 @@ object trsArrowRightRule {
 
 object trsArrowLeftRule {
   def apply(s1: LKProof, auxf: SchemaFormula): UnaryTree[Sequent] with UnaryLKProof with AuxiliaryFormulas with PrincipalFormulas = {
-    ((s1.root.antecedent).filter(x => x.formula.asInstanceOf[SchemaFormula].unfoldSFormula == auxf.unfoldSFormula)).toList match {
+    ((s1.root.antecedent).filter(x => unfoldSFormula(x.formula.asInstanceOf[SchemaFormula]) == unfoldSFormula(auxf))).toList match {
       case (x::_) => trsArrowRule.apply(s1, x)
       case _ => throw new LKRuleCreationException("Not matching formula occurrences in the left side found for application of the trsArrowLeftRule with the given formula")
     }
@@ -1038,7 +1038,7 @@ object foldRule {
   }
 
   def apply(s1: LKProof, auxf: SchemaFormula, main: SchemaFormula): UnaryTree[Sequent] with UnaryLKProof with AuxiliaryFormulas with PrincipalFormulas = {
-    ((s1.root.antecedent ++ s1.root.succedent).filter(x => x.formula.asInstanceOf[SchemaFormula].unfoldSFormula == auxf.unfoldSFormula)).toList match {
+    ((s1.root.antecedent ++ s1.root.succedent).filter(x => unfoldSFormula(x.formula.asInstanceOf[SchemaFormula]) == unfoldSFormula(auxf))).toList match {
       case (x::_) => apply(s1, x, main)
       case _ => throw new LKRuleCreationException("Not matching formula occurrences found for application of the foldRule with the given formula")
     }
@@ -1272,7 +1272,7 @@ object ForallHyperRightRule {
       main match {
         case All( sub, _ ) => {
           // eigenvar condition
-          assert( ( s1.antecedent ++ (s1.succedent.filterNot(_ == aux_fo)) ).forall( fo => !fo.formula.freeVariables.contains( eigen_var ) ),
+          assert( ( s1.antecedent ++ (s1.succedent.filterNot(_ == aux_fo)) ).forall( fo => !freeVariables(fo.formula.asInstanceOf[SchemaFormula]).contains( eigen_var ) ),
             "Eigenvariable " + eigen_var.toString + " occurs in context " + s1.toString )
           // correct auxiliary formula
           //            println("ForallRightRule")
@@ -1338,7 +1338,7 @@ object ExistsHyperLeftRule {
       main match {
         case Ex( sub, _ ) => {
           // eigenvar condition
-          assert( ( (s1.antecedent.filterNot(_ == aux_fo)) ++ s1.succedent ).forall( fo => !fo.formula.freeVariables.contains( eigen_var ) ),
+          assert( ( (s1.antecedent.filterNot(_ == aux_fo)) ++ s1.succedent ).forall( fo => !freeVariables(fo.formula.asInstanceOf[SchemaFormula]).contains( eigen_var ) ),
             "Eigenvariable " + eigen_var.toString + " occurs in context " + s1.toString )
           // correct auxiliary formula
           //            assert( betaNormalize( App( sub, eigen_var ) ) == aux_fo.formula )

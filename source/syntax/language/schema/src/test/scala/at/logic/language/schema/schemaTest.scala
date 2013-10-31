@@ -21,7 +21,7 @@ class SchemaTest extends SpecificationWithJUnit {
     val and = And(p1, p2)
     val or = Or(bigAnd, bigOr)
     val neg = Neg(or)
-    val imp = Imp(neg.asInstanceOf[SchemaFormula], and.asInstanceOf[SchemaFormula])
+    val imp = Imp(neg, and)
 
     
     "create IndexedPredicate correctly (1)" in {
@@ -124,7 +124,7 @@ class SchemaTest extends SpecificationWithJUnit {
       val term1 = sTerm(g, Succ(IntZero()), z::Nil)
       val term2 = sTerm(g, IntZero(), z0::Nil)
 
-      val unf = term2.unfoldSTerm
+      val unf = unfoldSTerm(term2)
       
       // ?????????????????????
       true must beEqualTo (true)

@@ -20,11 +20,11 @@ import at.logic.calculi.occurrences.FOFactory
 class LKskTest extends SpecificationWithJUnit {
   val c1 = HOLVar("a", Ti->To)
   val v1 = HOLVar("x", Ti)
-  val f1 = HOLAppFormula(c1,v1)
+  val f1 = Atom(c1,v1::Nil)
   val c2 = HOLVar("b", Ti->To)
   val v2 = HOLVar("c", Ti)
-  val f2 = HOLAppFormula(c1,v1)
-  val f3 = HOLVarFormula("e")
+  val f2 = Atom(c1,v1::Nil)
+  val f3 = Atom(HOLVar("e", To))
   val ax = Axiom.createDefault(new FSequent(f1::Nil, f1::Nil), Pair((EmptyLabel() + f2)::Nil, EmptyLabel()::Nil ))
   val a1 = ax._1 // Axiom return a pair of the proof and a mapping and we want only the proof here
   val a2 = (Axiom.createDefault(new FSequent(f1::Nil, f1::Nil), Pair((EmptyLabel() + f2)::Nil, (EmptyLabel() + f3)::Nil) ) )._1

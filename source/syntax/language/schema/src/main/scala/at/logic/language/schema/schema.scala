@@ -9,77 +9,15 @@ package at.logic.language.schema
 import at.logic.language.lambda.types._
 import at.logic.language.lambda.{LambdaExpression, App, Abs, Var, Const, FactoryA}
 import at.logic.language.lambda.symbols._
-import at.logic.language.hol.{HOLFormula, HOLExpression, HOLVar, HOLConst, HOLApp, HOLAbs}
+import at.logic.language.hol.{HOLFormula, HOLExpression, HOLVar, HOLConst, HOLApp, HOLAbs, isLogicalSymbol}
 import at.logic.language.hol.logicSymbols._
 import at.logic.language.schema.logicSymbols._
 
 trait SchemaExpression extends HOLExpression {
-  
-  //TODO : needs improvement for the step case
-  def unfoldSTerm: SchemaExpression = {
-    val k = IntVar("k")
-    val x = foVar("x")
-    this match {
-      case sTerm(func, i, arg) if dbTRS.map.contains(func) => {
-        if (i == IntZero()) {
-          val base = dbTRS.map.get(func).get._1._2
-          val new_map = Map[SchemaVar, SchemaExpression]() + Pair(x, arg.head)
-          val subst = Substitution(new_map)
-          subst(base)
-        }
-        else if (i == k) this
-        else i match {
-          case Succ(_) => dbTRS.map.get(func).get._2._2 match {
-            case foTerm(name, arg1) => foTerm(name, sTerm(func, Pred(i.asInstanceOf[IntegerTerm]), arg).unfoldSTerm::Nil)
-          }
-          case _ => 
-            val j = i.unfoldSINDTerm
-            sTerm(func, j, arg).unfoldSTerm
-        }
-      }
-      case sTerm(func, i, arg) => this
-      case foTerm(holvar, arg) => foTerm(holvar, arg.unfoldSTerm::Nil)
-      case _ => this
-    }
-  }
-
-  def unfoldSINDTerm : SchemaExpression = {
-    val k = IntVar("k")
-    this match {
-      case sIndTerm(func, i) if dbTRS.map.contains(func) => {
-        if (i == IntZero()) dbTRS.map.get(func).get._1._2
-        else if (i == k) this
-        else {
-          val step = dbTRS.map.get(func).get._2._2
-          val new_map = Map[SchemaVar, SchemaExpression]() + Pair(k, Pred(i.asInstanceOf[IntegerTerm]))
-          val subst = Substitution(new_map)
-          subst(step)
-        }
-      }
-      case _ => this
-    }
-  }
-
   override def factory: FactoryA = SchemaFactory
 }
 
-trait SchemaFormula extends SchemaExpression with HOLFormula {
-
-  def unfoldSFormula : SchemaFormula = this match {
-    case Atom(name, args) if name.isInstanceOf[SchemaVar] => Atom(name.asInstanceOf[SchemaVar], args.map(t => t.unfoldSTerm))
-    case Atom(name, args) if name.isInstanceOf[SchemaConst] => Atom(name.asInstanceOf[SchemaConst], args.map(t => t.unfoldSTerm))
-    case Imp(f1, f2) => Imp(f1.unfoldSFormula, f2.unfoldSFormula)
-    case ExVar(v, f) => ExVar(v, f.unfoldSFormula)
-    case AllVar(v, f) => AllVar(v, f.unfoldSFormula)
-    case _ => this
-  }
-
-  override def isAtom : Boolean = this match {
-    case Atom(_,_) => true
-    case IndexedPredicate(_,_) => true
-    case _ => false
-  }
-}
+trait SchemaFormula extends SchemaExpression with HOLFormula 
 
 /************************* BASIC DATATYPES **************************/
 
@@ -425,8 +363,8 @@ object Atom {
   }
 
   def unapply( expression: SchemaExpression ) = expression match {
-    case SchemaApp(c: SchemaConst,_) if c.isLogicalSymbol => None
-    case SchemaApp(SchemaApp(c: SchemaConst,_),_) if c.isLogicalSymbol => None
+    case SchemaApp(c: SchemaConst,_) if isLogicalSymbol(c) => None
+    case SchemaApp(SchemaApp(c: SchemaConst,_),_) if isLogicalSymbol(c) => None
     case SchemaApp(_,_) if (expression.exptype == To) => Some( unapply_(expression) )
     case SchemaConst(_,_) if (expression.exptype == To) => Some( (expression, Nil) )
     case SchemaVar(_,_) if (expression.exptype == To) => Some( (expression, Nil) )
@@ -553,21 +491,6 @@ object sTermDB extends Iterable[(SchemaConst, sTermRewriteSys)] with Traversable
   def get(func: SchemaConst) = terms(func)
   def put(sterm: sTermRewriteSys) = terms.put(sterm.func, sterm)
   def iterator = terms.iterator
-}
-
-
-// This factory creates a formula that
-// is true iff param = 0
-object isZero {
-  def apply(param: IntegerTerm) =
-    BigAnd( IntVar("i"), BottomC, Succ(IntZero()), param )
-}
-
-// This factory creates a formula that
-// is true iff x > y
-object isBiggerThan {
-  def apply(x: IntegerTerm, y: IntegerTerm) =
-    BigAnd( IntVar("i"), BottomC, x, y )
 }
 
 /*********************** Factories *****************************/

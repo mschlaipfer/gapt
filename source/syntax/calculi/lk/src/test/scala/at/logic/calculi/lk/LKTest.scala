@@ -13,8 +13,7 @@ import at.logic.language.hol._
 import at.logic.language.lambda.types._
 import at.logic.language.hol.logicSymbols._
 import base._
-import at.logic.language.fol.FOLConst
-import at.logic.language.fol
+import at.logic.language.fol.{FOLConst, FOLVar, Atom => FOLAtom, AllVar => FOLAllVar, ExVar => FOLExVar}
 
 /**
 * The following properties of each rule are tested:
@@ -32,13 +31,13 @@ class LKTest extends SpecificationWithJUnit {
 
   val c1 = HOLVar("a", Ti->To)
   val v1 = HOLVar("x", Ti)
-  val f1 = HOLAppFormula(c1,v1)
+  val f1 = Atom(c1,v1::Nil)
   val ax = Axiom(f1::Nil, f1::Nil)
   val a1 = ax // Axiom return a pair of the proof and a mapping and we want only the proof here
   val c2 = HOLVar("b", Ti->To)
   val v2 = HOLVar("c", Ti)
-  val f2 = HOLAppFormula(c1,v1)
-  val f3 = HOLVarFormula("e")
+  val f2 = Atom(c1,v1::Nil)
+  val f3 = Atom(HOLVar("e", To))
   val a2 = Axiom(f2::f3::Nil, f2::f3::Nil)
   val a3 = Axiom(f2::f2::f3::Nil, f2::f2::f3::Nil)
   val ap = Axiom(f1::f1::Nil, Nil)
@@ -380,12 +379,12 @@ class LKTest extends SpecificationWithJUnit {
       val subst = HOLAbs( x, HOLApp( q, x ) ) // lambda x. q(x)
       val p = HOLVar( "p", (Ti -> To) -> To )
       val a = HOLVar( "a", Ti )
-      val qa = HOLAppFormula( q, a )
-      val pl = HOLAppFormula( p, subst )
+      val qa = Atom( q, a::Nil )
+      val pl = Atom( p, subst::Nil )
       val aux = Or( pl, qa )                  // p(lambda x. q(x)) or q(a)
       val z = HOLVar( "Z", Ti -> To )
-      val pz = HOLAppFormula( p, z )
-      val za = HOLAppFormula( z, a )
+      val pz = Atom( p, z::Nil )
+      val za = Atom( z, a::Nil )
       val main = AllVar( z, Or( pz, za ) )    // forall lambda z. p(z) or z(a)
       val ax = Axiom(aux::Nil, Nil)
       val rule = ForallLeftRule(ax, aux, main, subst)
@@ -405,12 +404,12 @@ class LKTest extends SpecificationWithJUnit {
       val x = HOLVar( "X", Ti -> To)            // eigenvar
       val p = HOLVar( "p", (Ti -> To) -> To )
       val a = HOLVar( "a", Ti )
-      val xa = HOLAppFormula( x, a )
-      val px = HOLAppFormula( p, x )
+      val xa = Atom( x, a::Nil )
+      val px = Atom( p, x::Nil )
       val aux = Or( px, xa )                  // p(x) or x(a)
       val z = HOLVar( "Z", Ti -> To )
-      val pz = HOLAppFormula( p, z )
-      val za = HOLAppFormula( z, a )
+      val pz = Atom( p, z::Nil )
+      val za = Atom( z, a::Nil )
       val main = AllVar( z, Or( pz, za ) )    // forall lambda z. p(z) or z(a)
       val ax = Axiom(Nil, aux::Nil )
       val rule = ForallRightRule(ax, aux, main, x)
@@ -447,11 +446,11 @@ class LKTest extends SpecificationWithJUnit {
     }
 
     "work for first order proofs (1)" in {
-      val List(a,b) = List("a","b") map (fol.FOLConst(_))
-      val List(x,y) = List("x","y") map (fol.FOLVar(_))
-      val p = fol.FOLConst("P", Ti -> (Ti -> To))
-      val pay = fol.Atom(p, List(a,y))
-      val allxpax = fol.AllVar(x,fol.Atom(p, List(a,x)))
+      val List(a,b) = List("a","b") map (FOLConst(_))
+      val List(x,y) = List("x","y") map (FOLVar(_))
+      val p = "P"
+      val pay = FOLAtom(p, List(a,y))
+      val allxpax = FOLAllVar(x,FOLAtom(p, List(a,x)))
       val ax = Axiom(List(pay), List(pay))
       val i1 = ForallLeftRule(ax, ax.root.antecedent(0), allxpax, y)
       val i2 = ForallRightRule(i1, i1.root.succedent(0), allxpax, y)
@@ -466,12 +465,11 @@ class LKTest extends SpecificationWithJUnit {
     }
 
     "work for first order proofs (2)" in {
-      import at.logic.language.fol
-      val List(a,b) = List("a","b") map (fol.FOLConst(_))
-      val List(x,y) = List("x","y") map (fol.FOLVar(_))
-      val p = fol.FOLConst("P", Ti -> (Ti -> To))
-      val pay = fol.Atom(p, List(a,y))
-      val allxpax = fol.ExVar(x,fol.Atom(p, List(a,x)))
+      val List(a,b) = List("a","b") map (FOLConst(_))
+      val List(x,y) = List("x","y") map (FOLVar(_))
+      val p = "P"
+      val pay = FOLAtom(p, List(a,y))
+      val allxpax = FOLExVar(x,FOLAtom(p, List(a,x)))
       val ax = Axiom(List(pay), List(pay))
       val i1 = ExistsRightRule(ax, ax.root.succedent(0), allxpax, y)
       val i2 = ExistsLeftRule(i1, i1.root.antecedent(0), allxpax, y)

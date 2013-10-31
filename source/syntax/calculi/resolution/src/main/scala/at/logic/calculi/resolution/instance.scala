@@ -1,11 +1,10 @@
 
-package at.logic.calculi.resolution
+package at.logic.calculi.resolution.robinson
 
+import at.logic.calculi.resolution._
 import at.logic.calculi.proofs._
 import at.logic.language.fol._
 import at.logic.utils.ds.acyclicGraphs._
-
-// NOTE: AppliedSubstitution had FOLExpression type
 
 case object InstanceType extends UnaryRuleTypeA
 

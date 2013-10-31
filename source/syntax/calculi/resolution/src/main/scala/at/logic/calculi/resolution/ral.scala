@@ -5,19 +5,20 @@
  * are defined.
  */
 
-/*
-package at.logic.calculi.resolution
+package at.logic.calculi.resolution.ral
 
-import at.logic.language.lambda.types._
+import at.logic.calculi.resolution._
 import at.logic.calculi.occurrences._
 import at.logic.calculi.proofs._
-import at.logic.language.hol._
-import at.logic.utils.ds.acyclicGraphs._
-import at.logic.utils.labeling._
-import at.logic.language.hol.skolemSymbols.TypeSynonyms._
 import at.logic.calculi.lksk._
 import at.logic.calculi.lksk.TypeSynonyms._
-import at.logic.calculi.lk.base.{Sequent,createContext => lkCreateContext,AuxiliaryFormulas,PrincipalFormulas, SubstitutionTerm}
+import at.logic.calculi.lk.base.{Sequent, AuxiliaryFormulas, PrincipalFormulas, SubstitutionTerm}
+import at.logic.language.hol._
+import at.logic.language.hol.BetaReduction._
+import at.logic.language.hol.skolemSymbols.TypeSynonyms.SkolemSymbol
+import at.logic.language.lambda.types._
+import at.logic.utils.ds.acyclicGraphs._
+import at.logic.utils.labeling._
 import at.logic.utils.traits.Occurrence
 import util.grammar.LabelledRHS
 
@@ -26,16 +27,8 @@ case object AllTRalType extends UnaryRuleTypeA
 case object AllFRalType extends UnaryRuleTypeA
 case object ExTRalType extends UnaryRuleTypeA
 case object ExFRalType extends UnaryRuleTypeA
-
 case object CutRalType extends UnaryRuleTypeA
-
-object Definitions {
-  // TODO: maybe move these two to LKsk?
-  def createContext(seq: Seq[FormulaOccurrence]): Seq[LabelledFormulaOccurrence] = lkCreateContext( seq ).asInstanceOf[Seq[LabelledFormulaOccurrence]]
-
-  def computeSkolemTerm( sk: SkolemSymbol, t: TA, label: Label ) =
-    Function(sk, label.toList, t)
-}
+case object SubType extends UnaryRuleTypeA
 
 object Cut {
   def apply[V <: Sequent](s1: ResolutionProof[V], s2: ResolutionProof[V], term1ocs: List[Occurrence], term2ocs: List[Occurrence]) = {
@@ -74,8 +67,8 @@ object ForallT {
     if (term1op == None) throw new ResolutionRuleCreationException("Auxialiary formulas are not contained in the right part of the sequent")
     else {
       val term1 = term1op.get.asInstanceOf[LabelledFormulaOccurrence]
-      val sub = term1.formula match { case All(sub, _) => sub }
-      val prinFormula = new LabelledFormulaOccurrence(betaNormalize( App( sub, v ) ).asInstanceOf[HOLFormula], term1::Nil, term1.skolem_label + v )
+      val f = instantiate(term1.formula, v)
+      val prinFormula = new LabelledFormulaOccurrence(betaNormalize( f ), term1::Nil, term1.skolem_label + v )
       new UnaryAGraph[Sequent](new LabelledSequent(createContext(s1.root.antecedent), createContext(s1.root.succedent filterNot(_ == term1)) :+ prinFormula), s1)
         with UnaryResolutionProof[V] with AuxiliaryFormulas with PrincipalFormulas with SubstitutionTerm {
           def rule = AllTRalType
@@ -100,10 +93,11 @@ object ForallF {
     if (term1op == None) throw new ResolutionRuleCreationException("Auxialiary formulas are not contained in the right part of the sequent")
     else {
       val term1 = term1op.get.asInstanceOf[LabelledFormulaOccurrence]
-      // TODO: improve second match in next line
-      val (sub, t) = term1.formula match { case All(sub, t) => (sub, t match { case ( (t -> To()) -> To() ) => t } ) }
-      val skt = computeSkolemTerm( sk, t, term1.skolem_label ) //TODO: cast!?
-      val prinFormula = term1.factory.createFormulaOccurrence( betaNormalize( App( sub, skt ) ).asInstanceOf[HOLFormula], term1::Nil).asInstanceOf[LabelledFormulaOccurrence] //TODO: is the cast really correct?
+      // TODO: there must be a better way for getting this type
+      val t = term1.formula match { case All(_, t) => t match { case ( (t -> To) -> To ) => t } }
+      val skt = computeSkolemTerm( sk, t, term1.skolem_label )
+      val f = instantiate(term1.formula, skt)
+      val prinFormula = term1.factory.createFormulaOccurrence( betaNormalize( f ), term1::Nil).asInstanceOf[LabelledFormulaOccurrence] //TODO: is the cast really correct?
       new UnaryAGraph[Sequent](new LabelledSequent(createContext(s1.root.antecedent filterNot(_ == term1)) :+ prinFormula, createContext(s1.root.succedent)), s1)
         with UnaryResolutionProof[V] with AuxiliaryFormulas with PrincipalFormulas with SubstitutionTerm {
           def rule = AllFRalType
@@ -128,8 +122,8 @@ object ExistsF {
     if (term1op == None) throw new ResolutionRuleCreationException("Auxialiary formulas are not contained in the right part of the sequent")
     else {
       val term1 = term1op.get.asInstanceOf[LabelledFormulaOccurrence]
-      val sub = term1.formula match { case Ex(sub, _) => sub }
-      val prinFormula = new LabelledFormulaOccurrence(betaNormalize( App( sub, v ) ).asInstanceOf[HOLFormula], term1::Nil, term1.skolem_label + v )
+      val f = instantiate(term1.formula, v)
+      val prinFormula = new LabelledFormulaOccurrence(betaNormalize( f ), term1::Nil, term1.skolem_label + v )
       new UnaryAGraph[Sequent](new LabelledSequent(createContext(s1.root.antecedent filterNot(_ == term1)) :+ prinFormula, createContext(s1.root.succedent)), s1)
         with UnaryResolutionProof[V] with AuxiliaryFormulas with PrincipalFormulas with SubstitutionTerm {
           def rule = ExFRalType
@@ -154,10 +148,10 @@ object ExistsT {
     if (term1op == None) throw new ResolutionRuleCreationException("Auxialiary formulas are not contained in the right part of the sequent")
     else {
       val term1 = term1op.get.asInstanceOf[LabelledFormulaOccurrence]
-      // TODO: improve second match in next line
-      val (sub, t) = term1.formula match { case Ex(sub, t) => (sub, t match { case ( (t -> To()) -> To() ) => t } ) }
-      val skt = computeSkolemTerm( sk, t, term1.skolem_label ) //TODO: cast!?
-      val prinFormula = term1.factory.createFormulaOccurrence( betaNormalize( App( sub, skt ) ).asInstanceOf[HOLFormula], term1::Nil).asInstanceOf[LabelledFormulaOccurrence] //TODO: is the cast really correct?
+      val t = term1.formula match { case Ex(_, t) => t match { case ( (t -> To) -> To ) => t } }
+      val skt = computeSkolemTerm( sk, t, term1.skolem_label )
+      val f = instantiate(term1.formula, skt)
+      val prinFormula = term1.factory.createFormulaOccurrence( betaNormalize( f ), term1::Nil).asInstanceOf[LabelledFormulaOccurrence] //TODO: is the cast really correct?
       new UnaryAGraph[Sequent](new LabelledSequent(createContext(s1.root.antecedent), createContext(s1.root.succedent filterNot(_ == term1)) :+ prinFormula), s1)
         with UnaryResolutionProof[V] with AuxiliaryFormulas with PrincipalFormulas with SubstitutionTerm {
           def rule = ExTRalType
@@ -189,5 +183,4 @@ object Sub {
       Some((pr.root, pr.uProof, pr.substitution))
   }
 }
-*/
 

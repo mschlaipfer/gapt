@@ -367,8 +367,12 @@ object ExistsLeftRule extends StrongRuleHelper(false) {
 
 class QuantifierRuleHelper(polarity : Boolean) {
   def computeAux( main: HOLFormula, term: HOLExpression ) = main match {
-    case All( sub, _ ) => betaNormalize( HOLApp( sub, term ) ).asInstanceOf[HOLFormula]
-    case Ex( sub, _ ) =>  betaNormalize( HOLApp( sub, term ) ).asInstanceOf[HOLFormula]
+    case AllVar( v, sub ) => 
+      val s = Substitution(v, term)
+      betaNormalize( s(sub) )
+    case ExVar( v, sub ) =>  
+      val s = Substitution(v, term)
+      betaNormalize( s(sub) )
     case _ => throw new LKRuleCreationException("Main formula of a quantifier rule must start with a strong quantfier.")
   }
 
@@ -403,7 +407,7 @@ class StrongRuleHelper(polarity : Boolean) extends QuantifierRuleHelper(polarity
       main match {
         case All( sub, _ ) =>
           // eigenvar condition
-          assert( ( s1.antecedent ++ (s1.succedent.filterNot(_ == aux_fo)) ).forall( fo => !fo.formula.freeVariables.contains( eigen_var ) ),
+          assert( ( s1.antecedent ++ (s1.succedent.filterNot(_ == aux_fo)) ).forall( fo => !freeVariables(fo.formula).contains( eigen_var ) ),
             "Eigenvariable " + eigen_var + " occurs in context " + s1 )
           //This check does the following: if we conclude exists x.A[x] from A[t] then A[x\t] must be A[t].
           //If it fails, you are doing something seriously wrong!
@@ -413,7 +417,7 @@ class StrongRuleHelper(polarity : Boolean) extends QuantifierRuleHelper(polarity
 
         case Ex( sub, _ ) =>
           // eigenvar condition
-          assert( ( (s1.antecedent.filterNot(_ == aux_fo)) ++ s1.succedent ).forall( fo => !fo.formula.freeVariables.contains( eigen_var ) ),
+          assert( ( (s1.antecedent.filterNot(_ == aux_fo)) ++ s1.succedent ).forall( fo => !freeVariables(fo.formula).contains( eigen_var ) ),
             "Eigenvariable " + eigen_var + " occurs in context " + s1 )
           //This check does the following: if we conclude exists x.A[x] from A[t] then A[x\t] must be A[t].
           //If it fails, you are doing something seriously wrong!

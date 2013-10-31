@@ -43,7 +43,7 @@ class HigherOrderLogicTest extends SpecificationWithJUnit {
     }
     "mix correctly the formula trait (3)" in {
       val at1 = Atom(HOLVar("P", ->(c2.exptype, ->(a22.exptype, To))), c2::a22::Nil)
-      // Another way to construct P's type is: FunctionType(To(), args.map(a => a.exptype) )
+      // Another way to construct P's type is: FunctionType(To, args.map(a => a.exptype) )
       val result = at1 match {
         case x: HOLFormula => true
         case _ => false
@@ -51,8 +51,8 @@ class HigherOrderLogicTest extends SpecificationWithJUnit {
       result must beTrue
     }
     "And connective should return the right And formula" in {
-      val c1 = HOLConstFormula("a")
-      val c2 = HOLConstFormula("b")
+      val c1 = Atom(HOLConst("a", To))
+      val c2 = Atom(HOLConst("b", To))
       val result = And(c1, c2) match {
         case HOLApp(HOLApp(andC, c1), c2) => true
         case _ => false
@@ -60,8 +60,8 @@ class HigherOrderLogicTest extends SpecificationWithJUnit {
       result must beTrue
       }
     "Or connective should return the right formula" in {
-      val c1 = HOLConstFormula("a")
-      val c2 = HOLConstFormula("b")
+      val c1 = Atom(HOLConst("a", To))
+      val c2 = Atom(HOLConst("b", To))
       val result = Or(c1, c2) match {
         case HOLApp(HOLApp(orC, c1), c2) => true
         case _ => false
@@ -69,8 +69,8 @@ class HigherOrderLogicTest extends SpecificationWithJUnit {
       result must beTrue
     }
     "Imp connective should return the right formula" in {
-      val c1 = HOLVar("a", To).asInstanceOf[HOLFormula]
-      val c2 = HOLVar("b", To).asInstanceOf[HOLFormula]
+      val c1 = Atom(HOLVar("a", To))
+      val c2 = Atom(HOLVar("b", To))
       val result = Imp(c1, c2) match {
         case HOLApp(HOLApp(impC, c1), c2) => true
         case _ => false
@@ -79,7 +79,7 @@ class HigherOrderLogicTest extends SpecificationWithJUnit {
     }
     "Neg connective should " in {
       "return the right formula" in {
-        val c1 = HOLVar("a", To).asInstanceOf[HOLFormula]
+        val c1 = Atom(HOLVar("a", To))
         val result = Neg(c1) match {
           case HOLApp(negC, c1) => true
           case _ => false
@@ -115,16 +115,16 @@ class HigherOrderLogicTest extends SpecificationWithJUnit {
     "substitute and normalize correctly when Substitution is applied on the formula level" in {
       val x = HOLVar("X", Ti -> To )
       val f = HOLVar("f", (Ti -> To) -> Ti )
-      val xfx : HOLFormula = HOLAppFormula(x, HOLApp( f, x ) )
+      val xfx = Atom(x, Function( f, x::Nil )::Nil )
 
       val z = HOLVar("z", Ti)
       val p = HOLVar("P", Ti -> To)
       val Pz = HOLApp( p, z )
       val t = HOLAbs( z, Pz )
-      val pft : HOLFormula = HOLAppFormula( p, HOLApp( f, t ))
+      val pft = Atom( p, Function( f, t::Nil )::Nil )
 
       val sigma = Substitution( x, t )
-      val xfx_sigma : HOLFormula = betaNormalize( sigma( xfx ) )
+      val xfx_sigma = betaNormalize( sigma( xfx ) )
 
       xfx_sigma must beEqualTo( pft )
     }
@@ -133,7 +133,7 @@ class HigherOrderLogicTest extends SpecificationWithJUnit {
   "Exists quantifier" should {
     val c1 = HOLConst("a", Ti->To)
     val v1 = HOLVar("x", Ti)
-    val f1 = HOLAppFormula(c1,v1)
+    val f1 = Atom(c1,v1::Nil)
     "create a term of the right type" in {
       (ExVar(v1, f1).exptype) must beEqualTo (To)
     }
@@ -142,7 +142,7 @@ class HigherOrderLogicTest extends SpecificationWithJUnit {
   "Forall quantifier" should {
     val c1 = HOLConst("a", Ti->To)
     val v1 = HOLVar("x", Ti)
-    val f1 = HOLAppFormula(c1,v1)
+    val f1 = Atom(c1,v1::Nil)
     "create a term of the right type" in {
       (AllVar(v1, f1).exptype) must beEqualTo (To)
     }

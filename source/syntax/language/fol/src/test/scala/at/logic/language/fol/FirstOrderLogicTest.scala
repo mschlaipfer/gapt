@@ -16,9 +16,8 @@ class FirstOrderLogicTest extends SpecificationWithJUnit {
     "construct correctly an atom formula P(x,f(y),c)" in {
       val List( p, x,y,f,c ) = List("P","x","y","f","c")
       val Pc = FOLConst( p, (Ti -> (Ti -> (Ti -> To))) )
-      val fc = FOLConst( f, (Ti -> Ti) )
       try {
-      Atom( Pc, FOLVar(x)::Function(fc,FOLVar(y)::Nil)::FOLConst(c)::Nil ) must beLike {
+      Atom( p, FOLVar(x)::Function(f,FOLVar(y)::Nil)::FOLConst(c)::Nil ) must beLike {
         case FOLApp( FOLApp( FOLApp( Pc, FOLVar(x) ), FOLApp( fc, FOLVar(y) ) ), FOLConst(c) ) => ok
       }
       } catch {
@@ -29,17 +28,12 @@ class FirstOrderLogicTest extends SpecificationWithJUnit {
       }
     }
     "constructs correctly an atom using the factory" in {
-      val var3 = Atom(FOLConst("X3", To), Nil)
-      true
-    }
-    "constructs correctly an atom using the factory" in {
       val var1 = FOLVar("x1")
       val const1 = FOLConst("c1")
       val var2 = FOLVar("x2")
       val args = var1::var2::const1::Nil
-      val tp = FunctionType(To, args.map(a => a.exptype) )
-      val atom1 = Atom(FOLConst("A", tp), args)
-      val var3 = Atom(FOLConst("X3", To), Nil)
+      val atom1 = Atom("A", args)
+      val var3 = Atom("X3")
       val and1 = And(atom1, var3)
       true
     }
@@ -48,8 +42,7 @@ class FirstOrderLogicTest extends SpecificationWithJUnit {
       val const1 = FOLConst("c1")
       val var2 = FOLVar("x2")
       val args = var1::var2::const1::Nil
-      val tp = FunctionType(To, args.map(a => a.exptype) )
-      val atom1 = Atom(FOLConst("A", tp),args)
+      val atom1 = Atom("A",args)
       val all1 = AllVar(var1, atom1)
       true
     }
@@ -57,7 +50,7 @@ class FirstOrderLogicTest extends SpecificationWithJUnit {
     "alpha equality as default provides that ∀x.∀x.P(x) is equal to ∀y.∀y.P(y)" in {
       val x = FOLVar("x")
       val y = FOLVar("y")
-      val p = FOLConst("P", ->(x.exptype, To))
+      val p = "P"
       val px = Atom(p,List(x))
       val py = Atom(p,List(y))
       val allall_px = AllVar(x, AllVar(x, px))
@@ -69,8 +62,8 @@ class FirstOrderLogicTest extends SpecificationWithJUnit {
 
   "First Order Formula matching" should {
     "not allow P and P match as an Atom " in {
-      val ps = FOLConst("P", Type("o"))
-      val f = And(Atom(ps,Nil), Atom(ps,Nil))
+      val ps = "P"
+      val f = And(Atom(ps), Atom(ps))
 
       f must beLike {
         case Atom(_,_) => ko
@@ -83,8 +76,8 @@ class FirstOrderLogicTest extends SpecificationWithJUnit {
       }
     }
     "match Equation with Atom" in {
-      val a = FOLConst("a")
-      val b = FOLConst("b")
+      val a = FOLConst("a").asInstanceOf[FOLTerm]
+      val b = FOLConst("b").asInstanceOf[FOLTerm]
       val eq = Equation(a, b)
 
       eq must beLike {
@@ -97,7 +90,7 @@ class FirstOrderLogicTest extends SpecificationWithJUnit {
   "First order formulas matching against higher order contructors" should {
     "work for propositional logical operators" in {
       val List(x,y) = List("x","y") map (FOLVar(_))
-      val p = FOLConst("P", Ti -> (Ti -> To))
+      val p = "P"
       val pab = Atom(p, List(x,y))
 
       And(pab,pab) match {
@@ -124,7 +117,7 @@ class FirstOrderLogicTest extends SpecificationWithJUnit {
     "work for quantifiers" in {
       val List(a,b) = List("a","b") map (FOLConst(_))
       val List(x,y) = List("x","y") map (FOLVar(_))
-      val p = FOLConst("P", Ti -> (Ti -> To))
+      val p = "P"
       val pab = Atom(p, List(a,b))
 
       AllVar(x,pab) match {

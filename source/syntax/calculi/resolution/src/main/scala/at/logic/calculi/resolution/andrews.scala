@@ -5,25 +5,19 @@
  * for additional connectives.
  */
 
-/*
-package at.logic.calculi.resolution
+package at.logic.calculi.resolution.andrews
 
-import at.logic.language.lambda.types._
+import at.logic.calculi.resolution._
 import at.logic.calculi.occurrences._
 import at.logic.calculi.proofs._
 import at.logic.language.hol._
-import at.logic.language.lambda.symbols._
-import at.logic.utils.ds.acyclicGraphs._
-import at.logic.calculi.lk.base._
-import at.logic.utils.labeling._
 import at.logic.language.hol.BetaReduction._
-import at.logic.language.hol.skolemSymbols.TypeSynonyms._
+import at.logic.language.hol.skolemSymbols.TypeSynonyms.SkolemSymbol
+import at.logic.language.lambda.symbols._
+import at.logic.language.lambda.types._
+import at.logic.utils.ds.acyclicGraphs._
+import at.logic.calculi.lk.base.{Sequent, AuxiliaryFormulas, PrincipalFormulas, SubstitutionTerm}
 import at.logic.utils.traits.Occurrence
-
-object Definitions {
-  def computeSkolemTerm( sk: SkolemSymbol, t: TA, sub: HOLExpression ) =
-    Function(sk, sub.freeVariables.asInstanceOf[List[HOLVar]], t)
-}
 
 // inferences
 case object NotTType extends UnaryRuleTypeA
@@ -360,8 +354,8 @@ object ForallT {
     if (term1op == None) throw new ResolutionRuleCreationException("Auxialiary formulas are not contained in the right part of the sequent")
     else {
       val term1 = term1op.get
-      val sub = term1.formula match { case All(sub, _) => sub }
-      val prinFormula = term1.factory.createFormulaOccurrence( betaNormalize( HOLApp( sub, v ) ), term1::Nil)
+      val f = instantiate(term1.formula, v)
+      val prinFormula = term1.factory.createFormulaOccurrence( betaNormalize( f ), term1::Nil)
       new UnaryAGraph[Sequent](Sequent(createContext(s1.root.antecedent), createContext(s1.root.succedent filterNot(_ == term1)) :+ prinFormula), s1)
         with UnaryResolutionProof[V] with AuxiliaryFormulas with PrincipalFormulas with SubstitutionTerm {
           def rule = AllTType
@@ -386,11 +380,11 @@ object ForallF {
     if (term1op == None) throw new ResolutionRuleCreationException("Auxialiary formulas are not contained in the right part of the sequent")
     else {
       val term1 = term1op.get
-      // TODO: improve second match in next line
-      val (sub, t) = term1.formula match { case All(sub, t) => (sub, t match { case ( (t -> To) -> To ) => t } ) }
-      //println( t )
+      // TODO: there must be a better way for getting this
+      val (t, sub) = term1.formula match { case AllVar(v, sub) => ( v.exptype match { case ( (t -> To) -> To ) => t }, sub) }
       val skt = computeSkolemTerm( sk, t, sub )
-      val prinFormula = term1.factory.createFormulaOccurrence( betaNormalize( HOLApp( sub, skt ) ), term1::Nil)
+      val f = instantiate(term1.formula, skt)
+      val prinFormula = term1.factory.createFormulaOccurrence( betaNormalize( f ), term1::Nil)
       new UnaryAGraph[Sequent](Sequent(createContext(s1.root.antecedent filterNot(_ == term1)) :+ prinFormula, createContext(s1.root.succedent)), s1)
         with UnaryResolutionProof[V] with AuxiliaryFormulas with PrincipalFormulas with SubstitutionTerm {
           def rule = AllFType
@@ -415,8 +409,8 @@ object ExistsF {
     if (term1op == None) throw new ResolutionRuleCreationException("Auxialiary formulas are not contained in the right part of the sequent")
     else {
       val term1 = term1op.get
-      val sub = term1.formula match { case Ex(sub, _) => sub }
-      val prinFormula = term1.factory.createFormulaOccurrence( betaNormalize( HOLApp( sub, v ) ), term1::Nil)
+      val f = instantiate(term1.formula, v)
+      val prinFormula = term1.factory.createFormulaOccurrence(betaNormalize(f), term1::Nil)
       new UnaryAGraph[Sequent](Sequent(createContext(s1.root.antecedent filterNot(_ == term1)) :+ prinFormula, createContext(s1.root.succedent)), s1)
         with UnaryResolutionProof[V] with AuxiliaryFormulas with PrincipalFormulas with SubstitutionTerm {
           def rule = ExFType
@@ -441,10 +435,11 @@ object ExistsT {
     if (term1op == None) throw new ResolutionRuleCreationException("Auxialiary formulas are not contained in the right part of the sequent")
     else {
       val term1 = term1op.get
-      // TODO: improve second match in next line
-      val (sub, t) = term1.formula match { case Ex(sub, t) => (sub, t match { case ( (t -> To) -> To ) => t } ) }
+      // TODO: there must be a better way for getting this
+      val (t, sub) = term1.formula match { case ExVar(v, sub) => (v.exptype match { case ( (t -> To) -> To ) => t }, sub) }
       val skt = computeSkolemTerm( sk, t, sub )
-      val prinFormula = term1.factory.createFormulaOccurrence( betaNormalize( HOLApp( sub, skt ) ), term1::Nil)
+      val f = instantiate(term1.formula, skt)
+      val prinFormula = term1.factory.createFormulaOccurrence( betaNormalize( f ), term1::Nil)
       new UnaryAGraph[Sequent](Sequent(createContext(s1.root.antecedent), createContext(s1.root.succedent filterNot(_ == term1)) :+ prinFormula), s1)
         with UnaryResolutionProof[V] with AuxiliaryFormulas with PrincipalFormulas with SubstitutionTerm {
           def rule = ExTType
@@ -476,4 +471,3 @@ object Sub {
       Some((pr.root, pr.uProof, pr.substitution))
   }
 }
-*/

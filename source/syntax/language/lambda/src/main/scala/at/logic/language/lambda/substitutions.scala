@@ -42,7 +42,7 @@ class Substitution(val map: Map[Var, LambdaExpression]) {
       }
       else {
         // Variable captured, renaming the abstracted variable
-        val freshVar = v.rename(fv)
+        val freshVar = rename(v, fv)
         val sub = Substitution(v, freshVar)
         val newTerm = sub(t1)
         t.factory.createAbs(freshVar, apply(newTerm))
@@ -50,7 +50,7 @@ class Substitution(val map: Map[Var, LambdaExpression]) {
   }
 
   def domain : List[Var] = map.keys.toList
-  def range : List[Var] = map.foldLeft(List[Var]()) ( (acc, data) => data._2.freeVariables ++ acc )
+  def range : List[Var] = map.foldLeft(List[Var]()) ( (acc, data) => freeVariables(data._2) ++ acc )
 
   def ::(sub: (Var, LambdaExpression)) = new Substitution(map + sub)
   def ::(otherSubstitution: Substitution) = new Substitution(map ++ otherSubstitution.map)

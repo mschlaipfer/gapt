@@ -59,7 +59,7 @@ class LambdaCalculusTest extends SpecificationWithJUnit {
     "equate variables with same name (but different symbols)" in {
       val v = Var( "v", Ti )
       val v0 = Var( "v0", Ti )
-      val v_renamed = v.rename( List( v ))
+      val v_renamed = rename(v, List( v ))
 
       v_renamed must beEqualTo ( v0 )
       ( v_renamed.syntaxEquals( v0 ) ) must beEqualTo ( true )
@@ -117,7 +117,7 @@ class LambdaCalculusTest extends SpecificationWithJUnit {
       val y = Var( "y", Ti )
       val z = Var( "z", Ti )
       val blacklist = x::y::z::Nil
-      val x_renamed = x.rename( blacklist )
+      val x_renamed = rename( x, blacklist )
 
       ( blacklist.contains( x_renamed ) ) must beEqualTo ( false )
     }
@@ -125,7 +125,7 @@ class LambdaCalculusTest extends SpecificationWithJUnit {
     "produce a new variable different from all in the blacklist (in presence of maliciously chosen variable names)" in {
       val v = Var( "v", Ti )
       val v0 = Var( "v0", Ti )
-      val v_renamed = v.rename( v::v0::Nil )
+      val v_renamed = rename( v, v::v0::Nil )
    
       ( v_renamed ) must not be equalTo ( v0 )
       ( v_renamed.syntaxEquals( v0 ) ) must beEqualTo ( false )
@@ -140,7 +140,7 @@ class LambdaCalculusTest extends SpecificationWithJUnit {
       val r = Var("R", (Ti -> To) -> (Ti -> ((Ti -> To) -> To)))
       val a = App(r, x::y::z::Nil)
       val qa = Abs( x, a )
-      val free = qa.freeVariables
+      val free = freeVariables(qa)
       free must not (have( _.syntaxEquals(x) ))
       free must have (_.syntaxEquals(y) )
       free must have (_.syntaxEquals(z) )
@@ -152,7 +152,7 @@ class LambdaCalculusTest extends SpecificationWithJUnit {
       val z = Var( "z", Ti )
       val M = App( Abs( x, App( x, z )), x )
 
-      val fv = M.freeVariables.toSet
+      val fv = freeVariables(M).toSet
       val fv_correct = Set( x, z )
 
       fv must be equalTo( fv_correct )
@@ -163,7 +163,7 @@ class LambdaCalculusTest extends SpecificationWithJUnit {
       val z = Var( "z", Ti )
       val M = Abs( x, App( Abs( x, App( x, z )), x ))
 
-      val fv = M.freeVariables.toSet
+      val fv = freeVariables(M).toSet
       val fv_correct = Set( z )
 
       fv must be equalTo( fv_correct )

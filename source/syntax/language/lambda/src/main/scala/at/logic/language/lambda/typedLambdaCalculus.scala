@@ -20,18 +20,6 @@ abstract class LambdaExpression {
   // Alpha equality
   def alphaEquals(a: Any, subs: Map[Var, Var]): Boolean
 
-  // List of free variables
-  def freeVariables: List[Var] = getFreeVariables(List())
-  
-  private def getFreeVariables(bound: List[Var]) : List[Var] = this match {
-    case v : Var =>
-      if (!bound.contains(v)) List(v)
-      else List()
-    case Const(_,_) => List()
-    case App(exp, arg) => exp.getFreeVariables(bound) ++ arg.getFreeVariables(bound)
-    case Abs(v, exp) => exp.getFreeVariables(v :: bound)
-  }
-
   // Factory for Lambda-Expressions
   def factory : FactoryA = LambdaFactory
 
@@ -40,15 +28,10 @@ abstract class LambdaExpression {
 // Defines the elements that generate lambda-expressions: variables,
 // applications and abstractions (and constants).
 
-// TODO: sym should be private!!
 class Var(val sym: SymbolA, val exptype: TA) extends LambdaExpression {
 
   // The name of the variable should be obtained with this method.
   def name : String = sym.toString
-
-  // get a new variable (similar to the current and) different from all variables in the blackList,
-  // returns this variable if this variable is not in the blackList
-  def rename(blackList: List[Var]) : Var = new Var(getRenaming(sym, blackList.map(v => v.sym)), exptype)
 
   override def equals(a: Any) = alphaEquals(a, Map[Var, Var]())
 
@@ -76,19 +59,18 @@ class Var(val sym: SymbolA, val exptype: TA) extends LambdaExpression {
 object Var {
   def apply(name: String, exptype: TA) = new Var(StringSymbol(name), exptype)
   def apply(name: String, exptype: String) = new Var(StringSymbol(name), Type(exptype))
+  def apply(sym: SymbolA, exptype: TA) = new Var(sym, exptype)
+  def apply(sym: SymbolA, exptype: String) = new Var(sym, Type(exptype))
   def unapply(e: LambdaExpression) = e match {
     case v : Var => Some(v.name, v.exptype)
     case _ => None
   }
 }
 
-// TODO: sym should be private!!
 class Const(val sym: SymbolA, val exptype: TA) extends LambdaExpression {
 
   // The name of the variable should be obtained with this method.
   def name : String = sym.toString
-
-  def rename(blackList: List[Const]) : Const = new Const(getRenaming(sym, blackList.map(c => c.sym)), exptype)
 
   override def equals(a: Any) = alphaEquals(a, Map[Var, Var]())
 
@@ -113,6 +95,8 @@ class Const(val sym: SymbolA, val exptype: TA) extends LambdaExpression {
 object Const {
   def apply(name: String, exptype: TA) = new Const(StringSymbol(name), exptype)
   def apply(name: String, exptype: String) = new Const(StringSymbol(name), Type(exptype))
+  def apply(sym: SymbolA, exptype: TA) = new Const(sym, exptype)
+  def apply(sym: SymbolA, exptype: String) = new Const(sym, Type(exptype))
   def unapply(e: LambdaExpression) = e match {
     case c : Const => Some(c.name, c.exptype)
     case _ => None

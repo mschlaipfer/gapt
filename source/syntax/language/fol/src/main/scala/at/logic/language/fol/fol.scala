@@ -5,7 +5,7 @@
 package at.logic.language.fol
 
 import at.logic.language.lambda.{LambdaExpression, Var, Const, App, Abs, FactoryA}
-import at.logic.language.hol.{HOLExpression, HOLVar, HOLConst, HOLApp, HOLAbs, HOLFormula}
+import at.logic.language.hol.{HOLExpression, HOLVar, HOLConst, HOLApp, HOLAbs, HOLFormula, isLogicalSymbol}
 import at.logic.language.lambda.symbols._
 import at.logic.language.lambda.types._
 import at.logic.language.hol.logicSymbols._
@@ -63,110 +63,11 @@ trait FOLExpression extends HOLExpression {
       r
     }
 
-    override def freeVariables : List[FOLVar] = super.freeVariables.asInstanceOf[List[FOLVar]]
-
     override def factory : FactoryA = FOLFactory
 
 }
 
-trait FOLFormula extends FOLExpression with HOLFormula {
-
-  // Instantiates a term in a quantified formula (using the first quantifier).
-  def instantiate(t: FOLTerm) = this match {
-    case AllVar(v, form) =>
-      val sub = Substitution(v, t)
-      sub(form)
-    case ExVar(v, form) => 
-      val sub = Substitution(v, t)
-      sub(form)
-    case _ => throw new Exception("ERROR: trying to replace variables in a formula without quantifier.") 
-  }
-
-  // Instantiates all quantifiers of the formula with the terms in lst.
-  // OBS: the number of quantifiers in the formula must greater or equal than the
-  // number of terms in lst.
-  def instantiateAll(lst: List[FOLTerm]) : FOLFormula = {
-  lst match {
-    case Nil => this
-    case h :: t => this.instantiate(h).instantiateAll(t)
-    }
-  }
-
-  // TODO: some of the methods below should work for FOL and HOL...
-
-  // Transforms a formula to negation normal form (transforming also
-  // implications into disjunctions)
-  def toNNF : FOLFormula = this match {
-    case Atom(_,_) => this
-    case Function(_,_) => this
-    case Imp(f1,f2) => Or((Neg(f1)).toNNF, f2.toNNF)
-    case And(f1,f2) => And(f1.toNNF, f2.toNNF)
-    case Or(f1,f2) => Or(f1.toNNF, f2.toNNF)
-    case ExVar(x,f) => ExVar(x, f.toNNF)
-    case AllVar(x,f) => AllVar(x, f.toNNF)
-    case Neg(f) => f match {
-      case Atom(_,_) => Neg(f)
-      case Function(_,_) => Neg(f)
-      case Neg(f1) => f1.toNNF
-      case Imp(f1,f2) => And(f1.toNNF, Neg(f2.toNNF))
-      case And(f1,f2) => Or(Neg(f1).toNNF, Neg(f2).toNNF)
-      case Or(f1,f2) => And(Neg(f1).toNNF, Neg(f2).toNNF)
-      case ExVar(x,f) => AllVar(x, Neg(f).toNNF)
-      case AllVar(x,f) => ExVar(x, Neg(f).toNNF)
-      case _ => throw new Exception("ERROR: Unexpected case while transforming to negation normal form.")
-    }
-    case _ => throw new Exception("ERROR: Unexpected case while transforming to negation normal form.")
-  }
-
-  // Distribute Ors over Ands
-  def distribute : FOLFormula = this match {
-    case Atom(_,_) => this
-    //case Function(_,_) => this
-    // Negation has only atomic scope
-    case Neg(Atom(_,_)) => this
-    //case Neg(Function(_,_)) => this
-    case And(f1, f2) => And(f1.distribute, f2.distribute)
-    case Or(f1, And(f2,f3)) => And(Or(f1,f2).distribute, Or(f1,f3).distribute)
-    case Or(And(f1,f2), f3) => And(Or(f1,f3).distribute, Or(f2,f3).distribute)
-    case Or(f1, f2) => Or(f1.distribute, f2.distribute)
-    case _ => throw new Exception("ERROR: Unexpected case while distributing Ors over Ands.")
-  }
-
-  // Transforms a formula to conjunctive normal form
-  // 1. Transform to negation normal form
-  // 2. Distribute Ors over Ands
-  // OBS: works for propositional formulas only
-  // TODO: tests for this
-  def toCNF : FOLFormula = this.toNNF.distribute
-
-  def numOfAtoms : Int = this match {
-    case Atom(_,_) => 1
-    case Function(_,_) => 1
-    case Imp(f1,f2) => f1.numOfAtoms + f2.numOfAtoms
-    case And(f1,f2) => f1.numOfAtoms + f2.numOfAtoms
-    case Or(f1,f2) => f1.numOfAtoms + f2.numOfAtoms
-    case ExVar(x,f) => f.numOfAtoms
-    case AllVar(x,f) => f.numOfAtoms
-    case Neg(f) => f.numOfAtoms
-    case _ => throw new Exception("ERROR: Unexpected case while counting the number of atoms.")
-  }
-
-  // Returns the quantifier free part of a prenex formula
-  def getMatrix : FOLFormula = {
-    assert(this.isPrenex)
-    this match {
-      case Var(_,_) |
-           Atom(_,_) |
-           Imp(_,_) |
-           And(_,_) |
-           Or(_,_) |
-           Neg(_) => this
-      case ExVar(x,f0) => f0.getMatrix
-      case AllVar(x,f0) => f0.getMatrix
-      case _ => throw new Exception("ERROR: Unexpected case while extracting the matrix of a formula.")
-    }
-  }
-}
+trait FOLFormula extends FOLExpression with HOLFormula
 
 trait FOLTerm extends FOLExpression { require( exptype == Ti ) }
 
@@ -194,7 +95,8 @@ object FOLAbs {
 
 class FOLVar (sym: SymbolA) extends HOLVar(sym, Ti) with FOLTerm
 object FOLVar {
-  def apply(name: String) = new FOLVar(StringSymbol(name))
+  def apply(name: String) : FOLVar = FOLVar(StringSymbol(name))
+  def apply(sym: SymbolA) : FOLVar = new FOLVar(sym)
   def unapply(exp: FOLExpression) = exp match {
     case v: FOLVar => Some( v.name )
     case _ => None
@@ -203,11 +105,13 @@ object FOLVar {
 
 class FOLConst (sym: SymbolA, exptype: TA) extends HOLConst(sym, exptype) with FOLExpression
 object FOLConst {
-  def apply(name: String) = new FOLConst(StringSymbol(name), Ti) with FOLTerm
-  def apply(name: String, exptype: TA) = exptype match {
-    case To => new FOLConst(StringSymbol(name), exptype) with FOLFormula
-    case Ti => new FOLConst(StringSymbol(name), exptype) with FOLTerm
-    case _ => new FOLConst(StringSymbol(name), exptype)
+  def apply(name: String) : FOLConst = FOLConst(StringSymbol(name), Ti)
+  def apply(name: String, exptype: TA) : FOLConst = FOLConst(StringSymbol(name), exptype)
+  def apply(sym: SymbolA) : FOLConst = new FOLConst(sym, Ti) with FOLTerm
+  def apply(sym: SymbolA, exptype: TA) : FOLConst = exptype match {
+    case To => new FOLConst(sym, exptype) with FOLFormula
+    case Ti => new FOLConst(sym, exptype) with FOLTerm
+    case _ => new FOLConst(sym, exptype)
   }
   def unapply(exp: FOLExpression) = exp match {
     case c: FOLConst => Some( (c.name, c.exptype) )
@@ -224,27 +128,38 @@ case object ImpC extends FOLConst(ImpSymbol, To -> (To -> To))
 case object EqC extends FOLConst(EqSymbol,   Ti -> (Ti -> To))
 
 object Equation {
-    def apply(left: FOLTerm, right: FOLTerm) = {
-      FOLApp(FOLApp(EqC, left),right).asInstanceOf[FOLFormula]
-    }
-    def unapply(expression: FOLExpression) = expression match {
-        case FOLApp(FOLApp(EqC,left),right) => Some( left.asInstanceOf[FOLTerm],right.asInstanceOf[FOLTerm] )
-        case _ => None
-    }
+  def apply(left: FOLTerm, right: FOLTerm) = {
+    FOLApp(FOLApp(EqC, left),right).asInstanceOf[FOLFormula]
   }
+  def unapply(expression: FOLExpression) = expression match {
+      case FOLApp(FOLApp(EqC,left),right) => Some( left.asInstanceOf[FOLTerm],right.asInstanceOf[FOLTerm] )
+      case _ => None
+  }
+}
 
 // FOL atom of the form P(t_1,...,t_n)
 object Atom {
-  def apply(head: FOLVar, args: List[FOLExpression]): FOLFormula = apply_(head, args).asInstanceOf[FOLFormula]
-  def apply(head: FOLConst, args: List[FOLExpression]): FOLFormula = apply_(head, args).asInstanceOf[FOLFormula]
+  def apply(head: String, args: List[FOLExpression]): FOLFormula = {
+    val tp = FunctionType(To, args.map(a => a.exptype)) 
+    val f = FOLConst(head, tp)
+    apply_(f, args).asInstanceOf[FOLFormula]
+  }
+  def apply(head: String): FOLFormula = FOLConst(head, To).asInstanceOf[FOLFormula]
+  def apply(head: SymbolA, args: List[FOLExpression]): FOLFormula = {
+    val tp = FunctionType(To, args.map(a => a.exptype)) 
+    val f = FOLConst(head, tp)
+    apply_(f, args).asInstanceOf[FOLFormula]
+  }
+  def apply(head: SymbolA): FOLFormula = FOLConst(head, To).asInstanceOf[FOLFormula]
+  
   private def apply_(head: FOLExpression, args: List[FOLExpression]): FOLExpression = args match {
     case Nil => head
     case t :: tl => apply_(FOLApp(head, t), tl)
   }
 
   def unapply( expression: FOLExpression ) = expression match {
-    case FOLApp(c: FOLConst,_) if c.isLogicalSymbol => None
-    case FOLApp(FOLApp(c: FOLConst,_),_) if c.isLogicalSymbol => None
+    case FOLApp(c: FOLConst,_) if isLogicalSymbol(c) => None
+    case FOLApp(FOLApp(c: FOLConst,_),_) if isLogicalSymbol(c) => None
     case FOLApp(_,_) if (expression.exptype == To) => Some( unapply_(expression) )
     case FOLConst(_,_) if (expression.exptype == To) => Some( (expression, Nil) )
     case FOLVar(_) if (expression.exptype == To) => Some( (expression, Nil) )
@@ -261,17 +176,27 @@ object Atom {
 }
 
 // FOL function of the form f(t_1,...,t_n)
-object Function {
-  def apply(head: FOLVar, args: List[FOLExpression]): FOLTerm = apply_(head, args).asInstanceOf[FOLTerm]
-  def apply(head: FOLConst, args: List[FOLExpression]): FOLTerm = apply_(head, args).asInstanceOf[FOLTerm]
+object Function {  
+  
+  def apply(head: String, args: List[FOLExpression]): FOLTerm = {
+    val tp = FunctionType(Ti, args.map(a => a.exptype)) 
+    val f = FOLConst(head, tp)
+    apply_(f, args).asInstanceOf[FOLTerm]
+  }
+  def apply(head: SymbolA, args: List[FOLExpression]): FOLTerm = {
+    val tp = FunctionType(Ti, args.map(a => a.exptype)) 
+    val f = FOLConst(head, tp)
+    apply_(f, args).asInstanceOf[FOLTerm]
+  }
+  
   private def apply_(head: FOLExpression, args: List[FOLExpression]): FOLExpression = args match {
     case Nil => head
     case t :: tl => apply_(FOLApp(head, t), tl)
   }
 
   def unapply( expression: FOLExpression ) = expression match {
-    case FOLApp(c: FOLConst,_) if c.isLogicalSymbol => None
-    case FOLApp(FOLApp(c: FOLConst,_),_) if c.isLogicalSymbol => None
+    case FOLApp(c: FOLConst,_) if isLogicalSymbol(c) => None
+    case FOLApp(FOLApp(c: FOLConst,_),_) if isLogicalSymbol(c) => None
     case FOLApp(_,_) if (expression.exptype != To) => 
       val t = unapply_(expression) 
       Some( (t._1, t._2) )
@@ -279,7 +204,6 @@ object Function {
   }
   // Recursive unapply to get the head and args
   private def unapply_(e: FOLExpression) : (FOLExpression, List[FOLExpression]) = e match {
-    case v: FOLVar => (v, Nil)
     case c: FOLConst => (c, Nil)
     case FOLApp(e1, e2) => 
       val t = unapply_(e1)
@@ -374,17 +298,6 @@ object AllVar {
     case _ => None
   }
 }
-
-/*
-object BinaryLogicSymbol {
-  def unapply(expression: FOLExpression) = expression match {
-    case And(l, r) => Some( (AndC, l, r) )
-    case Or(l, r) => Some( (OrC, l, r) )
-    case Imp(l, r) => Some( (ImpC, l, r) )
-    case _ => None
-  }
-}
-*/
 
 /*********************** Factories *****************************/
 

@@ -24,7 +24,7 @@ object longNormalForm {
       case FunctionType(_, args) => {
         val binders: List[Var] = args.foldRight(List[Var]()) ( (z, acc) => {
           val newVar = Var("eta", z) // Creating a new var of appropriate type
-          newVar.rename(disallowedVars ++ acc) :: acc // Rename if needed
+          rename(newVar, disallowedVars ++ acc) :: acc // Rename if needed
         })
         val dv = disallowedVars ++ binders
         Abs(binders, App(term, binders.map((z => apply(z, dv)))))
@@ -37,7 +37,7 @@ object longNormalForm {
       case FunctionType(_, args) => {
         val binders: List[Var] = args.foldRight(List[Var]()) ( (z, acc) => {
           val newVar = Var("eta", z) // Creating a new var of appropriate type
-          newVar.rename(disallowedVars ++ acc) :: acc // Rename if needed
+          rename(newVar, disallowedVars ++ acc) :: acc // Rename if needed
         })
         val dv = disallowedVars ++ binders
         Abs(binders, App(App(m,apply(n, dv)), binders.map((z => apply(z, dv)))))

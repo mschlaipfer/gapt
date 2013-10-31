@@ -4,30 +4,16 @@
  * Traditional resolution calculus with factors and para modulation. Using clauses
  */
 
-package at.logic.calculi.resolution
+package at.logic.calculi.resolution.robinson
 
+import at.logic.calculi.resolution._
 import at.logic.calculi.occurrences._
 import at.logic.calculi.proofs._
 import at.logic.language.fol._
 import at.logic.utils.ds.acyclicGraphs._
-import at.logic.calculi.lk.base._
+import at.logic.calculi.lk.base.{AuxiliaryFormulas, LKRuleCreationException}
 import at.logic.language.hol.{HOLVar, Formula, HOLExpression, Neg => HOLNeg, HOLFormula}
 import at.logic.utils.traits.Occurrence
-import at.logic.calculi.occurrences.FormulaOccurrence
-
-// NOTE: AppliedSubstitution had FOLExpression type
-
-/* creates new formula occurrences where sub is applied to each element x in the given set and which has x as an ancestor
- * additional_context  may add additional ancestors, needed e.g. for factoring */
-object createContext {
-  def apply(set: Seq[FormulaOccurrence], sub: Substitution): Seq[FormulaOccurrence] =
-    apply(set, sub, Map[FormulaOccurrence, List[FormulaOccurrence]]())
-  def apply(set: Seq[FormulaOccurrence], sub: Substitution, additional_context : Map[FormulaOccurrence, Seq[FormulaOccurrence]]): Seq[FormulaOccurrence] =
-    set.map(x =>
-              x.factory.createFormulaOccurrence(sub(x.formula.asInstanceOf[FOLFormula]).asInstanceOf[HOLFormula],
-                                                x::additional_context.getOrElse(x,Nil).toList)
-           )
-}
 
 case object VariantType extends UnaryRuleTypeA
 case object FactorType extends UnaryRuleTypeA
@@ -168,11 +154,11 @@ object Variant {
 
   def apply(p: RobinsonResolutionProof): ResolutionProof[Clause] = {
     // Although the method freeVariables is overloaded in hol and fol, the casting here is necessary
-    val vars = p.root.occurrences.foldLeft( List[FOLVar]() )( (m, f) => m ++ f.freeVariables.asInstanceOf[List[FOLVar]] )
+    val vars = p.root.occurrences.foldLeft( List[FOLVar]() )( (m, f) => m ++ freeVariables(f.formula.asInstanceOf[FOLFormula]) )
     // we return an actual variant only if there are free variables, otherwise we return the parent proof as it does not change
     if (vars.isEmpty) p
     else {
-      val newVars = vars.map( v => (v, v.rename(vars).asInstanceOf[FOLExpression] ) )
+      val newVars = vars.map( v => (v, rename(v, vars).asInstanceOf[FOLExpression] ) )
       apply( p, Substitution(newVars) )
     }
   }

@@ -2,24 +2,28 @@
 
 digraph G {
   node [shape=note];
-  lambda [label=< lambda<br/><font point-size="10pt">- typedLambdaCalculus.scala<br/>- substitutions.scala<br/>- BetaReduction.scala<br/>- replacements.scala (commented out)<br/>- longNormalForm.scala</font> >]
+  lambda [label=< lambda<br/><font point-size="10pt">- typedLambdaCalculus.scala<br/>- substitutions.scala<br/>- BetaReduction.scala<br/>- replacements.scala (commented out)<br/>- longNormalForm.scala<br/>- utils.scala</font> >]
   symbols [label=< symbols<br/><font point-size="10pt">- symbols.scala</font> >]
   types [label=< types<br/><font point-size="10pt">- types.scala</font> >]
-  hol [label=< hol<br/><font point-size="10pt">- hol.scala<br/>- substitution.scala<br/>- betaReduction.scala</font> >]
+  hol [label=< hol<br/><font point-size="10pt">- hol.scala<br/>- substitution.scala<br/>- betaReduction.scala<br/>- utils.scala</font> >]
   logicSymbols [label=< logicSymbols<br/><font point-size="10pt">- logicSymbols.scala</font> >]
   skolemSymbols [label=< skolemSymbols<br/><font point-size="10pt">- skolemSymbols.scala</font> >]
   replacements [label=< replacements<br/><font point-size="10pt">- Replacements.scala (commented out)</font> >]
   fol [label=< fol<br/><font point-size="10pt">- fol.scala<br/>- utils.scala<br/>- substitution.scala<br/>- betaReduction.scala</font> >]
-  schema [label=< schema<br/><font point-size="10pt">- schema.scala<br/>- substitution.scala<br/>- betaReduction.scala</font> >]
+  schema [label=< schema<br/><font point-size="10pt">- schema.scala<br/>- substitution.scala<br/>- betaReduction.scala<br/>- utils.scala</font> >]
   logicSymbols_schema [label=< logicSymbols<br/><font point-size="10pt">- logicSymbols.scala</font> >]
   calculi [label=< calculi<br/><font point-size="10pt">- occurrences.scala</font> >]
   proofs [label=< proofs<br/><font point-size="10pt">- treeProofs.scala<br/>- proofs.scala<br/>- agraphProofs.scala</font> >]
   lk [label=< lk<br/><font point-size="10pt">- definitionRules.scala<br/>- equationalRules.scala<br/>- propositionalRules.scala<br/>- quantificationRules.scala<br/>- lkExtractors.scala<br/>- macroRules.scala</font> >]
   base [label=< base<br/><font point-size="10pt">- base.scala<br/>- lkSpecs.scala</font> >]
   lksk [label=< lksk<br/><font point-size="10pt">- base.scala<br/>- lksk.scala<br/>- lkskExtractors.scala</font> >]
-  resolution [label=< resolution<br/><font point-size="10pt">- base.scala<br/>- instance.scala<br/>- robinson.scala<br/>- andrews.scala (commented out)<br/>- ral.scala(commented out)</font> >]
+  resolution [label=< resolution<br/><font point-size="10pt">- base.scala</font> >]
+  robinson [label=< robinson<br/><font point-size="10pt">- instance.scala<br/>- robinson.scala</font> >]
+  ral [label=< ral<br/><font point-size="10pt">- ral.scala</font> >]
+  andrews [label=< andrews<br/><font point-size="10pt">- andrews.scala</font> >]
   slk [label=< slk<br/><font point-size="10pt">- slk.scala<br/>- macroRules.scala</font> >]
   expansionTrees [label=< expansionTrees<br/><font point-size="10pt">- expansionTrees.scala<br/>- multiExpansionTrees.scala</font> >]
+  diophantine [label=< diophantine<br/><font point-size="10pt">- vector.scala<br/>- lankford.scala</font> >]
   at -> logic -> language -> lambda -> symbols;
   lambda -> types;
   language -> hol;
@@ -36,6 +40,11 @@ digraph G {
   lk -> base;
   calculi -> lksk;
   calculi -> resolution;
+  resolution -> robinson;
+  resolution -> andrews;
+  resolution -> ral;
   calculi -> slk;
   calculi -> expansionTrees;
+  logic -> algorithms;
+  algorithms -> diophantine;
 }

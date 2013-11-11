@@ -24,6 +24,15 @@ digraph G {
   slk [label=< slk<br/><font point-size="10pt">- slk.scala<br/>- macroRules.scala</font> >]
   expansionTrees [label=< expansionTrees<br/><font point-size="10pt">- expansionTrees.scala<br/>- multiExpansionTrees.scala</font> >]
   diophantine [label=< diophantine<br/><font point-size="10pt">- vector.scala<br/>- lankford.scala</font> >]
+  unification [label=< unification<br/><font point-size="10pt">- ACUnification.scala (commented out)<br/>- ac_utils.scala (commented out)<br/>- UnificationAlgorithm.scala<br/>- UnificationException.scala</font> >]
+  folUni [label=< fol<br/><font point-size="10pt">- FOLUnificationAlgorithm.scala</font> >]
+  holUni [label=< hol >]
+  huet [label=< huet<br/><font point-size="10pt">- HuetAlgorithm.scala (commented out)</font> >]
+  expansionTreesAlg [label=< expansionTrees<br/><font point-size="10pt">- prenexToExpansionTree.scala<br/>- compress.scala</font> >]
+  cutIntroduction [label=< cutIntroduction<br/><font point-size="10pt">- prenexToExpansionTree.scala<br/>- compress.scala</font> >]
+  interpolation [label=< interpolation<br/><font point-size="10pt">- interpolation.scala</font> >]
+  matching [label=< matching<br/><font point-size="10pt">- MatchingAlgorithm.scala (commented out)<br/>- FOLMatchingAlgorithm.scala<br/>- NaiveIncompleteMatchingAlgorithm.scala</font> >]
+  
   at -> logic -> language -> lambda -> symbols;
   lambda -> types;
   language -> hol;
@@ -47,4 +56,12 @@ digraph G {
   calculi -> expansionTrees;
   logic -> algorithms;
   algorithms -> diophantine;
+  algorithms -> unification;
+  unification -> folUni;
+  unification -> holUni;
+  holUni -> huet;
+  algorithms -> expansionTreesAlg;
+  algorithms -> cutIntroduction;
+  algorithms -> interpolation;
+  algorithms -> matching;
 }

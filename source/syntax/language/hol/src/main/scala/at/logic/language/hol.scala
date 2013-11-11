@@ -160,8 +160,6 @@ case object OrC extends HOLConst(OrSymbol, Type("(o -> (o -> o))"))
 case object ImpC extends HOLConst(ImpSymbol, Type("(o -> (o -> o))"))
 // Synthetic connective to represent Herbrand Arrays
 case object HArrayC extends HOLConst(HArraySymbol, Type("(o -> (o -> o))"))
-class ExQ protected[hol](e:TA) extends HOLConst(ExistsSymbol, ->(e,"o"))
-class AllQ protected[hol](e:TA) extends HOLConst(ForallSymbol, ->(e,"o"))
 case class EqC(e:TA) extends HOLConst(EqSymbol, ->(e, ->(e,"o")))
 
 
@@ -286,20 +284,22 @@ object Atom {
 }
 
 // TODO: Is it possible to simplify the quantifiers? There are too many objects for that...
-object ExQ {
+private class ExQ(e:TA) extends HOLConst(ExistsSymbol, ->(e,"o"))
+private object ExQ {
   def unapply(v: HOLConst) = (v, v.sym) match {
-    case (vo@HOLConst(_, t), ExistsSymbol) => Some(t)
+    case (HOLConst(_, t), ExistsSymbol) => Some(t)
     case _ => None
   }
 }
-object AllQ {
+private class AllQ(e:TA) extends HOLConst(ForallSymbol, ->(e,"o"))
+private object AllQ {
   def unapply(v: HOLConst) = (v, v.sym) match {
-    case (vo@HOLConst(_, t), ForallSymbol) => Some(t)
+    case (HOLConst(_, t), ForallSymbol) => Some(t)
     case _ => None
   }
 }
 
-object Ex {
+private object Ex {
   def apply(sub: HOLExpression) = HOLApp(new ExQ(sub.exptype),sub).asInstanceOf[HOLFormula]
   def unapply(expression: HOLExpression) = expression match {
     case HOLApp(ExQ(t),sub) => Some( (sub, t) )
@@ -307,7 +307,7 @@ object Ex {
   }
 }
 
-object All {
+private object All {
   def apply(sub: HOLExpression) = HOLApp(new AllQ(sub.exptype),sub).asInstanceOf[HOLFormula]
   def unapply(expression: HOLExpression) = expression match {
     case HOLApp(AllQ(t),sub) => Some( (sub, t) )

@@ -2,8 +2,9 @@
 package at.logic.algorithms.expansionTrees
 
 import at.logic.calculi.expansionTrees._
-import at.logic.language.fol.{FOLFormula, FOLTerm, FOLExpression, AllVar => AllVarFOL, ExVar => ExVarFOL}
+import at.logic.language.fol.{FOLFormula, FOLTerm, AllVar, ExVar, getMatrix, instantiate}
 import at.logic.language.fol.Substitution
+import at.logic.language.hol.HOLExpression
 import at.logic.algorithms.unification.fol.FOLUnificationAlgorithm
 
 // Builds an expansion tree given a *prenex first order* formula and 
@@ -17,7 +18,7 @@ import at.logic.algorithms.unification.fol.FOLUnificationAlgorithm
 // sure whether I trust this name :P ).
 object prenexToExpansionTree {
   def apply(f: FOLFormula, lst: List[FOLFormula]) : ExpansionTree = {
-    val fMatrix = f.getMatrix
+    val fMatrix = getMatrix(f)
 
     // Each possible instance will generate an expansion tree, and they all 
     // have the same root.
@@ -40,13 +41,13 @@ object prenexToExpansionTree {
   }
 
   def apply_(f: FOLFormula, sub: Substitution) : ExpansionTree = f match {
-    case AllVarFOL(v, _) =>
-      val t = sub.map(v)
-      val newf = f.instantiate(t.asInstanceOf[FOLTerm])
+    case AllVar(v, _) =>
+      val t = sub.folmap(v)
+      val newf = instantiate(f, t.asInstanceOf[FOLTerm])
       WeakQuantifier(f, List(Pair(apply_(newf, sub), t)))
-    case ExVarFOL(v, _) => 
-      val t = sub.map(v)
-      val newf = f.instantiate(t.asInstanceOf[FOLTerm])
+    case ExVar(v, _) => 
+      val t = sub.folmap(v)
+      val newf = instantiate(f, t.asInstanceOf[FOLTerm])
       WeakQuantifier(f, List(Pair(apply_(newf, sub), t)))
     case _ => qFreeToExpansionTree(f)
   }

@@ -57,10 +57,10 @@ trait FOLExpression extends HOLExpression {
     /* Current status: print a warning, since algorithms for typed lambda calculus may create partial lambda terms
        which are later completed. This only surfaces when one tries to print debug output. 
        TODO: LAYERS MUST NOT GET MIXED. */
-    case _ =>
-      val r = super.toString
-      println("WARNING: Trying to do a string conversion on a term which is not a (full) FOL expression: "+r)
-      r
+    case _ => throw new Exception("toString: expression is not FOL.")
+      //val r = super.toString
+      //println("WARNING: Trying to do a string conversion on a term which is not a (full) FOL expression: "+r)
+      //r
     }
 
     override def factory : FactoryA = FOLFactory
@@ -161,17 +161,17 @@ object Atom {
     case FOLApp(c: FOLConst,_) if isLogicalSymbol(c) => None
     case FOLApp(FOLApp(c: FOLConst,_),_) if isLogicalSymbol(c) => None
     case FOLApp(_,_) if (expression.exptype == To) => Some( unapply_(expression) )
-    case FOLConst(_,_) if (expression.exptype == To) => Some( (expression, Nil) )
-    case FOLVar(_) if (expression.exptype == To) => Some( (expression, Nil) )
+    case c: FOLConst if (c.exptype == To) => Some( (c.sym, Nil) )
+    case v: FOLVar if (v.exptype == To) => Some( (v.sym, Nil) )
     case _ => None
   }
   // Recursive unapply to get the head and args
-  private def unapply_(e: FOLExpression) : (FOLExpression, List[FOLExpression]) = e match {
-    case v: FOLVar => (v, Nil)
-    case c: FOLConst => (c, Nil)
+  private def unapply_(e: FOLExpression) : (SymbolA, List[FOLTerm]) = e match {
+    case v: FOLVar => (v.sym, Nil)
+    case c: FOLConst => (c.sym, Nil)
     case FOLApp(e1, e2) => 
       val t = unapply_(e1)
-      (t._1, t._2 :+ e2)
+      (t._1, t._2 :+ e2.asInstanceOf[FOLTerm])
   }
 }
 
@@ -203,11 +203,11 @@ object Function {
     case _ => None
   }
   // Recursive unapply to get the head and args
-  private def unapply_(e: FOLExpression) : (FOLExpression, List[FOLExpression]) = e match {
-    case c: FOLConst => (c, Nil)
+  private def unapply_(e: FOLExpression) : (SymbolA, List[FOLTerm]) = e match {
+    case c: FOLConst => (c.sym, Nil)
     case FOLApp(e1, e2) => 
       val t = unapply_(e1)
-      (t._1, t._2 :+ e2)
+      (t._1, t._2 :+ e2.asInstanceOf[FOLTerm])
   }
 }
 
@@ -251,23 +251,23 @@ object Imp {
   }
 }
 
-class ExQ protected[fol] extends FOLConst(ExistsSymbol, ->(->(Ti, To), To) )
-object ExQ {
+private class ExQ extends FOLConst(ExistsSymbol, ->(->(Ti, To), To) )
+private object ExQ {
   def unapply(v: FOLConst) = v match {
     case vo: ExQ => Some()
     case _ => None
   }
 }
 
-class AllQ protected[fol] extends FOLConst( ForallSymbol, ->(->(Ti, To), To) )
-object AllQ {
+private class AllQ extends FOLConst( ForallSymbol, ->(->(Ti, To), To) )
+private object AllQ {
   def unapply(v: FOLConst) = v match {
     case vo: AllQ => Some()
     case _ => None
   }
 }
 
-object Ex {
+private object Ex {
   def apply(sub: FOLExpression) = FOLApp(new ExQ, sub).asInstanceOf[FOLFormula]
   def unapply(expression: FOLExpression) = expression match {
     case FOLApp(c: ExQ, sub) => Some( sub )
@@ -275,7 +275,7 @@ object Ex {
   }
 }
 
-object All {
+private object All {
   def apply(sub: FOLExpression) = FOLApp(new AllQ, sub).asInstanceOf[FOLFormula]
   def unapply(expression: FOLExpression) = expression match {
     case FOLApp(c: AllQ, sub) => Some( sub )

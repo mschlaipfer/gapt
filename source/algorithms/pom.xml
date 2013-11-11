@@ -11,7 +11,6 @@
 
   <modules>
     <module>unification</module>
-    <module>normalization</module>
     <module>subsumption</module>
     <module>diophantine</module>
     <module>matching</module>
@@ -55,11 +54,11 @@
       <artifactId>lksk</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
-    <dependency>
+    <!--dependency>
       <groupId>at.logic</groupId>
       <artifactId>simple_parsing</artifactId>
       <version>1.0-SNAPSHOT</version>
-    </dependency>
+    </dependency-->
   </dependencies>
 
 </project>

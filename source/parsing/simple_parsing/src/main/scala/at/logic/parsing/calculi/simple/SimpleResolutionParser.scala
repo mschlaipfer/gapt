@@ -11,7 +11,6 @@ import at.logic.language.hol.{Neg, HOLFormula}
 import at.logic.parsing.calculi.ResolutionParser
 import at.logic.parsing.language.simple.SimpleHOLParser
 import at.logic.parsing.language.simple.SimpleFOLParser
-import at.logic.calculi.lk.base.types.FSequent
 import at.logic.calculi.lk.base.FSequent
 
 import at.logic.calculi.occurrences.{factory => defaultFactory}

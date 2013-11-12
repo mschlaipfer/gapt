@@ -9,6 +9,9 @@ import scala.util.parsing.combinator._
 
 abstract class TA {
   def ->(that: TA) = new ->(this, that)
+
+  //given a list of types [t1,t2,t3] and a type t4, create t1>(t2>(t3>t4)))
+  def prepend(l:List[TA]) : TA = l.foldRight(this)((lt, t) => lt -> t)
 }
 abstract class TAtomicA extends TA
 abstract class TComplexA extends TA

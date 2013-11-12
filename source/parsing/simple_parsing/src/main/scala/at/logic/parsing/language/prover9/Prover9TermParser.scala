@@ -3,20 +3,8 @@ package at.logic.parsing.language.prover9
 import util.parsing.combinator.JavaTokenParsers
 import at.logic.language.fol
 import fol._
-import at.logic.language.hol.logicSymbols.ConstantStringSymbol
-import at.logic.language.lambda.symbols.VariableStringSymbol
-import at.logic.calculi.lk.base.types.FSequent
 import at.logic.calculi.lk.base.FSequent
-import at.logic.calculi.lk.base.types.FSequent
 import at.logic.language.hol.HOLFormula
-import at.logic.language.lambda.typedLambdaCalculus._
-import at.logic.language.lambda.symbols.VariableStringSymbol
-import at.logic.language.lambda.types.Ti
-import at.logic.language.hol.logicSymbols.ConstantStringSymbol
-import at.logic.language.lambda.substitutions.Substitution
-import at.logic.language.lambda.symbols.VariableStringSymbol
-import at.logic.language.lambda.types.Ti
-import at.logic.language.hol.logicSymbols.ConstantStringSymbol
 import scala.util.parsing.combinator.PackratParsers
 import scala.collection.immutable.HashSet
 
@@ -103,19 +91,20 @@ abstract trait Prover9TermParserA extends JavaTokenParsers with PackratParsers {
   lazy val negatom: PackratParser[FOLFormula] = "-" ~ atom  ^^ {case "-" ~ a => Neg(a)}
   lazy val atomWeq: PackratParser[FOLFormula] =  iatom | atom
   lazy val atom: PackratParser[FOLFormula] = atom1 | atom2 | topbottom
-  lazy val atom1: PackratParser[FOLFormula] = atomsymb ~ "(" ~ repsep(term,",") ~ ")" ^^ {case x ~ "(" ~ params ~ ")" => Atom(ConstantStringSymbol(x), params.asInstanceOf[List[FOLTerm]])}
-  lazy val atom2: PackratParser[FOLFormula] = atomsymb ^^ {case x => Atom(ConstantStringSymbol(x), Nil)}
+  lazy val atom1: PackratParser[FOLFormula] = atomsymb ~ "(" ~ repsep(term,",") ~ ")" ^^ {
+    case x ~ "(" ~ params ~ ")" => Atom(x, params.asInstanceOf[List[FOLTerm]]) }
+  lazy val atom2: PackratParser[FOLFormula] = atomsymb ^^ {case x => Atom(x, Nil)}
 
-  val plus_sym = ConstantStringSymbol("+")
-  val times_sym = ConstantStringSymbol("*")
-  val minus_sym = ConstantStringSymbol("-")
-  val div_sym = ConstantStringSymbol("-")
-  val wedge_sym = ConstantStringSymbol("^")
-//  val vee_sym = ConstantStringSymbol("v")
-  val less_sym = ConstantStringSymbol("<")
-  val greater_sym = ConstantStringSymbol(">")
-  val lesseq_sym = ConstantStringSymbol("<=")
-  val greatereq_sym = ConstantStringSymbol(">=")
+  val plus_sym = ("+")
+  val times_sym = ("*")
+  val minus_sym = ("-")
+  val div_sym = ("-")
+  val wedge_sym = ("^")
+//  val vee_sym = ("v")
+  val less_sym = ("<")
+  val greater_sym = (">")
+  val lesseq_sym = ("<=")
+  val greatereq_sym = (">=")
 
   //infixatom
   lazy val iatom : PackratParser[FOLFormula] = term ~ """((<|>)=?)|(!?=)|[+\-*]""".r  ~ term ^^ {
@@ -126,7 +115,7 @@ abstract trait Prover9TermParserA extends JavaTokenParsers with PackratParsers {
       case t1 ~ ">" ~ t2 => Atom(greater_sym, List(t1,t2))
       case t1 ~ "<=" ~ t2 => Atom(lesseq_sym, List(t1,t2))
       case t1 ~ ">=" ~ t2 => Atom(greatereq_sym, List(t1,t2))
-      case t1 ~ sym ~ t2 => fol.Atom(ConstantStringSymbol(sym), List(t1,t2))
+      case t1 ~ sym ~ t2 => fol.Atom(sym, List(t1,t2))
     }
   }
   /*
@@ -136,8 +125,8 @@ abstract trait Prover9TermParserA extends JavaTokenParsers with PackratParsers {
   def orderings : Parser[FOLFormula] = term ~ """(<|>)=?""".r  ~ term ^^ { case t1 ~ sym ~ t2 => fol.Atom(ConstantStringSymbol(sym), List(t1,t2))}
   */
   lazy val atomsymb: Parser[String] = """[a-zA-Z][a-zA-Z0-9_]*""".r
-  lazy val term: PackratParser[FOLTerm] = ifunction | noniterm
-  lazy val noniterm: PackratParser[FOLTerm] = function | constant | variable
+  lazy val term: PackratParser[FOLExpression] = ifunction | noniterm
+  lazy val noniterm: PackratParser[FOLExpression] = function | constant | variable
   lazy val ifunction: PackratParser[FOLTerm] = (noniterm|parens(ifunction)) ~ """[+\-*/^]""".r ~ (noniterm|parens(ifunction)) ^^ {
     _ match {
       case t1 ~ "+" ~ t2 => fol.Function(plus_sym, List(t1,t2))
@@ -145,12 +134,16 @@ abstract trait Prover9TermParserA extends JavaTokenParsers with PackratParsers {
       case t1 ~ "*" ~ t2 => fol.Function(times_sym, List(t1,t2))
       case t1 ~ "/" ~ t2 => fol.Function(div_sym, List(t1,t2))
       case t1 ~ "^" ~ t2 => fol.Function(wedge_sym, List(t1,t2))
-      case t1 ~ sym ~ t2 => fol.Function(ConstantStringSymbol(sym), List(t1,t2))
+      case t1 ~ sym ~ t2 => fol.Function(sym, List(t1,t2))
     }
   }
-  lazy val function: PackratParser[FOLTerm] = conssymb ~ "(" ~ repsep(term,",") ~ ")" ^^ {case x ~ "(" ~ params ~ ")" => Function(ConstantStringSymbol(x), params.asInstanceOf[List[FOLTerm]])}
-  lazy val constant: PackratParser[FOLConst] = conssymb ^^ {case x => FOLFactory.createVar(ConstantStringSymbol(x), Ti()).asInstanceOf[FOLConst]}
-  lazy val variable: PackratParser[FOLVar] = varsymb ^^ {case x => FOLFactory.createVar(VariableStringSymbol(x), Ti()).asInstanceOf[FOLVar]}
+  lazy val function: PackratParser[FOLTerm] = conssymb ~ "(" ~ repsep(term,",") ~ ")" ^^ {
+    case x ~ "(" ~ params ~ ")" => Function(x, params.asInstanceOf[List[FOLTerm]])
+  }
+  lazy val constant: PackratParser[FOLConst] = conssymb ^^ {
+    case x => FOLConst(x)
+  }
+  lazy val variable: PackratParser[FOLVar] = varsymb ^^ { FOLVar(_) }
   lazy val topbottom: PackratParser[FOLFormula] = "$" ~> ( "T" ^^ (x=> topformula) | "F" ^^ (x => bottomformula) )
 
   //we don't have top and bottom in the algorithms, so we simulate it
@@ -169,14 +162,13 @@ abstract trait Prover9TermParserA extends JavaTokenParsers with PackratParsers {
       f.succedent.map(x => normalizeFormula(x.asInstanceOf[FOLFormula])))
   }
 
-  def normalizeFormula(f:FOLFormula) : HOLFormula = {
-    val freevars = f.freeVariables.toList
-    val pairs : List[(Var,FOLExpression)] = (freevars zip (0 to (freevars.size-1))) map (x => (x._1,  x._1.factory.createVar(VariableStringSymbol("v"+x._2), x._1.exptype).asInstanceOf[FOLExpression]) )
-    val nf : FOLFormula = Substitution(pairs)(f).asInstanceOf[FOLFormula]
-
-    //TODO: create blacklist
-    Normalization(nf,freevars.size, "v", HashSet[String]())._1
+  def normalizeFormula(f:FOLFormula) : FOLFormula = {
+    val freevars : List[(FOLVar,Int)]= freeVariables(f).zipWithIndex
+    val pairs : List[(FOLVar,FOLVar)] = freevars.map (x  => { (x._1,  FOLVar("v"+x._2)) }   )
+    val nf : FOLFormula = Substitution(pairs)(f)
+    nf
   }
+
 
 
 }

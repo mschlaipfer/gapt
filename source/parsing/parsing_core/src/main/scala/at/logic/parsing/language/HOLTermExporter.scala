@@ -7,7 +7,7 @@
 
 package at.logic.parsing.language
 
-import at.logic.language.lambda.typedLambdaCalculus._
+import at.logic.language.lambda._
 
 trait HOLTermExporter {
   def exportTerm(t: LambdaExpression): Unit

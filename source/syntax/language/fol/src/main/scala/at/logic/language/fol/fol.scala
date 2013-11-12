@@ -103,6 +103,7 @@ object FOLVar {
   }
 }
 
+//TODO: normal fol constants are FOLTerms, but since we create atoms form constants too, we cannot derive from FOLTerm
 class FOLConst (sym: SymbolA, exptype: TA) extends HOLConst(sym, exptype) with FOLExpression
 object FOLConst {
   def apply(name: String) : FOLConst = FOLConst(StringSymbol(name), Ti)

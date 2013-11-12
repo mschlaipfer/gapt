@@ -93,8 +93,7 @@ object ForallF {
     if (term1op == None) throw new ResolutionRuleCreationException("Auxialiary formulas are not contained in the right part of the sequent")
     else {
       val term1 = term1op.get.asInstanceOf[LabelledFormulaOccurrence]
-      // TODO: there must be a better way for getting this type
-      val t = term1.formula match { case All(_, t) => t match { case ( (t -> To) -> To ) => t } }
+      val t = term1.formula match { case AllVar(x,_) => x.exptype }
       val skt = computeSkolemTerm( sk, t, term1.skolem_label )
       val f = instantiate(term1.formula, skt)
       val prinFormula = term1.factory.createFormulaOccurrence( betaNormalize( f ), term1::Nil).asInstanceOf[LabelledFormulaOccurrence] //TODO: is the cast really correct?
@@ -148,7 +147,7 @@ object ExistsT {
     if (term1op == None) throw new ResolutionRuleCreationException("Auxialiary formulas are not contained in the right part of the sequent")
     else {
       val term1 = term1op.get.asInstanceOf[LabelledFormulaOccurrence]
-      val t = term1.formula match { case Ex(_, t) => t match { case ( (t -> To) -> To ) => t } }
+      val t = term1.formula match { case ExVar(x,_) => x.exptype }
       val skt = computeSkolemTerm( sk, t, term1.skolem_label )
       val f = instantiate(term1.formula, skt)
       val prinFormula = term1.factory.createFormulaOccurrence( betaNormalize( f ), term1::Nil).asInstanceOf[LabelledFormulaOccurrence] //TODO: is the cast really correct?

@@ -88,11 +88,11 @@ object ForallSkLeftRule {
   // removeFromLabel indicates whether to remove the term subst from the label of the main formula.
   def apply(s1: LKProof, auxf: LabelledFormulaOccurrence, main: HOLFormula, subst_t: HOLExpression, removeFromLabel: Boolean) = {
     main match {
-      case All( sub, _ ) => {
+      case AllVar( x, sub) => {
         // TODO: comment in to check validity of the rule.
         // commented out at the moment because we don't know the subst term
         // in the XML parser. We need first-order unification for that.
-        //assert( betaNormalize( App( sub, subst_t ) ) == aux )
+        //assert( betaNormalize( App( sub, subst_t ) ) == aux ) //needs to change because we changed the All matchen to AllVar
         if ( !s1.root.antecedent.contains( auxf ) )
           throw new LKRuleCreationException("Premise does not contain the given formula occurrence.")
         if ( !auxf.skolem_label.contains( subst_t ) )
@@ -126,8 +126,8 @@ object ForallSkLeftRule {
 object ExistsSkRightRule {
   def apply(s1: LKProof, auxf: LabelledFormulaOccurrence, main: HOLFormula, subst_t: HOLExpression, removeFromLabel: Boolean) = {
     main match {
-      case Ex( sub, _ ) => {
-        //assert( betaNormalize( App( sub, subst_t ) ) == aux )
+      case ExVar( x, sub ) => {
+        //assert( betaNormalize( App( sub, subst_t ) ) == aux ) //needs to change because we changed the All matchen to AllVar
         if ( !s1.root.succedent.contains( auxf ) )
           throw new LKRuleCreationException("Premise does not contain the given formula occurrence.")
         if ( !auxf.skolem_label.contains( subst_t ) )
@@ -160,7 +160,7 @@ object ExistsSkRightRule {
 object ForallSkRightRule {
   def apply(s1: LKProof, auxf: LabelledFormulaOccurrence, main: HOLFormula, skolem_term: HOLExpression) = {
     main match {
-      case All( sub, _ ) => {
+      case AllVar( x, sub ) => {
         // TODO: check Skolem term
         if (!s1.root.succedent.contains( auxf ) )
           throw new LKRuleCreationException("Premise does not contain the given formula occurrence.")
@@ -192,7 +192,7 @@ object ForallSkRightRule {
 object ExistsSkLeftRule {
   def apply(s1: LKProof, auxf: LabelledFormulaOccurrence, main: HOLFormula, skolem_term: HOLExpression) = {
     main match {
-      case Ex( sub, _ ) => {
+      case ExVar( x, sub) => {
         // TODO: check Skolem term
         if (!s1.root.antecedent.contains( auxf ) )
           throw new LKRuleCreationException("Premise does not contain the given formula occurrence.")

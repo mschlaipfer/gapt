@@ -12,6 +12,7 @@ import at.logic.language.hol._
 import at.logic.utils.ds.trees._
 import base._
 import at.logic.utils.traits.Occurrence
+import at.logic.language.lambda.Var
 
 case class LKQuantifierException(root : Sequent,
                                  formula_occ : FormulaOccurrence,
@@ -405,24 +406,32 @@ class StrongRuleHelper(polarity : Boolean) extends QuantifierRuleHelper(polarity
     case None => throw new LKRuleCreationException("Auxiliary formulas are not contained in the right part of the sequent")
     case Some(aux_fo) =>
       main match {
-        case All( sub, _ ) =>
+        case AllVar( x, sub) =>
           // eigenvar condition
           assert( ( s1.antecedent ++ (s1.succedent.filterNot(_ == aux_fo)) ).forall( fo => !freeVariables(fo.formula).contains( eigen_var ) ),
             "Eigenvariable " + eigen_var + " occurs in context " + s1 )
+
+          val back_substitiution = Substitution(x,eigen_var)
+
           //This check does the following: if we conclude exists x.A[x] from A[t] then A[x\t] must be A[t].
           //If it fails, you are doing something seriously wrong!
           //In any case do NOT remove it without telling everyone!
-          assert( betaNormalize( HOLApp( sub, eigen_var ) ) == aux_fo.formula , "assert 2 in getTerms of String Quantifier Rule fails!\n"+betaNormalize( HOLApp( sub, eigen_var ) )+" != "+aux_fo.formula)
+          //assert( betaNormalize( HOLApp( sub, eigen_var ) ) == aux_fo.formula , "assert 2 in getTerms of String Quantifier Rule fails!\n"+betaNormalize( HOLApp( sub, eigen_var ) )+" != "+aux_fo.formula)
+          assert( betaNormalize( back_substitiution(sub) ) == aux_fo.formula , "assert 2 in getTerms of String Quantifier Rule fails!\n"+betaNormalize( HOLApp( sub, eigen_var ) )+" != "+aux_fo.formula)
           aux_fo
 
-        case Ex( sub, _ ) =>
+        case ExVar( x, sub) =>
           // eigenvar condition
           assert( ( (s1.antecedent.filterNot(_ == aux_fo)) ++ s1.succedent ).forall( fo => !freeVariables(fo.formula).contains( eigen_var ) ),
             "Eigenvariable " + eigen_var + " occurs in context " + s1 )
+
+          val back_substitiution = Substitution(x,eigen_var)
+
           //This check does the following: if we conclude exists x.A[x] from A[t] then A[x\t] must be A[t].
           //If it fails, you are doing something seriously wrong!
           //In any case do NOT remove it without telling everyone!
-          assert( betaNormalize( HOLApp( sub, eigen_var ) ) == aux_fo.formula )
+          //assert( betaNormalize( HOLApp( sub, eigen_var ) ) == aux_fo.formula )
+          assert( betaNormalize( back_substitiution(sub) ) == aux_fo.formula , "assert 2 in getTerms of String Quantifier Rule fails!\n"+betaNormalize( HOLApp( sub, eigen_var ) )+" != "+aux_fo.formula)
           aux_fo
 
         case _ => throw new LKRuleCreationException("Main formula of a quantifier rule must start with a strong quantfier.")

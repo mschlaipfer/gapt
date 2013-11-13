@@ -2,21 +2,19 @@ package at.logic.parsing.ivy
 
 import at.logic.parsing.lisp
 import at.logic.parsing.lisp.{SExpression, SExpressionParser}
-import at.logic.language.lambda.typedLambdaCalculus._
-import at.logic.language.hol.logicSymbols.{EqSymbol, ConstantSymbolA, ConstantStringSymbol}
-import at.logic.language.lambda.symbols.{VariableStringSymbol, SymbolA}
+import at.logic.language.lambda._
+import at.logic.language.hol.logicSymbols.EqSymbol
+import at.logic.language.lambda.symbols.SymbolA
 import at.logic.language.fol
-import at.logic.calculi.resolution.base.{FClause, Clause}
+import at.logic.calculi.resolution.{FClause, Clause}
 import at.logic.calculi.lk.base.FSequent
 import at.logic.calculi.occurrences.FormulaOccurrence
 import at.logic.calculi.occurrences
-import at.logic.calculi.lk.base.types.FSequent
-import at.logic.language.lambda.substitutions.Substitution
+import at.logic.language.fol.Substitution
 import at.logic.language.hol.HOLFormula
 import fol._
-import at.logic.language.lambda.symbols.VariableStringSymbol
-import at.logic.language.hol.logicSymbols.ConstantStringSymbol
 import scala.collection.immutable
+import at.logic.language.lambda.types.Ti
 
 /**
  * Implements parsing of ivy format: https://www.cs.unm.edu/~mccune/papers/ivy/ into Ivy's Resolution calculus.
@@ -118,7 +116,7 @@ object IvyParser {
       /* ================== Instance ========================== */
       case lisp.List( lisp.Atom(id):: lisp.List(lisp.Atom("instantiate")::lisp.Atom(parent_id):: subst_exp::Nil) :: clause :: rest  )  => {
         val parent_proof = found_steps(parent_id)
-        val sub : Substitution[FOLTerm] = parse_substitution(subst_exp, is_variable_symbol)
+        val sub : fol.Substitution = parse_substitution(subst_exp, is_variable_symbol)
         val fclause : FSequent = parse_clause(clause, is_variable_symbol)
 
         def connect(ancestors: Seq[FormulaOccurrence], formulas: Seq[HOLFormula]) :
@@ -524,9 +522,9 @@ object IvyParser {
     case _ => throw new Exception("Error parsing position: unexpected expression "+l)
   }
 
-  def parse_substitution(exp : SExpression, is_variable_symbol : String => Boolean) : Substitution[FOLTerm] = exp match {
+  def parse_substitution(exp : SExpression, is_variable_symbol : String => Boolean) : fol.Substitution = exp match {
     case lisp.List(list) =>
-      Substitution[FOLTerm](parse_substitution_(list, is_variable_symbol))
+      Substitution(parse_substitution_(list, is_variable_symbol))
     case _ => throw new Exception("Error parsing substitution expression "+exp+" (not a list)")
   }
 
@@ -672,13 +670,12 @@ object IvyParser {
 
   def parse_atom(name: String, args : List[SExpression],is_variable_symbol : String => Boolean) = {
     if (is_variable_symbol(name)) throw new Exception("Parsing Error: Predicate name "+name+" does not conform to naming conventions.")
-    val sym = new ConstantStringSymbol(name)
     val argterms = args map (parse_term(_, is_variable_symbol))
     if (name == "=") {
       require(args.length == 2, "Error parsing equality: = must be a binary predicate!")
       fol.Equation(argterms(0), argterms(1))
     } else {
-      fol.Atom(sym, argterms)
+      fol.Atom(name, argterms)
     }
 
   }
@@ -693,22 +690,21 @@ object IvyParser {
                                              ("meet_for_ivy","^"))
   def rewrite_name(s:String) : String = if (ivy_escape_table contains s) ivy_escape_table(s) else s
 
-  val symbol_nil = new ConstantStringSymbol("nil")
   def parse_term(ts : SExpression, is_variable_symbol : String => Boolean) : FOLTerm = ts match {
     case lisp.Atom(name) =>
       val rname = rewrite_name(name)
       if (is_variable_symbol(rname))
-        fol.FOLVar(new VariableStringSymbol(rname))
+        fol.FOLVar(rname)
       else
-        fol.FOLConst(new ConstantStringSymbol(rname))
+        fol.FOLConst(rname, Ti)
     //the proof might contain the constant nil which is parsed to an empty lisp.List. in this case the empty list
     //corresponds to a constant
     case lisp.List(lisp.List(Nil)::Nil) =>
-      fol.FOLConst(symbol_nil)
+      fol.FOLConst("nil", Ti)
     case lisp.List(lisp.Atom(name)::args) =>
       val rname = rewrite_name(name)
       if (is_variable_symbol(rname)) throw new Exception("Parsing Error: Function name "+rname+" does not conform to naming conventions.")
-      fol.Function(new ConstantStringSymbol(rname), args.map(parse_term(_, is_variable_symbol)) )
+      fol.Function(rname, args.map(parse_term(_, is_variable_symbol)) )
     case _ =>
       throw new Exception("Parsing Error: Unexpected expression "+ts+" in parsing of a term.")
   }

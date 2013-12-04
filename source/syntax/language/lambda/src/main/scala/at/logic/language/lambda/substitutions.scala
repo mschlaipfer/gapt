@@ -71,8 +71,11 @@ class Substitution(val map: Map[Var, LambdaExpression]) {
   // like compose but do not apply the first sub to the second not that the sub might not be idempotent
   def simultaneousCompose(sub: Substitution): Substitution = Substitution(map ++ sub.map)
 
+  //REMARK: this does not imply the substitution is injective
   def isRenaming = map.forall( p => p._2.isInstanceOf[Var] )
 
+  //TODO: implement
+  def isInjectiveRenaming = throw new Exception("Not yet implemented!")
 }
 
 object Substitution {

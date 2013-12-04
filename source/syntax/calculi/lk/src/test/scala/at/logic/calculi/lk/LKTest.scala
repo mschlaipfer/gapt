@@ -13,7 +13,7 @@ import at.logic.language.hol._
 import at.logic.language.lambda.types._
 import at.logic.language.hol.logicSymbols._
 import base._
-import at.logic.language.fol.{FOLConst, FOLVar, Atom => FOLAtom, AllVar => FOLAllVar, ExVar => FOLExVar}
+import at.logic.language.fol.{Atom => FOLAtom, AllVar => FOLAllVar, ExVar => FOLExVar, FOLFormula, FOLConst, FOLVar}
 
 /**
 * The following properties of each rule are tested:
@@ -454,14 +454,19 @@ class LKTest extends SpecificationWithJUnit {
       val ax = Axiom(List(pay), List(pay))
       val i1 = ForallLeftRule(ax, ax.root.antecedent(0), allxpax, y)
       val i2 = ForallRightRule(i1, i1.root.succedent(0), allxpax, y)
+      val i3 = OrRight1Rule(i2, i2.root.succedent(0), pay)
 
       i2.root.toFSequent match {
         case FSequent(List(f1), List(f2)) =>
           f1 mustEqual(allxpax)
           f2 mustEqual(allxpax)
+          f1 must beAnInstanceOf[FOLFormula]
+          f2 must beAnInstanceOf[FOLFormula]
         case fs @ _ =>
           ko("Wrong result sequent "+fs)
       }
+
+      i3.root.toFSequent.formulas map (_ must beAnInstanceOf[FOLFormula])
     }
 
     "work for first order proofs (2)" in {
@@ -477,6 +482,8 @@ class LKTest extends SpecificationWithJUnit {
         case FSequent(List(f1), List(f2)) =>
           f1 mustEqual(allxpax)
           f2 mustEqual(allxpax)
+          f1 must beAnInstanceOf[FOLFormula]
+          f2 must beAnInstanceOf[FOLFormula]
         case fs @ _ =>
           ko("Wrong result sequent "+fs)
       }

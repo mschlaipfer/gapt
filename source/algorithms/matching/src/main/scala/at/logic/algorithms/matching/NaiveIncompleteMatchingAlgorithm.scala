@@ -7,8 +7,7 @@ package at.logic.algorithms.matching
 
 import at.logic.language.hol._
 
-object NaiveIncompleteMatchingAlgorithm extends MatchingAlgorithm[HOLExpression] {
-//object NaiveIncompleteMatchingAlgorithm {
+object NaiveIncompleteMatchingAlgorithm {
 
   def matchTerm(term: HOLExpression, posInstance: HOLExpression): Option[Substitution] =
     matchTerm(term, posInstance, freeVariables(posInstance))

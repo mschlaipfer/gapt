@@ -12,7 +12,6 @@ import at.logic.language.hol._
 import at.logic.utils.ds.trees._
 import base._
 import at.logic.utils.traits.Occurrence
-import at.logic.language.lambda.Var
 
 case class LKQuantifierException(root : Sequent,
                                  formula_occ : FormulaOccurrence,

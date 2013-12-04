@@ -29,10 +29,14 @@ digraph G {
   holUni [label=< hol >]
   huet [label=< huet<br/><font point-size="10pt">- HuetAlgorithm.scala (commented out)</font> >]
   expansionTreesAlg [label=< expansionTrees<br/><font point-size="10pt">- prenexToExpansionTree.scala<br/>- compress.scala</font> >]
-  cutIntroduction [label=< cutIntroduction<br/><font point-size="10pt">- prenexToExpansionTree.scala<br/>- compress.scala</font> >]
+  cutIntroduction [label=< cutIntroduction<br/><font point-size="10pt">- CutIntroduction.scala<br/>- ExtendedHerbrandSequent.scala<br/>- FlatTermSet.scala<br/>- DeltaTable.scala<br/>- Grammar.scala<br/>- TermsExtraction.scala</font> >]
   interpolation [label=< interpolation<br/><font point-size="10pt">- interpolation.scala</font> >]
-  matching [label=< matching<br/><font point-size="10pt">- MatchingAlgorithm.scala (commented out)<br/>- FOLMatchingAlgorithm.scala<br/>- NaiveIncompleteMatchingAlgorithm.scala</font> >]
-  
+  matching [label=< matching<br/><font point-size="10pt">- FOLMatchingAlgorithm.scala<br/>- NaiveIncompleteMatchingAlgorithm.scala</font> >]
+  subsumption [label=< subsumption<br/><font point-size="10pt">- SubsumptionAlgorithm.scala<br/>- StillmanSubsumptionAlgorithm.scala</font> >]
+  managers [label=< managers<br/><font point-size="10pt">- FeatureVectorIndexingManager.scala (commented out)<br/>- SimpleManager.scala<br/>- SubsumptionManager.scala</font> >]
+  lk_alg [label=< lk<br/><font point-size="10pt">- clone.scala<br/>- elimination.scala<br/>- lk.scala<br/>- simplification.scala<br/>- solvePropositional.scala<br/>- substitution.scala</font> >]
+  statistics [label=< statistics<br/><font point-size="10pt">- statistics.scala</font> >]
+
   at -> logic -> language -> lambda -> symbols;
   lambda -> types;
   language -> hol;
@@ -64,4 +68,11 @@ digraph G {
   algorithms -> cutIntroduction;
   algorithms -> interpolation;
   algorithms -> matching;
+  algorithms -> subsumption;
+  subsumption -> managers;
+  algorithms -> lk_alg;
+  lk_alg -> statistics;
 }
+
+
+

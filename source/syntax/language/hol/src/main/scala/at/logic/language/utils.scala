@@ -5,11 +5,18 @@
 
 package at.logic.language.hol
 
-import at.logic.language.lambda.{freeVariables => freeVariablesLambda}
+import at.logic.language.lambda.{freeVariables => freeVariablesLambda, rename => renameLambda}
 import at.logic.language.hol.logicSymbols.LogicalSymbolA
 
 object freeVariables {
   def apply(e: HOLExpression) : List[HOLVar] = freeVariablesLambda(e).asInstanceOf[List[HOLVar]]
+}
+
+// get a new variable/constant (similar to the current and) different from all 
+// variables/constants in the blackList, returns this variable if this variable 
+// is not in the blackList
+object rename {
+  def apply(v: HOLVar, blacklist: List[HOLVar]) : HOLVar = renameLambda(v, blacklist).asInstanceOf[HOLVar]
 }
 
 // Instantiates a term in a quantified formula (using the first quantifier).

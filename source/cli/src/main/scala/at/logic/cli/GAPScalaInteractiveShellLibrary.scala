@@ -345,10 +345,12 @@ object printProofStats {
     //def apply(ls: List[Sequent]) = subsumedClausesRemoval(ls map (_.toFSequent))
     def apply(ls: List[FSequent]) = subsumedClausesRemoval(ls)
   }
+  /*
   object normalizeClauses {
     //def apply(ls: List[Sequent]) = sequentNormalize(ls map (_.toFSequent))
     def apply(ls: List[FSequent]) = sequentNormalize(ls)
   }
+  */
   object writeLabelledSequentListLatex {
     def apply(ls: List[LabelledSequent], outputFile: String) = {
       // maps original types and definitions of abstractions
@@ -1102,7 +1104,6 @@ object printProofStats {
           |   removeDuplicates: List[FSequent] => List[FSequent]
           |   unitResolve: List[FSequent] => List[FSequent]
           |   removeSubsumed: List[FSequent] => List[FSequent]
-          |   normalizeClauses: List[FSequent] => List[FSequent]
           |   writeLatex: List[FSequent], String => Unit
           |   writeLabelledSequentListLatex: List[LabelledSequent], String => Unit
           |

@@ -3,7 +3,7 @@
  *
  */
 
-package at.logic.algorithms.matching.hol
+package at.logic.algorithms.matching
 
 import org.specs2.mutable._
 import org.junit.runner.RunWith

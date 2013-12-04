@@ -62,12 +62,14 @@ class LNPProofTest extends SpecificationWithJUnit {
       Console.println("dcs size: " + dcs.size)
       val css = dcs.distinct
       Console.println("css size: " + css.size)
-      val cssv = sequentNormalize(css)
-      Console.println("cssv size: " + cssv.size)
-      (new FileWriter("target" + separator + "test-classes" + separator + "lnp-cs.tex") with SequentsListLatexExporter
-        with HOLTermArithmeticalExporter).exportSequentList(cssv.sortWith((x,y) => x.toString < y.toString), List()).close
+      //val cssv = sequentNormalize(css)
+      //Console.println("cssv size: " + cssv.size)
+      //(new FileWriter("target" + separator + "test-classes" + separator + "lnp-cs.tex") with SequentsListLatexExporter
+      //  with HOLTermArithmeticalExporter).exportSequentList(cssv.sortWith((x,y) => x.toString < y.toString), List()).close
       saveXML( List(),
-              List(("cs", cs), ("dcs", dcs), ("css", (css)), ("cssv", (cssv))),
+              List(("cs", cs), ("dcs", dcs), ("css", (css)), 
+              //("cssv", (cssv))
+              ),
               "target" + separator + "test-classes" + separator + "lnp-cs.xml" )
       // specs2 require a least one Result, see org.specs2.specification.Example 
       Success()

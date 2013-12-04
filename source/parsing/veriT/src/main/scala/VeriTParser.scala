@@ -4,7 +4,7 @@ import scala.util.parsing.combinator._
 import at.logic.language.fol._
 import at.logic.language.fol.BetaReduction._
 import at.logic.calculi.expansionTrees.{ExpansionTree, WeakQuantifier, qFreeToExpansionTree}
-import at.logic.algorithms.expansionTrees.prenexToExpansionTree._
+import at.logic.algorithms.expansionTrees._
 import java.io.FileReader
 
 object VeriTParser extends RegexParsers {
@@ -82,7 +82,7 @@ object VeriTParser extends RegexParsers {
     //
     def unfoldChain(l: List[FOLFormula]) = unfoldChain_(l.tail, l(0))
     def unfoldChain_(l: List[FOLFormula], c: FOLFormula) : List[FOLFormula] = l.head match {
-      case Neg(Atom(eq0, List(x0, x1))) if eq0 == eq => c match {
+      case Neg(Atom(eq0, List(x0, x1))) if eq0.toString == eq => c match {
         // Note that the variables are:
         // x2=x3 ^ x0=x1
         // Checking all possible cases of atom ordering:
@@ -142,11 +142,11 @@ object VeriTParser extends RegexParsers {
         case _ => throw new Exception("ERROR: wrong format for negated equality: " + c)
       }
 
-      case Neg(Atom(eq0, List(x0, x1))) if eq0 != eq => throw new Exception("ERROR: Predicate " + eq0 + 
+      case Neg(Atom(eq0, List(x0, x1))) if eq0.toString != eq => throw new Exception("ERROR: Predicate " + eq0 + 
         " in eq_transitive is not equality.")
       
       // When reaching the final literal, check if they are the same.
-      case Atom(eq0, List(x0, x1)) if eq0 == eq => c match {
+      case Atom(eq0, List(x0, x1)) if eq0.toString == eq => c match {
         case Neg(Atom(eq1, List(x2, x3))) if x0 == x2 && x1 == x3 => Nil
         case Neg(Atom(eq1, List(x2, x3))) if x1 == x2 && x0 == x3 => Nil
         
@@ -157,7 +157,7 @@ object VeriTParser extends RegexParsers {
         case _ => throw new Exception("ERROR: wrong format for negated equality: " + c)
       }
 
-      case Atom(eq0, List(x0, x1)) if eq0 != eq => throw new Exception("ERROR: Predicate " + eq0 + 
+      case Atom(eq0, List(x0, x1)) if eq0.toString != eq => throw new Exception("ERROR: Predicate " + eq0 + 
         " in eq_transitive is not equality.")
     }
 

@@ -6,10 +6,18 @@ package at.logic.language.fol
 
 import at.logic.language.lambda.types._
 import at.logic.language.lambda.{freeVariables => freeVariablesLambda, rename => renameLambda}
-import at.logic.language.hol.isPrenex
+import at.logic.language.hol.{isPrenex => isPrenexHOL, containsQuantifier => containsQuantifierHOL}
 
 object freeVariables {
   def apply(e: FOLExpression) : List[FOLVar] = freeVariablesLambda(e).asInstanceOf[List[FOLVar]]
+}
+
+object isPrenex {
+  def apply(e: FOLExpression) : Boolean = isPrenexHOL(e)
+}
+
+object containsQuantifier {
+  def apply(e: FOLExpression) : Boolean = containsQuantifierHOL(e)
 }
 
 // Instantiates a term in a quantified formula (using the first quantifier).

@@ -14,7 +14,7 @@
   <dependencies>
     <dependency>
       <groupId>at.logic</groupId>
-      <artifactId>expansion_trees</artifactId>
+      <artifactId>expansionTreesAlgorithms</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
   </dependencies>

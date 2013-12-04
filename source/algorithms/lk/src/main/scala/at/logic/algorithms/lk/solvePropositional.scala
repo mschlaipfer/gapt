@@ -1,16 +1,12 @@
+
 package at.logic.algorithms.lk
 
+import at.logic.calculi.lk._
 import at.logic.calculi.lk.base._
-import at.logic.calculi.lk.base.types.FSequent
-import at.logic.calculi.lk.lkExtractors.{UnaryLKProof, BinaryLKProof}
-import at.logic.calculi.lk.macroRules._
-import at.logic.calculi.lk.propositionalRules._
-import at.logic.calculi.occurrences.{FormulaOccurrence, defaultFormulaOccurrenceFactory}
 import at.logic.calculi.slk._
-import at.logic.language.lambda.symbols.VariableStringSymbol
-import at.logic.language.lambda.typedLambdaCalculus.Var
-import at.logic.language.schema._
-import at.logic.language.hol.{HOLConst, Atom, HOLExpression, HOLFormula}
+import at.logic.calculi.occurrences.{FormulaOccurrence, defaultFormulaOccurrenceFactory}
+import at.logic.language.schema.{Substitution => SubstitutionSchema, SchemaVar, SchemaExpression, SchemaFormula, BigAnd, BigOr, IntVar, Pred, Or => OrSchema, And => AndSchema}
+import at.logic.language.hol._
 import at.logic.language.lambda.types.{Ti, Tindex}
 
 object solvePropositional {
@@ -54,44 +50,44 @@ object solvePropositional {
     else findUnaryLeft(seq) match {
       // Apply unary rule on antecedent
       case Some(f) => 
-      val rest = new FSequent(seq.antecedent.diff(f::Nil), seq.succedent)
+      val rest = FSequent(seq.antecedent.diff(f::Nil), seq.succedent)
       f match {
 
         case Neg(f1) =>
           // Computing premise antecedent and succedent
           val p_ant = rest.antecedent
-          val p_suc = f1.asInstanceOf[HOLFormula] +: rest.succedent
-          val premise = new FSequent(p_ant, p_suc)
+          val p_suc = f1 +: rest.succedent
+          val premise = FSequent(p_ant, p_suc)
           prove(premise) match {
             case Some(p) => 
-              val p1 = NegLeftRule(p, f1.asInstanceOf[HOLFormula])
+              val p1 = NegLeftRule(p, f1)
               Some(p1)
             case None => None
           }
 
         case And(f1, f2) => 
           // For this case, contract the formula and choose the first and then the second conjunct
-          val up_ant = f1.asInstanceOf[HOLFormula] +: f2.asInstanceOf[HOLFormula] +: rest.antecedent
+          val up_ant = f1 +: f2 +: rest.antecedent
           val up_suc = rest.succedent
-          val upremise = new FSequent(up_ant, up_suc)
+          val upremise = FSequent(up_ant, up_suc)
           prove(upremise) match {
             case Some(proof) =>
-              val proof_and2 = AndLeft2Rule(proof, f1.asInstanceOf[HOLFormula], f2.asInstanceOf[HOLFormula])
-              val proof_and1 = AndLeft1Rule(proof_and2, f1.asInstanceOf[HOLFormula], f2.asInstanceOf[HOLFormula])
+              val proof_and2 = AndLeft2Rule(proof, f1, f2)
+              val proof_and1 = AndLeft1Rule(proof_and2, f1, f2)
               val proof_contr = ContractionLeftRule(proof_and1, f)
               Some(proof_contr)
             case None => None
           }
 
         case BigAnd(i, iter, from, to) =>
-          val i = IntVar(new VariableStringSymbol("i"))
+          val i = IntVar("i")
           if (from == to) {
-            val new_map = Map[Var, HOLExpression]() + Pair(i, to)
-            val subst = new SchemaSubstitution1[HOLExpression](new_map)
-            val sf = subst(iter).asInstanceOf[SchemaFormula]
+            val new_map = Map[SchemaVar, SchemaExpression]() + Pair(i, to)
+            val subst = SubstitutionSchema(new_map)
+            val sf = subst(iter)
             val p_ant = sf +: rest.antecedent
             val p_suc = rest.succedent
-            val premise = new FSequent(p_ant, p_suc)
+            val premise = FSequent(p_ant, p_suc)
             prove(premise) match {
               case Some(proof) => 
                 val proof2 = AndLeftEquivalenceRule3(proof, sf, f.asInstanceOf[SchemaFormula])
@@ -100,17 +96,17 @@ object solvePropositional {
             }
           }
           else {
-            val new_map = Map[Var, HOLExpression]() + Pair(i, to)
-            val subst = new SchemaSubstitution1[HOLExpression](new_map)
+            val new_map = Map[SchemaVar, SchemaExpression]() + Pair(i, to)
+            val subst = SubstitutionSchema(new_map)
             val sf1 = BigAnd(i, iter, from, Pred(to))
-            val sf2 = subst(iter).asInstanceOf[HOLFormula]
+            val sf2 = subst(iter)
             val p_ant = sf1 +: sf2 +: rest.antecedent
             val p_suc = rest.succedent
-            val premise = new FSequent(p_ant, p_suc)
+            val premise = FSequent(p_ant, p_suc)
             prove(premise) match {
               case Some(proof) =>
                 val proof1 = AndLeftRule(proof, sf1, sf2)
-                val and = And(BigAnd(i, iter, from, Pred(to)), subst(iter).asInstanceOf[SchemaFormula])
+                val and = AndSchema(BigAnd(i, iter, from, Pred(to)), subst(iter))
                 val proof2 = AndLeftEquivalenceRule1(proof1, and, BigAnd(i, iter, from, to))
                 Some(proof2)
               case None => None
@@ -121,27 +117,27 @@ object solvePropositional {
       case None => findUnaryRight(seq) match {
         // Apply unary rule on succedent
         case Some(f) =>
-        val rest = new FSequent(seq.antecedent, seq.succedent.diff(f::Nil))
+        val rest = FSequent(seq.antecedent, seq.succedent.diff(f::Nil))
         f match {
         
           case Neg(f1) =>
-            val p_ant = f1.asInstanceOf[HOLFormula] +: rest.antecedent
+            val p_ant = f1 +: rest.antecedent
             val p_suc = rest.succedent
-            val premise = new FSequent(p_ant, p_suc)
+            val premise = FSequent(p_ant, p_suc)
             prove(premise) match {
               case Some(p) => 
-                val p1 = NegRightRule(p, f1.asInstanceOf[HOLFormula])
+                val p1 = NegRightRule(p, f1)
                 Some(p1)
               case None => None
             }
   
           case Imp(f1, f2)=> 
-            val p_ant = f1.asInstanceOf[HOLFormula] +: rest.antecedent
-            val p_suc = f2.asInstanceOf[HOLFormula] +: rest.succedent
-            val premise = new FSequent(p_ant, p_suc)
+            val p_ant = f1 +: rest.antecedent
+            val p_suc = f2 +: rest.succedent
+            val premise = FSequent(p_ant, p_suc)
             prove(premise) match {
               case Some(p) => 
-                val p1 = ImpRightRule(p, f1.asInstanceOf[HOLFormula], f2.asInstanceOf[HOLFormula])
+                val p1 = ImpRightRule(p, f1, f2)
                 Some(p1)
               case None => None
             }
@@ -149,42 +145,42 @@ object solvePropositional {
           case Or(f1, f2) => 
             // For this case, contract the formula and choose the first and then the second conjunct
             val up_ant = rest.antecedent
-            val up_suc = f1.asInstanceOf[HOLFormula] +: f2.asInstanceOf[HOLFormula] +: rest.succedent
-            val upremise = new FSequent(up_ant, up_suc)
+            val up_suc = f1 +: f2 +: rest.succedent
+            val upremise = FSequent(up_ant, up_suc)
             prove(upremise) match {
               case Some(proof) =>
-                val proof_or2 = OrRight2Rule(proof, f1.asInstanceOf[HOLFormula], f2.asInstanceOf[HOLFormula])
-                val proof_or1 = OrRight1Rule(proof_or2, f1.asInstanceOf[HOLFormula], f2.asInstanceOf[HOLFormula])
+                val proof_or2 = OrRight2Rule(proof, f1, f2)
+                val proof_or1 = OrRight1Rule(proof_or2, f1, f2)
                 val proof_contr = ContractionRightRule(proof_or1, f)
                 Some(proof_contr)
               case None => None
             }
   
           case BigOr(i, iter, from, to) => 
-            val i = IntVar(new VariableStringSymbol("i"))
+            val i = IntVar("i")
             if (from == to){
-              val new_map = Map[Var, HOLExpression]() + Pair(i, to)
-              val subst = new SchemaSubstitution1[HOLExpression](new_map)
-              val p_ant = subst(iter).asInstanceOf[SchemaFormula] +: rest.antecedent
+              val new_map = Map[SchemaVar, SchemaExpression]() + Pair(i, to)
+              val subst = SubstitutionSchema(new_map)
+              val p_ant = subst(iter) +: rest.antecedent
               val p_suc = rest.succedent
-              val premise = new FSequent(p_ant, p_suc)
+              val premise = FSequent(p_ant, p_suc)
               prove(premise) match {
                 case Some(proof) =>
-                  val proof1 = OrRightEquivalenceRule3(proof, subst(iter).asInstanceOf[SchemaFormula], f.asInstanceOf[SchemaFormula])
+                  val proof1 = OrRightEquivalenceRule3(proof, subst(iter), f.asInstanceOf[SchemaFormula])
                   Some(proof1)
                 case None => None
               }
             }
             else {
-              val new_map = Map[Var, HOLExpression]() + Pair(i, to)
-              val subst = new SchemaSubstitution1[HOLExpression](new_map)
+              val new_map = Map[SchemaVar, SchemaExpression]() + Pair(i, to)
+              val subst = SubstitutionSchema(new_map)
               val p_ant = rest.antecedent
-              val p_suc = BigOr(i, iter, from, Pred(to)) +: subst(iter).asInstanceOf[HOLFormula] +: rest.succedent
-              val premise = new FSequent(p_ant, p_suc)
+              val p_suc = BigOr(i, iter, from, Pred(to)) +: subst(iter) +: rest.succedent
+              val premise = FSequent(p_ant, p_suc)
               prove(premise) match {
                 case Some(proof) => 
-                  val proof1 = OrRightRule(proof, BigOr(i, iter, from, Pred(to)), subst(iter).asInstanceOf[HOLFormula])
-                  val or = Or(BigOr(i, iter, from, Pred(to)), subst(iter).asInstanceOf[SchemaFormula])
+                  val proof1 = OrRightRule(proof, BigOr(i, iter, from, Pred(to)), subst(iter))
+                  val or = OrSchema(BigOr(i, iter, from, Pred(to)), subst(iter))
                   val proof2 = OrRightEquivalenceRule1(proof1, or, BigOr(i, iter, from, to))
                   Some(proof2)
                 case None => None
@@ -196,48 +192,48 @@ object solvePropositional {
         case None => findBinaryLeft(seq) match {
           // Apply binary rule on antecedent
           case Some(f) =>
-          val rest = new FSequent(seq.antecedent.diff(f::Nil), seq.succedent)
+          val rest = FSequent(seq.antecedent.diff(f::Nil), seq.succedent)
           f match {
             
             case Imp(f1, f2)=>
               val p_ant1 = rest.antecedent
-              val p_suc1 = f1.asInstanceOf[HOLFormula] +: rest.succedent
-              val p_ant2 = f2.asInstanceOf[HOLFormula] +: rest.antecedent
+              val p_suc1 = f1 +: rest.succedent
+              val p_ant2 = f2 +: rest.antecedent
               val p_suc2 = rest.succedent
-              val premise1 = new FSequent(p_ant1, p_suc1)
-              val premise2 = new FSequent(p_ant2, p_suc2)
+              val premise1 = FSequent(p_ant1, p_suc1)
+              val premise2 = FSequent(p_ant2, p_suc2)
               (prove(premise1), prove(premise2)) match {
                 case (Some(p1), Some(p2)) =>
-                  val p = ImpLeftRule(p1, p2, f1.asInstanceOf[HOLFormula], f2.asInstanceOf[HOLFormula])
+                  val p = ImpLeftRule(p1, p2, f1, f2)
                   val p_contr = addContractions(p, seq)
                   Some(p_contr)
                 case _ => None
               }
   
             case Or(f1, f2) => 
-              val p_ant1 = f1.asInstanceOf[HOLFormula] +: rest.antecedent
+              val p_ant1 = f1 +: rest.antecedent
               val p_suc1 = rest.succedent
-              val p_ant2 = f2.asInstanceOf[HOLFormula] +: rest.antecedent
+              val p_ant2 = f2 +: rest.antecedent
               val p_suc2 = rest.succedent
-              val premise1 = new FSequent(p_ant1, p_suc1)
-              val premise2 = new FSequent(p_ant2, p_suc2)
+              val premise1 = FSequent(p_ant1, p_suc1)
+              val premise2 = FSequent(p_ant2, p_suc2)
               (prove(premise1), prove(premise2)) match {
                 case (Some(p1), Some(p2)) => 
-                  val p = OrLeftRule(p1, p2, f1.asInstanceOf[HOLFormula], f2.asInstanceOf[HOLFormula])
+                  val p = OrLeftRule(p1, p2, f1, f2)
                   val p_contr = addContractions(p, seq)
                   Some(p_contr)
                 case _ => None
               }
   
             case BigOr(i, iter, from, to) =>
-              val i = IntVar(new VariableStringSymbol("i"))
+              val i = IntVar("i")
               if (from == to){
-                val new_map = Map[Var, HOLExpression]() + Pair(i, to)
-                val subst = new SchemaSubstitution1[HOLExpression](new_map)
-                val sf = subst(iter).asInstanceOf[SchemaFormula]
+                val new_map = Map[SchemaVar, SchemaExpression]() + Pair(i, to)
+                val subst = SubstitutionSchema(new_map)
+                val sf = subst(iter)
                 val p_ant = sf +: rest.antecedent
                 val p_suc = rest.succedent
-                val premise = new FSequent(p_ant, p_suc)
+                val premise = FSequent(p_ant, p_suc)
                 prove(premise) match {
                   case Some(proof) => 
                     val proof1 = OrLeftEquivalenceRule3(proof, sf, f.asInstanceOf[SchemaFormula])
@@ -246,18 +242,18 @@ object solvePropositional {
                 }
               }
               else {
-                val new_map = Map[Var, HOLExpression]() + Pair(i, to)
-                val subst = new SchemaSubstitution1[HOLExpression](new_map)
+                val new_map = Map[SchemaVar, SchemaExpression]() + Pair(i, to)
+                val subst = SubstitutionSchema(new_map)
                 val p_ant1 = BigOr(i, iter, from, Pred(to)) +: rest.antecedent
                 val p_suc1 = rest.succedent
-                val p_ant2 = subst(iter).asInstanceOf[HOLFormula] +: rest.antecedent
+                val p_ant2 = subst(iter) +: rest.antecedent
                 val p_suc2 = rest.succedent
-                val premise1 = new FSequent(p_ant1, p_suc1)
-                val premise2 = new FSequent(p_ant2, p_suc2)
+                val premise1 = FSequent(p_ant1, p_suc1)
+                val premise2 = FSequent(p_ant2, p_suc2)
                 (prove(premise1), prove(premise2)) match {
                   case (Some(proof1), Some(proof2)) =>
-                    val proof3 = OrLeftRule(proof1, proof2, BigOr(i, iter, from, Pred(to)), subst(iter).asInstanceOf[HOLFormula])
-                    val or = Or(BigOr(i, iter, from, Pred(to)), subst(iter).asInstanceOf[SchemaFormula])
+                    val proof3 = OrLeftRule(proof1, proof2, BigOr(i, iter, from, Pred(to)), subst(iter))
+                    val or = OrSchema(BigOr(i, iter, from, Pred(to)), subst(iter))
                     val proof4 = OrLeftEquivalenceRule1(proof3, or, BigOr(i, iter, from, to))
                     val proof5 = addContractions(proof4, seq)
                     Some(proof5)
@@ -269,52 +265,52 @@ object solvePropositional {
           case None => findBinaryRight(seq) match {
             // Apply binary rule on succedent
             case Some(f) =>
-            val rest = new FSequent(seq.antecedent, seq.succedent.diff(f::Nil))
+            val rest = FSequent(seq.antecedent, seq.succedent.diff(f::Nil))
             f match {
 
               case And(f1, f2) => 
                 val p_ant1 = rest.antecedent
-                val p_suc1 = f1.asInstanceOf[HOLFormula] +: rest.succedent
+                val p_suc1 = f1 +: rest.succedent
                 val p_ant2 = rest.antecedent
-                val p_suc2 = f2.asInstanceOf[HOLFormula] +: rest.succedent
-                val premise1 = new FSequent(p_ant1, p_suc1)
-                val premise2 = new FSequent(p_ant2, p_suc2)
+                val p_suc2 = f2 +: rest.succedent
+                val premise1 = FSequent(p_ant1, p_suc1)
+                val premise2 = FSequent(p_ant2, p_suc2)
                 (prove(premise1), prove(premise2)) match {
                   case (Some(p1), Some(p2)) => 
-                    val p = AndRightRule(p1, p2, f1.asInstanceOf[HOLFormula], f2.asInstanceOf[HOLFormula])
+                    val p = AndRightRule(p1, p2, f1, f2)
                     val p_contr = addContractions(p, seq)
                     Some(p_contr)
                   case _ => None
                 }
     
               case BigAnd(i, iter, from, to) =>
-                val i = IntVar(new VariableStringSymbol("i"))
+                val i = IntVar("i")
                 if (from == to) {
-                  val new_map = Map[Var, HOLExpression]() + Pair(i, to)
-                  val subst = new SchemaSubstitution1[HOLExpression](new_map)
+                  val new_map = Map[SchemaVar, SchemaExpression]() + Pair(i, to)
+                  val subst = SubstitutionSchema(new_map)
                   val p_ant = rest.antecedent
-                  val p_suc = subst(iter).asInstanceOf[SchemaFormula] +: rest.succedent
-                  val premise = new FSequent(p_ant, p_suc)
+                  val p_suc = subst(iter) +: rest.succedent
+                  val premise = FSequent(p_ant, p_suc)
                   prove(premise) match {
                     case Some(proof) =>
-                      val proof1 = AndRightEquivalenceRule3(proof, subst(iter).asInstanceOf[SchemaFormula], f.asInstanceOf[SchemaFormula])
+                      val proof1 = AndRightEquivalenceRule3(proof, subst(iter), f.asInstanceOf[SchemaFormula])
                       Some(proof1)
                     case None => None
                   }
                 }
                 else {
-                  val new_map = Map[Var, HOLExpression]() + Pair(i, to)
-                  val subst = new SchemaSubstitution1[HOLExpression](new_map)
+                  val new_map = Map[SchemaVar, SchemaExpression]() + Pair(i, to)
+                  val subst = SubstitutionSchema(new_map)
                   val p_ant1 = rest.antecedent
                   val p_suc1 = BigAnd(i, iter, from, Pred(to)) +: rest.succedent
                   val p_ant2 = rest.antecedent
-                  val p_suc2 = subst(iter).asInstanceOf[HOLFormula] +: rest.succedent
-                  val premise1 = new FSequent(p_ant1, p_suc1)
-                  val premise2 = new FSequent(p_ant2, p_suc2)
+                  val p_suc2 = subst(iter) +: rest.succedent
+                  val premise1 = FSequent(p_ant1, p_suc1)
+                  val premise2 = FSequent(p_ant2, p_suc2)
                   (prove(premise1), prove(premise2)) match {
                     case (Some(proof1), Some(proof2)) =>
-                      val proof3 = AndRightRule(proof1, proof2, BigAnd(i, iter, from, Pred(to)), subst(iter).asInstanceOf[HOLFormula])
-                      val and = And(BigAnd(i, iter, from, Pred(to)),  subst(iter).asInstanceOf[SchemaFormula])
+                      val proof3 = AndRightRule(proof1, proof2, BigAnd(i, iter, from, Pred(to)), subst(iter))
+                      val and = AndSchema(BigAnd(i, iter, from, Pred(to)),  subst(iter))
                       val proof4 = AndRightEquivalenceRule1(proof3, and, BigAnd(i, iter, from, to))
                       val proof5 = addContractions(proof4, seq)
                       Some(proof5)
@@ -336,7 +332,7 @@ object solvePropositional {
   def isAxiom(seq: FSequent): Boolean = 
     seq.antecedent.exists(f => 
       seq.succedent.exists(f2 => 
-        f == f2 && f.isAtom
+        f == f2 && isAtom(f)
       )
     )
  
@@ -367,19 +363,19 @@ object solvePropositional {
     })
 
   def removeFfromSeqAnt(seq: FSequent, f : HOLFormula) : FSequent = {
-    new FSequent(seq.antecedent.filter(x => x != f) , seq.succedent)
+    FSequent(seq.antecedent.filter(x => x != f) , seq.succedent)
   }
 
   def removeFfromSeqSucc(seq: FSequent, f : HOLFormula) : FSequent = {
-    new FSequent(seq.antecedent, seq.succedent.filter(x => x != f))
+    FSequent(seq.antecedent, seq.succedent.filter(x => x != f))
   }
 
   def removeFfromSeqAnt(seq: FSequent, flist : List[HOLFormula]) : FSequent = {
-    new FSequent(seq.antecedent.filter(x => !flist.contains(x)) , seq.succedent)
+    FSequent(seq.antecedent.filter(x => !flist.contains(x)) , seq.succedent)
   }
 
   def removeFfromSeqSucc(seq: FSequent, flist : List[HOLFormula]) : FSequent = {
-    new FSequent(seq.antecedent, seq.succedent.filter(x => !flist.contains(x)))
+    FSequent(seq.antecedent, seq.succedent.filter(x => !flist.contains(x)))
   }
   
   def getAxiomfromSeq(seq: FSequent) : (HOLFormula, FSequent) = {

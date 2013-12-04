@@ -1,38 +1,46 @@
 /*
  * StillmanSubsumptionAlgorithm.scala
  *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
  */
 
 package at.logic.algorithms.subsumption
 
-import at.logic.algorithms.matching.MatchingAlgorithm
-import at.logic.language.lambda.typedLambdaCalculus._
-import at.logic.language.lambda.substitutions._
-import at.logic.language.lambda.symbols._
-import at.logic.language.hol.logicSymbols._
-import at.logic.language.hol._
-import at.logic.language.fol.{Neg => FOLNeg, FOLFormula}
-import at.logic.calculi.lk.base._
-import at.logic.calculi.lk.base.types._
+import at.logic.algorithms.matching._
+import at.logic.language.hol.{HOLExpression, Substitution => SubstitutionHOL, Neg => NegHOL, HOLVar, freeVariables => freeVariablesHOL}
+import at.logic.language.fol.{FOLFormula, FOLExpression, Substitution => SubstitutionFOL, Neg => NegFOL, FOLVar, freeVariables => freeVariablesFOL}
+import at.logic.calculi.lk.base.FSequent
 
-trait StillmanSubsumptionAlgorithm[T <: LambdaExpression] extends SubsumptionAlgorithm {
-  val matchAlg: MatchingAlgorithm[T]
+object StillmanSubsumptionAlgorithmHOL extends SubsumptionAlgorithm {
+  val matchAlg = NaiveIncompleteMatchingAlgorithm
   def subsumes(s1: FSequent, s2: FSequent): Boolean =
-    ST(s1._1.map(x => neg(x)) ++ s1._2.map(x => x),
-      s2._1.map(x => neg(x)) ++ s2._2.map(x => x), 
-      Substitution(), 
-      (s2._1.flatMap(x => x.freeVariables) ++ s2._2.flatMap(x => x.freeVariables)).toList)
+    // TODO: what is the second map doing????
+    ST(s1._1.map(x => NegHOL(x)) ++ s1._2.map(x => x),
+      s2._1.map(x => NegHOL(x)) ++ s2._2.map(x => x), 
+      SubstitutionHOL(), 
+      (s2._1.flatMap(x => freeVariablesHOL(x)) ++ s2._2.flatMap(x => freeVariablesHOL(x))).toList)
 
-  def ST(ls1: Seq[LambdaExpression], ls2: Seq[LambdaExpression], sub: T => T, restrictedDomain: List[Var]): Boolean = ls1 match {
+  def ST(ls1: Seq[HOLExpression], ls2: Seq[HOLExpression], sub: SubstitutionHOL, restrictedDomain: List[HOLVar]): Boolean = ls1 match {
     case Nil => true // first list is exhausted
-    case x::ls => val sx = sub(x.asInstanceOf[T]); ls2.exists(t => matchAlg.matchTerm(sx.asInstanceOf[T], sub(t.asInstanceOf[T]), restrictedDomain) match {
+    case x::ls => val sx = sub(x); ls2.exists(t => matchAlg.matchTerm(sx, sub(t), restrictedDomain) match {
       case Some(sub2) => ST(ls, ls2, sub2 compose sub, restrictedDomain)
       case _ => false
     })
   }
+}
 
-  // should be generic but right now supports only hol and fol
-  private def neg(f: Formula) = if (f.isInstanceOf[FOLFormula]) FOLNeg(f.asInstanceOf[FOLFormula]) else Neg(f.asInstanceOf[HOLFormula])
+object StillmanSubsumptionAlgorithmFOL extends SubsumptionAlgorithm {
+  val matchAlg = FOLMatchingAlgorithm
+  def subsumes(s1: FSequent, s2: FSequent): Boolean =
+    ST(s1._1.map(x => NegFOL(x.asInstanceOf[FOLFormula])) ++ s1._2.map(x => x.asInstanceOf[FOLFormula]),
+      s2._1.map(x => NegFOL(x.asInstanceOf[FOLFormula])) ++ s2._2.map(x => x.asInstanceOf[FOLFormula]), 
+      SubstitutionFOL(), 
+      (s2._1.flatMap(x => freeVariablesFOL(x.asInstanceOf[FOLFormula])) ++ s2._2.flatMap(x => freeVariablesFOL(x.asInstanceOf[FOLFormula]))).toList)
+
+  def ST(ls1: Seq[FOLExpression], ls2: Seq[FOLExpression], sub: SubstitutionFOL, restrictedDomain: List[FOLVar]): Boolean = ls1 match {
+    case Nil => true // first list is exhausted
+    case x::ls => val sx = sub(x); ls2.exists(t => matchAlg.matchTerm(sx, sub(t), restrictedDomain) match {
+      case Some(sub2) => ST(ls, ls2, sub2 compose sub, restrictedDomain)
+      case _ => false
+    })
+  }
 }

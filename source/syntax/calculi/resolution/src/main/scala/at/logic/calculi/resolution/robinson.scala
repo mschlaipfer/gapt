@@ -14,6 +14,7 @@ import at.logic.utils.ds.acyclicGraphs._
 import at.logic.calculi.lk.base.{AuxiliaryFormulas, LKRuleCreationException}
 import at.logic.language.hol.{HOLVar, Formula, HOLExpression, Neg => HOLNeg, HOLFormula}
 import at.logic.utils.traits.Occurrence
+import at.logic.utils.dssupport.ListSupport.lst2string
 
 case object VariantType extends UnaryRuleTypeA
 case object FactorType extends UnaryRuleTypeA
@@ -234,14 +235,6 @@ object Formatter {
     val p = new java.io.PrintWriter(f)
     try { op(p) } finally { p.close() }
   }
-
-  def lst2string[T](fun:(T=>String), seperator: String, l:List[T]) : String = l match {
-    case Nil => ""
-    case List(x) => fun(x)
-    case x::xs => fun(x)  + seperator + lst2string(fun, seperator, xs)
-  }
-
-
 
   def apply(p: ResolutionProof[Clause]) : String = {
     apply("", p, createMap(p,1, Map[Clause, Int]())._1)

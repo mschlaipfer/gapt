@@ -12,8 +12,8 @@
 
 package at.logic.algorithms.cutIntroduction
 
-import at.logic.calculi.lk.base._
 import at.logic.calculi.lk._
+import at.logic.calculi.lk.base._
 import at.logic.language.fol._
 import at.logic.calculi.occurrences._
 import scala.collection.immutable.HashMap
@@ -34,7 +34,7 @@ object TermsExtraction {
     val es = proof.root
     val formulas = es.antecedent ++ es.succedent
     // Check if all formulas are prenex.
-    if( formulas.forall(f => f.formula.isPrenex) ) {
+    if( formulas.forall(f => isPrenex(f.formula.asInstanceOf[FOLFormula])) ) {
       val map = extractTerms(proof)
       map
     }
@@ -50,7 +50,7 @@ object TermsExtraction {
 
     // Extract the terms
     multiExpTrees.foldRight( HashMap[FOLFormula, List[List[FOLTerm]]]() ) {case (mTree, map) =>
-      if(toFormulaM(mTree).isPrenex) {
+      if(isPrenex(toFormulaM(mTree).asInstanceOf[FOLFormula])) {
         mTree match {
           case WeakQuantifierMulti(form, children) => 
             val f = form.asInstanceOf[FOLFormula]

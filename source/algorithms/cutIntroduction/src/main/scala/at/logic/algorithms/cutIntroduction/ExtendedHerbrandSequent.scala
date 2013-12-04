@@ -9,16 +9,17 @@
 package at.logic.algorithms.cutIntroduction
 
 import at.logic.calculi.occurrences._
+import at.logic.calculi.lk._
 import at.logic.calculi.lk.base._
-import at.logic.calculi.lk.propositionalRules._
-import at.logic.calculi.lk.quantificationRules._
+//import at.logic.calculi.lk.propositionalRules._
+//import at.logic.calculi.lk.quantificationRules._
 import at.logic.language.fol._
-import at.logic.language.fol.Utils._
+//import at.logic.language.fol.Utils._
 import at.logic.algorithms.lk.solvePropositional._
-import at.logic.language.lambda.symbols._
-import at.logic.language.hol.logicSymbols._
+//import at.logic.language.lambda.symbols._
+//import at.logic.language.hol.logicSymbols._
 import at.logic.algorithms.resolution._
-import at.logic.calculi.resolution.base.FClause
+import at.logic.calculi.resolution.FClause
 import at.logic.utils.logging.Logger
 import scala.collection.immutable.Stack
 import at.logic.algorithms.cutIntroduction.CutIntroduction.MyFClause
@@ -41,16 +42,16 @@ class ExtendedHerbrandSequent(seq: Sequent, g: Grammar, cf: FOLFormula = null) e
   // FormulaOccurrence to HOLFormula to FOLFormula and Seq to List...
   
   // Propositional formulas on the left
-  private val prop_l : List[FOLFormula] = seq.antecedent.filter(x => !x.formula.containsQuantifier).map(x => x.formula.asInstanceOf[FOLFormula]).toList
+  private val prop_l : List[FOLFormula] = seq.antecedent.map(x => x.formula.asInstanceOf[FOLFormula]).filter(f => !containsQuantifier(f)).toList
   // Propositional formulas on the right
-  private val prop_r : List[FOLFormula] = seq.succedent.filter(x => !x.formula.containsQuantifier).map(x => x.formula.asInstanceOf[FOLFormula]).toList
+  private val prop_r : List[FOLFormula] = seq.succedent.map(x => x.formula.asInstanceOf[FOLFormula]).filter(f => !containsQuantifier(f)).toList
   
   // Instanciated (previously univ. quantified) formulas on the left
   private val inst_l : List[FOLFormula] = grammar.u.foldRight(List[FOLFormula]()) { case (term, acc) =>
     val terms = flatterms.getTermTuple(term)
     val f = flatterms.getFormula(term)
     f match {
-      case AllVar(_, _) => f.instantiateAll(terms) :: acc
+      case AllVar(_, _) => instantiateAll(f, terms) :: acc
       case _ => acc
     }
   }
@@ -59,28 +60,27 @@ class ExtendedHerbrandSequent(seq: Sequent, g: Grammar, cf: FOLFormula = null) e
     val terms = flatterms.getTermTuple(term)
     val f = flatterms.getFormula(term)
     f match {
-      case ExVar(_, _) => f.instantiateAll(terms) :: acc
+      case ExVar(_, _) => instantiateAll(f, terms) :: acc
       case _ => acc
     }
   }
 
   // Separating the formulas that contain or not the eigenvariable
-  val antecedent = prop_l ++ inst_l.filter(f => !f.freeVariables.contains(g.eigenvariable))
-  val antecedent_alpha = inst_l.filter(f => f.freeVariables.contains(g.eigenvariable))
-  val succedent = prop_r ++ inst_r.filter(f => !f.freeVariables.contains(g.eigenvariable))
-  val succedent_alpha = inst_r.filter(f => f.freeVariables.contains(g.eigenvariable))
+  val antecedent = prop_l ++ inst_l.filter(f => !freeVariables(f).contains(g.eigenvariable))
+  val antecedent_alpha = inst_l.filter(f => freeVariables(f).contains(g.eigenvariable))
+  val succedent = prop_r ++ inst_r.filter(f => !freeVariables(f).contains(g.eigenvariable))
+  val succedent_alpha = inst_r.filter(f => freeVariables(f).contains(g.eigenvariable))
 
   var cutFormula = if(cf == null) CutIntroduction.computeCanonicalSolution(seq, g) else cf
 
   override def toString = {
 
     // For printing Xα -> ^ Xsi
-    val X = ConstantStringSymbol("X")
-    val alpha = FOLVar(new VariableStringSymbol("α"))
-    val xalpha = Atom(X, alpha::Nil)
+    val alpha = FOLVar("α")
+    val xalpha = Atom("X", alpha::Nil)
     // X[s_i] forall i
-    val xs = grammar.s.map(t => Atom(X, t::Nil))
-    val bigConj = andN(xs)
+    val xs = grammar.s.map(t => Atom("X", t::Nil))
+    val bigConj = And(xs)
     // Implication parametrized with second order variable X (is this needed except for printing purposes??)
     val implication : FOLFormula = Imp(xalpha, bigConj)
 
@@ -90,7 +90,7 @@ class ExtendedHerbrandSequent(seq: Sequent, g: Grammar, cf: FOLFormula = null) e
     val str3 = succedent.foldRight("") ( (f, acc) => acc + f + ", ")
     val str4 = cutFormula match { case AllVar( x, f ) => "λ " + x + ". " + f }
       
-    (str1 + str0 + implication + " :- " + str3 + str2 + " where " + X + " = " + str4)
+    (str1 + str0 + implication + " :- " + str3 + str2 + " where X = " + str4)
   }
 
   /** Checks if the sequent is a tautology using f as the cut formula.
@@ -103,12 +103,12 @@ class ExtendedHerbrandSequent(seq: Sequent, g: Grammar, cf: FOLFormula = null) e
     */
   def isValidWith(sat: MiniSAT, f: FOLFormula) : Boolean = {
 
-    val body = f.instantiate(grammar.eigenvariable)
+    val body = instantiate(f, grammar.eigenvariable)
 
     val as = grammar.s.foldRight(List[FOLFormula]()) {case (t, acc) =>
-      acc :+ f.instantiate(t) 
+      acc :+ instantiate(f, t) 
     }
-    val head = andN(as)
+    val head = And(as)
 
     val impl = Imp(body, head)
 
@@ -117,7 +117,7 @@ class ExtendedHerbrandSequent(seq: Sequent, g: Grammar, cf: FOLFormula = null) e
 
     //isTautology(FSequent(antecedent, succedent))
     trace( "calling SAT-solver" )
-    val r = sat.isValid(Imp(andN(antecedent), orN(succedent)))
+    val r = sat.isValid(Imp(And(antecedent), Or(succedent)))
     trace( "finished call to SAT-solver" )
 
     r
@@ -125,12 +125,12 @@ class ExtendedHerbrandSequent(seq: Sequent, g: Grammar, cf: FOLFormula = null) e
 
   def isValidWith(f: FOLFormula) : Boolean = {
 
-    val body = f.instantiate(grammar.eigenvariable)
+    val body = instantiate(f, grammar.eigenvariable)
 
     val as = grammar.s.foldRight(List[FOLFormula]()) {case (t, acc) =>
-      acc :+ f.instantiate(t) 
+      acc :+ instantiate(f, t) 
     }
-    val head = andN(as)
+    val head = And(as)
 
     val impl = Imp(body, head)
 
@@ -158,7 +158,7 @@ class ExtendedHerbrandSequent(seq: Sequent, g: Grammar, cf: FOLFormula = null) e
     }
 
     // Transform to conjunctive normal form
-    val cnf = f.toCNF
+    val cnf = toCNF(f)
 
     // Exhaustive search over the resolvents (depth-first search),
     // returns the list of all solutions found.
@@ -167,7 +167,7 @@ class ExtendedHerbrandSequent(seq: Sequent, g: Grammar, cf: FOLFormula = null) e
     def searchSolution(f: FOLFormula) : List[FOLFormula] =
       f :: CutIntroduction.ForgetfulResolve(f).foldRight(List[FOLFormula]()) ( (r, acc) =>
           if( this.isValidWith( AllVar( x, r ))) {
-            trace( "found solution with " + r.numOfAtoms + " atoms: " + r )
+            trace( "found solution with " + numOfAtoms(r) + " atoms: " + r )
             count = count + 1
             searchSolution(r) ::: acc
           }
@@ -185,13 +185,13 @@ class ExtendedHerbrandSequent(seq: Sequent, g: Grammar, cf: FOLFormula = null) e
 
   def minimizeSolution = {
     trace( "minimizing solution " + cutFormula )
-    val minimalSol = this.improveSolution.sortWith((r1,r2) => r1.numOfAtoms < r2.numOfAtoms).head
+    val minimalSol = this.improveSolution.sortWith((r1,r2) => numOfAtoms(r1) < numOfAtoms(r2)).head
     this.cutFormula = minimalSol
   }
 
   def minimizeSolution2 = {
     trace( "minimizing solution " + cutFormula )
-    val minimalSol = this.improveSolution2.sortWith((r1,r2) => r1.numOfAtoms < r2.numOfAtoms).head
+    val minimalSol = this.improveSolution2.sortWith((r1,r2) => numOfAtoms(r1) < numOfAtoms(r2)).head
     this.cutFormula = minimalSol
   }
 
@@ -265,7 +265,7 @@ class ExtendedHerbrandSequent(seq: Sequent, g: Grammar, cf: FOLFormula = null) e
 
       //0. Convert to a clause set where each clause is a list of positive and negative atoms.
       //1. assign a number to every atom in F.
-      val fNumbered = numberAtoms(CNFp(form2.toCNF).map(c => CutIntroduction.toMyFClause(c)).toList)
+      val fNumbered = numberAtoms(CNFp(toCNF(form2)).map(c => CutIntroduction.toMyFClause(c)).toList)
 
       //2. gather the positive and negative occurrences o every variable v into sets v+ and v-.
       val posNegSets = fNumbered.foldLeft(Map[FOLFormula, (Set[Int], Set[Int])]()) {(m, clause) =>

@@ -131,7 +131,7 @@ object delta {
   // TODO: this should go somewhere else?
   def listEquals(lst1: List[FOLTerm], lst2: List[FOLTerm]) : Boolean = (lst1, lst2) match {
     case (Nil, Nil) => true
-    case (hd1::tl1, hd2::tl2) => (hd1 =^ hd2) && listEquals(tl1, tl2)
+    case (hd1::tl1, hd2::tl2) => (hd1.syntaxEquals(hd2)) && listEquals(tl1, tl2)
     case (_, _) => false
   }
  
@@ -144,7 +144,7 @@ object delta {
       // If the variables are reached
       case FOLVar(s) =>
         // If all variables are equal
-        if ( terms.forall(t => t =^ terms.head) ) { return (FOLVar(s), Nil) }
+        if ( terms.forall(t => t.syntaxEquals(terms.head)) ) { return (FOLVar(s), Nil) }
         // If there are different variables 
         else { return (eigenvariable, terms) }
  

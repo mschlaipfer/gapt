@@ -58,5 +58,12 @@ object ListSupport {
       (new_acc2, y::ys)
     }
   }
+  
+  def lst2string[T](fun: T => String, separator: String, l:List[T]) : String = l match {
+    case Nil => ""
+    case List(x) => fun(x)
+    case x::xs => fun(x)  + separator + lst2string(fun, separator, xs)
+  }
+
 }
 

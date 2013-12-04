@@ -6,10 +6,10 @@ package at.logic.algorithms.matching
 
 import at.logic.language.fol._
 
-object FOLMatchingAlgorithm extends MatchingAlgorithm[FOLExpression] {
-//object FOLMatchingAlgorithm {
+object FOLMatchingAlgorithm {
 
-  def matchTerm(term1: FOLExpression, term2: FOLExpression, restrictedDomain: List[FOLVar]) = matchSetOfTuples(restrictedDomain, (term1,term2)::Nil,Nil) match {
+  def matchTerm(term1: FOLExpression, term2: FOLExpression, restrictedDomain: List[FOLVar]) : Option[Substitution] = 
+    matchSetOfTuples(restrictedDomain, (term1,term2)::Nil,Nil) match {
       case Some((Nil,ls)) => Some(Substitution(ls.map(x => (x._1.asInstanceOf[FOLVar],x._2))))
       case _ => None
     }

@@ -33,20 +33,20 @@ class FlatTermSetException(msg: String) extends Exception(msg)
 
 class FlatTermSet(terms: Map[FOLFormula, List[List[FOLTerm]]]) {
 
-  var formulaFunction = new HashMap[ConstantStringSymbol, FOLFormula]
+  var formulaFunction = new HashMap[String, FOLFormula]
   var termset : List[FOLTerm] = Nil
 
   terms.foreach{
     case (f, lst) =>
       val functionSymbol = new TupleFunction
-      formulaFunction += (functionSymbol.symbol -> f)
+      formulaFunction += (functionSymbol.name -> f)
       termset = lst.foldRight(termset) {
-        case (tuple, acc) => Function(functionSymbol.symbol, tuple) :: acc
+        case (tuple, acc) => Function(functionSymbol.name, tuple) :: acc
       }
   }
 
   def getFormula(t: FOLTerm) = t match {
-    case Function(symbol, _) => formulaFunction(symbol.asInstanceOf[ConstantStringSymbol])
+    case Function(symbol, _) => formulaFunction(symbol.toString)
     case _ => throw new FlatTermSetException("Term is not a function")
   }
 
@@ -64,7 +64,7 @@ class FlatTermSet(terms: Map[FOLFormula, List[List[FOLTerm]]]) {
   }
   class TupleFunction {
     val id = TupleFunction.inc
-    val symbol = ConstantStringSymbol("tuple" + id)
+    val name = "tuple" + id
   }
 }
 

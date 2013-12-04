@@ -9,10 +9,10 @@
 
 package at.logic.algorithms.cutIntroduction
 
-import at.logic.language.lambda.symbols._
+//import at.logic.language.lambda.symbols._
 import at.logic.language.fol._
 import at.logic.calculi.occurrences._
-import at.logic.language.hol.logicSymbols._
+//import at.logic.language.hol.logicSymbols._
 import at.logic.utils.dssupport.ListSupport._
 import at.logic.utils.dssupport.MapSupport._
 import at.logic.utils.logging.Logger
@@ -53,7 +53,7 @@ object ComputeGrammars extends Logger {
 
   def apply(terms: List[FOLTerm]) : List[Grammar] = {
     // TODO: when iterating for the case of multiple cuts, change this variable.
-    val eigenvariable = FOLVar(new VariableStringSymbol("α"))
+    val eigenvariable = FOLVar("α")
     
     //debug( "computing delta-table" )
     val deltatable = new DeltaTable(terms, eigenvariable)
@@ -73,7 +73,7 @@ object ComputeGrammars extends Logger {
 
   def apply2(terms: List[FOLTerm]) : List[Grammar] = {
     // TODO: when iterating for the case of multiple cuts, change this variable.
-    val eigenvariable = FOLVar(new VariableStringSymbol("α"))
+    val eigenvariable = FOLVar("α")
     
     //debug( "3rd version - computing delta-table" )
     val deltatable = new DeltaTable(terms, eigenvariable)

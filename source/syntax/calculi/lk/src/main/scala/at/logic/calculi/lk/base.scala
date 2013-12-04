@@ -10,6 +10,7 @@ import at.logic.calculi.proofs._
 import at.logic.language.hol._
 import at.logic.utils.ds.trees._
 import at.logic.utils.traits.Occurrence
+import at.logic.utils.dssupport.ListSupport.lst2string
 
 class FSequent(val antecedent : Seq[HOLFormula], val succedent : Seq[HOLFormula]) {
   val _1 = antecedent
@@ -30,36 +31,15 @@ class FSequent(val antecedent : Seq[HOLFormula], val succedent : Seq[HOLFormula]
   def compose(other: FSequent) = FSequent(antecedent ++ other.antecedent, succedent ++ other.succedent)
   
   // formats a sequent to a readable string
-  // TODO: this can be done in a more functional way
-  override def toString : String = {
-    var sb = new scala.StringBuilder()
-    var first = true
-    for (f <- this.antecedent) {
-      if (! first) sb.append(", ")
-      else first = false
-      sb.append(f)
-    }
-    sb.append(" :- ")
-    first =true
-    for (f <- this.succedent) {
-      if (! first) sb.append(", ")
-      else first = false
-      sb.append(f)
-    }
-    sb.toString
-  }
+  override def toString : String = 
+    lst2string(((x: HOLFormula) => x.toString), ", ", this.antecedent.toList) + " :- " + lst2string(((x: HOLFormula) => x.toString), ", ", this.succedent.toList)
+  
 }
 object FSequent {
   def apply(ant: Seq[HOLFormula], succ: Seq[HOLFormula]) : FSequent =  new FSequent(ant,succ)
   def apply(seq : Sequent) : FSequent = FSequent(seq.antecedent map (_.formula), seq.succedent map (_.formula))
 
   def unapply(f: FSequent) : Option[(Seq[HOLFormula], Seq[HOLFormula])] = Some( (f.antecedent, f.succedent) )
-
-  private def lst2string[T](fun:(T=>String), seperator: String, l:List[T]) : String = l match {
-    case Nil => ""
-    case List(x) => fun(x)
-    case x::xs => fun(x)  + seperator + lst2string(fun, seperator, xs)
-  }
 
   def setEquals(f: FSequent, g: FSequent) : Boolean =
       Set(f._1) == Set(g._1) &&

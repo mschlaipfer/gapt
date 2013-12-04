@@ -213,6 +213,7 @@ case object BigOrC extends SchemaConst(BigOrSymbol, ->(->(Tindex, To), ->(Tindex
 case object BiggerThanC extends SchemaConst(BiggerThanSymbol, ->(Tindex, ->(Tindex, To)))
 case class LessThanC(e:TA) extends SchemaConst(LessThanSymbol, ->(Tindex, ->(Tindex, To)))
 case class LeqC(e:TA) extends SchemaConst(LeqSymbol, ->(Tindex, ->(Tindex, To)))
+case object SuccC extends SchemaConst(StringSymbol("s"), ->(Tindex, Tindex))
 
 object Neg {
   def apply(sub: SchemaFormula) = SchemaApp(NegC,sub).asInstanceOf[SchemaFormula]
@@ -331,17 +332,11 @@ object BiggerThan {
   }
 }
 
-/** Should symbols be created for these operators also?? **/
-
-object Succ extends SchemaConst(StringSymbol("s"), ->(Tindex, Tindex)) {
-  override def toString = this match {
-    case SchemaApp(Succ, t) => "s("+t.toString+")"
-    case _ => "ERROR in Succ"
-  }
-  def apply(t: IntegerTerm): IntegerTerm  = SchemaApp(Succ, t).asInstanceOf[IntegerTerm]
-  def apply(t: SchemaExpression): SchemaExpression  = SchemaApp(Succ, t)
+object Succ {
+  def apply(t: IntegerTerm): IntegerTerm  = SchemaApp(SuccC, t).asInstanceOf[IntegerTerm]
+  def apply(t: SchemaExpression): SchemaExpression  = SchemaApp(SuccC, t)
   def unapply(p: SchemaExpression) = p match {
-    case SchemaApp(Succ, t : IntegerTerm) => Some(t)
+    case SchemaApp(SuccC, t : IntegerTerm) => Some(t)
     case _ => None
   }
 }

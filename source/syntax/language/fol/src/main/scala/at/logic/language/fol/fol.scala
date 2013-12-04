@@ -103,30 +103,36 @@ object FOLVar {
   }
 }
 
-//TODO: normal fol constants are FOLTerms, but since we create atoms form constants too, we cannot derive from FOLTerm
-class FOLConst (sym: SymbolA, exptype: TA) extends HOLConst(sym, exptype) with FOLExpression
+class FOLConst (sym: SymbolA) extends FOLLambdaConst(sym, Ti) with FOLTerm
 object FOLConst {
-  def apply(name: String) : FOLConst = FOLConst(StringSymbol(name), Ti)
-  def apply(name: String, exptype: TA) : FOLConst = FOLConst(StringSymbol(name), exptype)
-  def apply(sym: SymbolA) : FOLConst = new FOLConst(sym, Ti) with FOLTerm
-  def apply(sym: SymbolA, exptype: TA) : FOLConst = exptype match {
-    case To => new FOLConst(sym, exptype) with FOLFormula
-    case Ti => new FOLConst(sym, exptype) with FOLTerm
-    case _ => new FOLConst(sym, exptype)
-  }
+  def apply(name: String) : FOLConst = new FOLConst(StringSymbol(name))
+  def apply(sym: SymbolA) : FOLConst = new FOLConst(sym)
   def unapply(exp: FOLExpression) = exp match {
     case c: FOLConst => Some( (c.name, c.exptype) )
     case _ => None
   }
 }
 
-case object TopC extends FOLConst(TopSymbol, To) with FOLFormula
-case object BottomC extends FOLConst(BottomSymbol, To) with FOLFormula
-case object NegC extends FOLConst(NegSymbol, To -> To )
-case object AndC extends FOLConst(AndSymbol, To -> (To -> To))
-case object OrC extends FOLConst(OrSymbol,   To -> (To -> To))
-case object ImpC extends FOLConst(ImpSymbol, To -> (To -> To))
-case object EqC extends FOLConst(EqSymbol,   Ti -> (Ti -> To))
+protected[fol] class FOLLambdaConst (sym: SymbolA, exptype: TA) extends HOLConst(sym, exptype) with FOLExpression
+protected[fol] object FOLLambdaConst {
+  def apply(name: String, exptype: TA) : FOLLambdaConst = FOLLambdaConst(StringSymbol(name), exptype)
+  def apply(sym: SymbolA, exptype: TA) : FOLLambdaConst = exptype match {
+    case To => new FOLLambdaConst(sym, exptype) with FOLFormula
+    case Ti => new FOLLambdaConst(sym, exptype) with FOLTerm
+    case _ => new FOLLambdaConst(sym, exptype)
+  }
+  def unapply(exp: FOLExpression) = exp match {
+    case c: FOLLambdaConst => Some( (c.name, c.exptype) )
+    case _ => None
+  }
+}
+case object TopC extends FOLLambdaConst(TopSymbol, To) with FOLFormula
+case object BottomC extends FOLLambdaConst(BottomSymbol, To) with FOLFormula
+case object NegC extends FOLLambdaConst(NegSymbol, To -> To )
+case object AndC extends FOLLambdaConst(AndSymbol, To -> (To -> To))
+case object OrC extends FOLLambdaConst(OrSymbol,   To -> (To -> To))
+case object ImpC extends FOLLambdaConst(ImpSymbol, To -> (To -> To))
+case object EqC extends FOLLambdaConst(EqSymbol,   Ti -> (Ti -> To))
 
 object Equation {
   def apply(left: FOLTerm, right: FOLTerm) = {
@@ -140,36 +146,36 @@ object Equation {
 
 // FOL atom of the form P(t_1,...,t_n)
 object Atom {
-  def apply(head: String, args: List[FOLExpression]): FOLFormula = {
+  def apply(head: String, args: List[FOLTerm]): FOLFormula = {
     val tp = FunctionType(To, args.map(a => a.exptype)) 
-    val f = FOLConst(head, tp)
+    val f = FOLLambdaConst(head, tp)
     apply_(f, args).asInstanceOf[FOLFormula]
   }
-  def apply(head: String): FOLFormula = FOLConst(head, To).asInstanceOf[FOLFormula]
-  def apply(head: SymbolA, args: List[FOLExpression]): FOLFormula = {
+  def apply(head: String): FOLFormula = FOLLambdaConst(head, To).asInstanceOf[FOLFormula]
+  def apply(head: SymbolA, args: List[FOLTerm]): FOLFormula = {
     val tp = FunctionType(To, args.map(a => a.exptype)) 
-    val f = FOLConst(head, tp)
+    val f = FOLLambdaConst(head, tp)
     apply_(f, args).asInstanceOf[FOLFormula]
   }
-  def apply(head: SymbolA): FOLFormula = FOLConst(head, To).asInstanceOf[FOLFormula]
+  def apply(head: SymbolA): FOLFormula = FOLLambdaConst(head, To).asInstanceOf[FOLFormula]
   
-  private def apply_(head: FOLExpression, args: List[FOLExpression]): FOLExpression = args match {
+  private def apply_(head: FOLExpression, args: List[FOLTerm]): FOLExpression = args match {
     case Nil => head
     case t :: tl => apply_(FOLApp(head, t), tl)
   }
 
   def unapply( expression: FOLExpression ) = expression match {
-    case FOLApp(c: FOLConst,_) if isLogicalSymbol(c) => None
-    case FOLApp(FOLApp(c: FOLConst,_),_) if isLogicalSymbol(c) => None
+    case FOLApp(c: FOLLambdaConst,_) if isLogicalSymbol(c) => None
+    case FOLApp(FOLApp(c: FOLLambdaConst,_),_) if isLogicalSymbol(c) => None
     case FOLApp(_,_) if (expression.exptype == To) => Some( unapply_(expression) )
-    case c: FOLConst if (c.exptype == To) => Some( (c.sym, Nil) )
+    case c: FOLLambdaConst if (c.exptype == To) => Some( (c.sym, Nil) )
     case v: FOLVar if (v.exptype == To) => Some( (v.sym, Nil) )
     case _ => None
   }
   // Recursive unapply to get the head and args
   private def unapply_(e: FOLExpression) : (SymbolA, List[FOLTerm]) = e match {
-    case v: FOLVar => (v.sym, Nil)
-    case c: FOLConst => (c.sym, Nil)
+    //case v: FOLVar => (v.sym, Nil)
+    case c: FOLLambdaConst => (c.sym, Nil)
     case FOLApp(e1, e2) => 
       val t = unapply_(e1)
       (t._1, t._2 :+ e2.asInstanceOf[FOLTerm])
@@ -178,26 +184,26 @@ object Atom {
 
 // FOL function of the form f(t_1,...,t_n)
 object Function {  
-  
-  def apply(head: String, args: List[FOLExpression]): FOLTerm = {
+
+  def apply(head: String, args: List[FOLTerm]): FOLTerm = {
     val tp = FunctionType(Ti, args.map(a => a.exptype)) 
-    val f = FOLConst(head, tp)
+    val f = FOLLambdaConst(head, tp)
     apply_(f, args).asInstanceOf[FOLTerm]
   }
-  def apply(head: SymbolA, args: List[FOLExpression]): FOLTerm = {
+  def apply(head: SymbolA, args: List[FOLTerm]): FOLTerm = {
     val tp = FunctionType(Ti, args.map(a => a.exptype)) 
-    val f = FOLConst(head, tp)
+    val f = FOLLambdaConst(head, tp)
     apply_(f, args).asInstanceOf[FOLTerm]
   }
   
-  private def apply_(head: FOLExpression, args: List[FOLExpression]): FOLExpression = args match {
+  private def apply_(head: FOLExpression, args: List[FOLTerm]): FOLExpression = args match {
     case Nil => head
     case t :: tl => apply_(FOLApp(head, t), tl)
   }
 
   def unapply( expression: FOLExpression ) = expression match {
-    case FOLApp(c: FOLConst,_) if isLogicalSymbol(c) => None
-    case FOLApp(FOLApp(c: FOLConst,_),_) if isLogicalSymbol(c) => None
+    case FOLApp(c: FOLLambdaConst,_) if isLogicalSymbol(c) => None
+    case FOLApp(FOLApp(c: FOLLambdaConst,_),_) if isLogicalSymbol(c) => None
     case FOLApp(_,_) if (expression.exptype != To) => 
       val t = unapply_(expression) 
       Some( (t._1, t._2) )
@@ -205,7 +211,7 @@ object Function {
   }
   // Recursive unapply to get the head and args
   private def unapply_(e: FOLExpression) : (SymbolA, List[FOLTerm]) = e match {
-    case c: FOLConst => (c.sym, Nil)
+    case c: FOLLambdaConst => (c.sym, Nil)
     case FOLApp(e1, e2) => 
       val t = unapply_(e1)
       (t._1, t._2 :+ e2.asInstanceOf[FOLTerm])
@@ -252,17 +258,17 @@ object Imp {
   }
 }
 
-private class ExQ extends FOLConst(ExistsSymbol, ->(->(Ti, To), To) )
+private class ExQ extends FOLLambdaConst(ExistsSymbol, ->(->(Ti, To), To) )
 private object ExQ {
-  def unapply(v: FOLConst) = v match {
+  def unapply(v: FOLLambdaConst) = v match {
     case vo: ExQ => Some()
     case _ => None
   }
 }
 
-private class AllQ extends FOLConst( ForallSymbol, ->(->(Ti, To), To) )
+private class AllQ extends FOLLambdaConst( ForallSymbol, ->(->(Ti, To), To) )
 private object AllQ {
-  def unapply(v: FOLConst) = v match {
+  def unapply(v: FOLLambdaConst) = v match {
     case vo: AllQ => Some()
     case _ => None
   }
@@ -310,7 +316,7 @@ object FOLFactory extends FactoryA {
     case To => throw new Exception("In FOL, of type 'o' only constants may be created.")
     case ->(tr, ta) => throw new Exception("In FOL, of type 'a -> b' only constants may be created.")
   }
-  def createConst( name: String, exptype: TA ) : FOLConst = FOLConst(name, exptype)
+  def createConst( name: String, exptype: TA ) : FOLLambdaConst = FOLLambdaConst(name, exptype)
   def createVar( name: String ) : FOLVar = createVar( name, Ti )
 
   //remark: in contrast to earlier times, you can only create fol applications from fol expressions

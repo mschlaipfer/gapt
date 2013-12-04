@@ -24,7 +24,7 @@ class Substitution(val map: Map[Var, LambdaExpression]) {
     case v : Var if map.contains(v) => map(v)
     case v : Var if !map.contains(v) => v
     case Const(_, _) => t
-    case App(t1, t2) => 
+    case App(t1, t2) =>
       t.factory.createApp( apply(t1), apply(t2) )
     case Abs(v, t1) =>
       val fv = range

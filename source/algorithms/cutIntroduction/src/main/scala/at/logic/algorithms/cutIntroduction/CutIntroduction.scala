@@ -7,24 +7,18 @@
 package at.logic.algorithms.cutIntroduction
 
 import at.logic.calculi.occurrences._
-import at.logic.language.lambda.substitutions._
-import at.logic.language.hol.logicSymbols._
+import at.logic.calculi.lk._
 import at.logic.calculi.lk.base._
-import at.logic.calculi.lk.propositionalRules._
-import at.logic.calculi.lk.quantificationRules._
-import at.logic.language.lambda.symbols._
 import at.logic.language.fol._
-import at.logic.language.fol.Utils._
-import at.logic.language.lambda.typedLambdaCalculus._
 import at.logic.algorithms.lk._
 import at.logic.algorithms.lk.statistics._
-import at.logic.algorithms.shlk._
+//import at.logic.algorithms.shlk._
 import at.logic.algorithms.interpolation._
 import at.logic.algorithms.resolution._
-import at.logic.calculi.resolution.base.FClause
+import at.logic.calculi.resolution.FClause
 import at.logic.utils.logging.Logger
-import at.logic.calculi.expansionTrees._
-import at.logic.calculi.expansionTrees.multi._
+import at.logic.calculi.expansionTrees.{ExpansionTree, toSequent}
+//import at.logic.calculi.expansionTrees.multi._
 
 class CutIntroException(msg: String) extends Exception(msg)
 
@@ -113,7 +107,7 @@ object CutIntroduction extends Logger {
     
     // A[s_i] forall i
     val asi = s.map(t => cutFormula0.substitute(t))
-    val cutConj = andN(asi)
+    val cutConj = And(asi)
 
     // Negative part
     val gamma = ehs.inst_l
@@ -232,7 +226,7 @@ object CutIntroduction extends Logger {
     
     // A[s_i] forall i
     val asi = s.map(t => cutFormula0.substitute(t))
-    val cutConj = andN(asi)
+    val cutConj = And(asi)
 
     // Negative part
     val gamma = ehs.inst_l
@@ -267,21 +261,21 @@ object CutIntroduction extends Logger {
    
     val flatterms = g.flatterms
 
-    val xvar = FOLVar(new VariableStringSymbol("x"))
+    val xvar = FOLVar("x")
     val xFormulas = g.u.foldRight(List[FOLFormula]()) { case (term, acc) =>
-      val freeVars = term.freeVariables
+      val freeVars = freeVariables(term)
       // Taking only the terms that contain alpha
       if( freeVars.contains(g.eigenvariable) ) {
         val terms = flatterms.getTermTuple(term)
         val f = flatterms.getFormula(term)
-        val xterms = terms.map(e => FOLSubstitution(e, g.eigenvariable, xvar))
-        val fsubst = f.instantiateAll(xterms)
-        f.instantiateAll(xterms) :: acc
+        val xterms = terms.map(e => Substitution(g.eigenvariable, xvar)(e))
+        val fsubst = instantiateAll(f, xterms)
+        instantiateAll(f, xterms) :: acc
       }
       else acc
     }
  
-    AllVar(xvar, andN(xFormulas))
+    AllVar(xvar, And(xFormulas))
   }
 
   def buildFinalProof(ehs: ExtendedHerbrandSequent) : Option[LKProof] = {
@@ -291,17 +285,17 @@ object CutIntroduction extends Logger {
     val grammar = ehs.grammar
     val flatterms = grammar.flatterms
     
-    val alpha = FOLVar(new VariableStringSymbol("α"))
-    val cutLeft = cutFormula.instantiate(alpha)
+    val alpha = FOLVar("α")
+    val cutLeft = instantiate(cutFormula, alpha)
     val cutRight = grammar.s.foldRight(List[FOLFormula]()) { case (t, acc) =>
-      cutFormula.instantiate(t) :: acc
+      instantiate(cutFormula, t) :: acc
     }
 
     //trace( "calling solvePropositional" )
     val proofLeft = solvePropositional(FSequent((ehs.antecedent ++ ehs.antecedent_alpha), (cutLeft +: (ehs.succedent ++ ehs.succedent_alpha))))
     val leftBranch = proofLeft match {
       case Some(proofLeft1) => 
-        ForallRightRule(uPart(grammar.u.filter(t => t.freeVariables.contains(grammar.eigenvariable)), proofLeft1, flatterms), cutLeft, cutFormula, alpha)
+        ForallRightRule(uPart(grammar.u.filter(t => freeVariables(t).contains(grammar.eigenvariable)), proofLeft1, flatterms), cutLeft, cutFormula, alpha)
       case None => throw new CutIntroException("ERROR: propositional part is not provable.")
     }
 
@@ -326,7 +320,7 @@ object CutIntroduction extends Logger {
     }
 
     // Instantiating constant terms from U
-    val finalProof = uPart(grammar.u.filter(t => !t.freeVariables.contains(grammar.eigenvariable)), contractSucc, flatterms)
+    val finalProof = uPart(grammar.u.filter(t => !freeVariables(t).contains(grammar.eigenvariable)), contractSucc, flatterms)
 
     //trace( "cleaning structural rules" )
     val r = Some(CleanStructuralRules(finalProof))
@@ -340,10 +334,10 @@ object CutIntroduction extends Logger {
   def genWeakQuantRules(f: FOLFormula, lst: List[FOLTerm], ax: LKProof) : LKProof = (f, lst) match {
     case (_, Nil) => ax
     case (AllVar(_,_), h::t) => 
-      val newForm = f.instantiate(h)
+      val newForm = instantiate(f, h)
       ForallLeftRule(genWeakQuantRules(newForm, t, ax), newForm, f, h)
     case (ExVar(_,_), h::t) =>
-      val newForm = f.instantiate(h)
+      val newForm = instantiate(f, h)
       ExistsRightRule(genWeakQuantRules(newForm, t, ax), newForm, f, h)
   }
 
@@ -380,11 +374,11 @@ object CutIntroduction extends Logger {
     s.foldRight(p) { case (t, p) =>
       if(first) {
         first = false
-        val scf = cf.instantiate(t)
+        val scf = instantiate(cf, t)
         ForallLeftRule(p, scf, cf, t)
       }
       else {
-        val scf = cf.instantiate(t)
+        val scf = instantiate(cf, t)
         ContractionLeftRule(ForallLeftRule(p, scf, cf, t), cf)
       }
     }
@@ -424,7 +418,7 @@ object CutIntroduction extends Logger {
     val nonEmptyClauses = cls.filter(c => c.neg.length > 0 || c.pos.length > 0).toList
 
     if (nonEmptyClauses.length == 0) { TopC }
-    else { andN(nonEmptyClauses.map( c => orN(c.pos ++ c.neg.map( l => Neg(l) )) )) }
+    else { And(nonEmptyClauses.map( c => Or(c.pos ++ c.neg.map( l => Neg(l) )) )) }
   }
 
   /** Converts a numbered CNF back into a FOL formula.
@@ -433,7 +427,7 @@ object CutIntroduction extends Logger {
     val nonEmptyClauses = cls.filter(c => c.neg.length > 0 || c.pos.length > 0).toList
 
     if (nonEmptyClauses.length == 0) { TopC }
-    else { andN(nonEmptyClauses.map( c => orN(c.pos.map(l => l._1) ++ c.neg.map( l => Neg(l._1) )) )) }
+    else { And(nonEmptyClauses.map( c => Or(c.pos.map(l => l._1) ++ c.neg.map( l => Neg(l._1) )) )) }
   }
 
   // Checks if complementary literals exist.

@@ -7,8 +7,10 @@ package at.logic.language.lambda
 
 import at.logic.language.lambda.symbols.getRenaming
 
+// Returns a list *without duplicates* of the free variables in the expression.
+// There is no guarantee on the ordering of the list.
 object freeVariables {
-  def apply(e: LambdaExpression) : List[Var] = getFreeVariables(e, List())
+  def apply(e: LambdaExpression) : List[Var] = getFreeVariables(e, List()).distinct
   
   private def getFreeVariables(e: LambdaExpression, bound: List[Var]) : List[Var] = e match {
     case v : Var =>
@@ -28,4 +30,5 @@ object rename {
 
   def apply(c: Const, blackList: List[Const]) : Const = new Const(getRenaming(c.sym, blackList.map(c => c.sym)), c.exptype)
 }
+
 

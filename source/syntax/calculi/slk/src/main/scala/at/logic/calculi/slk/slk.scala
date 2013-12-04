@@ -402,7 +402,24 @@ object OrEquivalenceRule1 {
 object OrRightEquivalenceRule1 {
   def apply(s1: LKProof, auxf: SchemaFormula, main: SchemaFormula): UnaryTree[Sequent] with UnaryLKProof with AuxiliaryFormulas with PrincipalFormulas = {
     ((s1.root.succedent).filter(x => x.formula == auxf)).toList match {
-      case (x::_) => OrEquivalenceRule1.apply(s1, x, main)
+      case (x::_) => 
+        val auxiliar = auxf
+        val achou = x.formula
+        println("Auxiliar: " + auxf)
+        println("Achou: " + achou)
+        println("Testando formula passada por parametro.")
+        auxiliar match {
+          case SchemaApp(_, _) => println("auxiliar Matches SchemaApp")
+          case at.logic.language.hol.HOLApp(_, _) => println("auxiliar Matches HOLApp")
+        }
+        println("Testando formula auxiliar encontrada no sequente")
+        achou match {
+          case SchemaApp(_, _) => println("achada Matches SchemaApp")
+          case at.logic.language.hol.HOLApp(_, _) => println("achada Matches HOLApp")
+        }
+        val found = achou.asInstanceOf[SchemaFormula]
+        println("Achou after casting: " + found)
+        OrEquivalenceRule1.apply(s1, x, main)
       case _ => throw new LKRuleCreationException("Not matching formula occurrences in the right side found for application of the OrRightEquivalenceRule1 with the given formula")
     }
   }
@@ -738,7 +755,7 @@ object sCutRule {
   def unapply(proof: LKProof) = if (proof.rule == CutRuleType) {
     val r = proof.asInstanceOf[BinaryLKProof with AuxiliaryFormulas]
     val ((a1::Nil)::(a2::Nil)::Nil) = r.aux
-    Some((r.uProof1, r.uProof2, r.root, a1, a2))
+    Some((r.uProof1, r.uProof2, r.root, a1, a2.asInstanceOf[SchemaFormula]))
   }
   else None
 }
@@ -800,7 +817,7 @@ object sContractionLeftRule {
     val r = proof.asInstanceOf[UnaryLKProof with AuxiliaryFormulas with PrincipalFormulas]
     val ((a1::a2::Nil)::Nil) = r.aux
     val (p1::Nil) = r.prin
-    Some((r.uProof, r.root, a1, a2, p1))
+    Some((r.uProof, r.root, a1, a2.asInstanceOf[SchemaFormula], p1))
   }
   else None
 }
@@ -861,7 +878,7 @@ object sContractionRightRule {
     val r = proof.asInstanceOf[UnaryLKProof with AuxiliaryFormulas with PrincipalFormulas]
     val ((a1::a2::Nil)::Nil) = r.aux
     val (p1::Nil) = r.prin
-    Some((r.uProof, r.root, a1, a2, p1))
+    Some((r.uProof, r.root, a1, a2.asInstanceOf[SchemaFormula], p1))
   }
   else None
 }

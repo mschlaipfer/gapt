@@ -400,16 +400,6 @@ object CleanStructuralRules {
     
     case OrRightEquivalenceRule1(p, _, a, m) => 
       val new_proof = cleanStructuralRules(p)
-      println("a = " + a.formula)
-      println("m = " + m.formula)
-      a.formula match {
-        case at.logic.language.schema.SchemaApp(_,_) => println("a.formula matches SchemaApp")
-        case HOLApp(_, _) => println("a.formula starts with HOLApp.")
-      }
-      m.formula match {
-        case at.logic.language.schema.SchemaApp(_,_) => println("m.formula matches SchemaApp")
-        case HOLApp(_, _) => println("m.formula starts with HOLApp.")
-      }
       OrRightEquivalenceRule1(new_proof, a.formula.asInstanceOf[SchemaFormula], m.formula.asInstanceOf[SchemaFormula])
     
     case AndLeftEquivalenceRule3(p, _, a, m) => 

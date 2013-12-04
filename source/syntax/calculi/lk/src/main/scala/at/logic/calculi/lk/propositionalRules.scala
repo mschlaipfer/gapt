@@ -1095,10 +1095,7 @@ object OrRight1Rule {
   }
   private def getPrinFormula(term1: FormulaOccurrence, term2: HOLFormula) = {
     val holterm1 = term1.formula
-    val form = if (holterm1.isInstanceOf[at.logic.language.schema.SchemaFormula]) {
-      at.logic.language.schema.Or(holterm1.asInstanceOf[at.logic.language.schema.SchemaFormula], term2.asInstanceOf[at.logic.language.schema.SchemaFormula])
-    }
-    else Or(holterm1, term2)
+    val form = Or(holterm1, term2)
     term1.factory.createFormulaOccurrence(form, term1::Nil)
   }
   private def getSequent(s1: Sequent, term1: FormulaOccurrence, prinFormula: FormulaOccurrence) = {
@@ -1199,10 +1196,7 @@ object OrRight2Rule {
   }
   private def getPrinFormula(term1: HOLFormula, term2: FormulaOccurrence) = {
     val holterm2 = term2.formula
-    val form = if (holterm2.isInstanceOf[at.logic.language.schema.SchemaFormula]) {
-      at.logic.language.schema.Or(term1.asInstanceOf[at.logic.language.schema.SchemaFormula], holterm2.asInstanceOf[at.logic.language.schema.SchemaFormula])
-    }
-    else Or(term1, holterm2)
+    val form = Or(term1, holterm2)
     term2.factory.createFormulaOccurrence(form, term2::Nil)
   }
   private def getSequent(s1: Sequent, term2: FormulaOccurrence, prinFormula: FormulaOccurrence) = {

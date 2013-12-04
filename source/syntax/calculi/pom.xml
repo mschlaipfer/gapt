@@ -31,10 +31,5 @@
       <artifactId>fol</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
-    <dependency>
-      <groupId>at.logic</groupId>
-      <artifactId>schema</artifactId>
-      <version>1.0-SNAPSHOT</version>
-    </dependency>
   </dependencies>
 </project>

@@ -27,7 +27,7 @@ class FirstOrderLogicTest extends SpecificationWithJUnit {
           ko
       }
     }
-    "constructs correctly an atom using the factory" in {
+    "construct correctly an atom using the factory" in {
       val var1 = FOLVar("x1")
       val const1 = FOLConst("c1")
       val var2 = FOLVar("x2")
@@ -37,7 +37,7 @@ class FirstOrderLogicTest extends SpecificationWithJUnit {
       val and1 = And(atom1, var3)
       true
     }
-    "constructs correctly a forall using the factory" in {
+    "construct correctly a forall using the factory" in {
       val var1 = FOLVar("x1")
       val const1 = FOLConst("c1")
       val var2 = FOLVar("x2")

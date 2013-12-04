@@ -402,24 +402,7 @@ object OrEquivalenceRule1 {
 object OrRightEquivalenceRule1 {
   def apply(s1: LKProof, auxf: SchemaFormula, main: SchemaFormula): UnaryTree[Sequent] with UnaryLKProof with AuxiliaryFormulas with PrincipalFormulas = {
     ((s1.root.succedent).filter(x => x.formula == auxf)).toList match {
-      case (x::_) => 
-        val auxiliar = auxf
-        val achou = x.formula
-        println("Auxiliar: " + auxf)
-        println("Achou: " + achou)
-        println("Testando formula passada por parametro.")
-        auxiliar match {
-          case SchemaApp(_, _) => println("auxiliar Matches SchemaApp")
-          case at.logic.language.hol.HOLApp(_, _) => println("auxiliar Matches HOLApp")
-        }
-        println("Testando formula auxiliar encontrada no sequente")
-        achou match {
-          case SchemaApp(_, _) => println("achada Matches SchemaApp")
-          case at.logic.language.hol.HOLApp(_, _) => println("achada Matches HOLApp")
-        }
-        val found = achou.asInstanceOf[SchemaFormula]
-        println("Achou after casting: " + found)
-        OrEquivalenceRule1.apply(s1, x, main)
+      case (x::_) => OrEquivalenceRule1.apply(s1, x, main)
       case _ => throw new LKRuleCreationException("Not matching formula occurrences in the right side found for application of the OrRightEquivalenceRule1 with the given formula")
     }
   }

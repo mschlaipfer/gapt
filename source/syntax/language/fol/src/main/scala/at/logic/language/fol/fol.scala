@@ -4,8 +4,8 @@
 
 package at.logic.language.fol
 
-import at.logic.language.lambda.{LambdaExpression, Var, Const, App, Abs, FactoryA}
-import at.logic.language.hol.{HOLExpression, HOLVar, HOLConst, HOLApp, HOLAbs, HOLFormula, isLogicalSymbol}
+import at.logic.language.lambda.FactoryA
+import at.logic.language.hol.{HOLExpression, HOLFormula, isLogicalSymbol}
 import at.logic.language.lambda.symbols._
 import at.logic.language.lambda.types._
 import at.logic.language.hol.logicSymbols._
@@ -71,61 +71,7 @@ trait FOLFormula extends FOLExpression with HOLFormula
 
 trait FOLTerm extends FOLExpression { require( exptype == Ti ) }
 
-class FOLApp protected[fol] (function: FOLExpression, arg: FOLExpression) extends HOLApp(function, arg) with FOLExpression
-object FOLApp {
-  def apply(f: FOLExpression, arg: FOLExpression) = f.exptype match {
-    case ->(_, To) => new FOLApp(f, arg) with FOLFormula
-    case ->(_, Ti) => new FOLApp(f, arg) with FOLTerm
-    case _ => new FOLApp(f, arg)
-  }
-  def unapply(e: FOLExpression) = e match {
-    case a: FOLApp => Some( (a.function.asInstanceOf[FOLExpression], a.arg.asInstanceOf[FOLExpression]) )
-    case _ => None
-  }
-}
 
-class FOLAbs protected[fol] (variable: FOLVar, term: FOLExpression) extends HOLAbs(variable, term) with FOLExpression
-object FOLAbs {
-  def apply(variable: FOLVar, expression: FOLExpression) = new FOLAbs(variable, expression)
-  def unapply(e: FOLExpression) = e match {
-    case a: FOLAbs => Some( (a.variable.asInstanceOf[FOLVar], a.term.asInstanceOf[FOLExpression]) )
-    case _ => None
-  }
-}
-
-class FOLVar (sym: SymbolA) extends HOLVar(sym, Ti) with FOLTerm
-object FOLVar {
-  def apply(name: String) : FOLVar = FOLVar(StringSymbol(name))
-  def apply(sym: SymbolA) : FOLVar = new FOLVar(sym)
-  def unapply(exp: FOLExpression) = exp match {
-    case v: FOLVar => Some( v.name )
-    case _ => None
-  }
-}
-
-class FOLConst (sym: SymbolA) extends FOLLambdaConst(sym, Ti) with FOLTerm
-object FOLConst {
-  def apply(name: String) : FOLConst = new FOLConst(StringSymbol(name))
-  def apply(sym: SymbolA) : FOLConst = new FOLConst(sym)
-  def unapply(exp: FOLExpression) = exp match {
-    case c: FOLConst => Some( (c.name, c.exptype) )
-    case _ => None
-  }
-}
-
-protected[fol] class FOLLambdaConst (sym: SymbolA, exptype: TA) extends HOLConst(sym, exptype) with FOLExpression
-protected[fol] object FOLLambdaConst {
-  def apply(name: String, exptype: TA) : FOLLambdaConst = FOLLambdaConst(StringSymbol(name), exptype)
-  def apply(sym: SymbolA, exptype: TA) : FOLLambdaConst = exptype match {
-    case To => new FOLLambdaConst(sym, exptype) with FOLFormula
-    case Ti => new FOLLambdaConst(sym, exptype) with FOLTerm
-    case _ => new FOLLambdaConst(sym, exptype)
-  }
-  def unapply(exp: FOLExpression) = exp match {
-    case c: FOLLambdaConst => Some( (c.name, c.exptype) )
-    case _ => None
-  }
-}
 case object TopC extends FOLLambdaConst(TopSymbol, To) with FOLFormula
 case object BottomC extends FOLLambdaConst(BottomSymbol, To) with FOLFormula
 case object NegC extends FOLLambdaConst(NegSymbol, To -> To )
@@ -305,32 +251,4 @@ object AllVar {
     case _ => None
   }
 }
-
-/*********************** Factories *****************************/
-
-object FOLFactory extends FactoryA {
-  
-  def createVar( name: String, exptype: TA ) : FOLVar = exptype match {
-    // Needed because the apply method of FOLVar does not take the type parameter
-    case Ti => new FOLVar(StringSymbol(name))
-    case To => throw new Exception("In FOL, of type 'o' only constants may be created.")
-    case ->(tr, ta) => throw new Exception("In FOL, of type 'a -> b' only constants may be created.")
-  }
-  def createConst( name: String, exptype: TA ) : FOLLambdaConst = FOLLambdaConst(name, exptype)
-  def createVar( name: String ) : FOLVar = createVar( name, Ti )
-
-  //remark: in contrast to earlier times, you can only create fol applications from fol expressions
-  def createApp( fun: LambdaExpression, arg: LambdaExpression ) : FOLApp = {
-    require( fun.isInstanceOf[FOLExpression] ,
-      "You are trying to use the FOL factory to create an application of a non-fol first argument "+fun+"!")
-    require( arg.isInstanceOf[FOLExpression] ,
-      "You are trying to use the FOL factory to create an application of a non-fol second argument "+arg+"!")
-    val fun_ = fun.asInstanceOf[FOLExpression]
-    val arg_ = arg.asInstanceOf[FOLExpression]
-    FOLApp(fun_, arg_)
-  }
-
-   def createAbs( variable: Var, exp: LambdaExpression ) : FOLAbs = FOLAbs( variable.asInstanceOf[FOLVar], exp.asInstanceOf[FOLExpression] )
-}
-
 

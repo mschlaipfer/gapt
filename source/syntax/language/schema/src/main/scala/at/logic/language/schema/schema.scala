@@ -7,7 +7,7 @@
 package at.logic.language.schema
 
 import at.logic.language.lambda.types._
-import at.logic.language.lambda.{LambdaExpression, App, Abs, Var, Const, FactoryA}
+import at.logic.language.lambda.FactoryA
 import at.logic.language.lambda.symbols._
 import at.logic.language.hol.{HOLFormula, HOLExpression, HOLVar, HOLConst, HOLApp, HOLAbs, isLogicalSymbol}
 import at.logic.language.hol.logicSymbols._
@@ -18,61 +18,6 @@ trait SchemaExpression extends HOLExpression {
 }
 
 trait SchemaFormula extends SchemaExpression with HOLFormula 
-
-/************************* BASIC DATATYPES **************************/
-
-class SchemaVar protected[schema] (sym: SymbolA, exptype: TA) extends HOLVar(sym, exptype) with SchemaExpression 
-object SchemaVar {
-  def apply(name: String, exptype: TA) = exptype match {
-    case To => new SchemaVar(StringSymbol(name), exptype) with SchemaFormula
-    case Tindex => new IntVar(StringSymbol(name))
-    case _ => new SchemaVar(StringSymbol(name), exptype)
-  }
-  def unapply(exp: SchemaExpression) = exp match {
-    case v: SchemaVar => Some( (v.name, v.exptype) )
-    case _ => None
-  }
-}
-
-class SchemaConst protected[schema] (sym: SymbolA, exptype: TA) extends HOLConst(sym, exptype) with SchemaExpression
-object SchemaConst {
-  def apply(name: String, exptype: TA) : SchemaConst = exptype match {
-    case To => new SchemaConst(StringSymbol(name), exptype) with SchemaFormula
-    case Tindex => new IntConst(StringSymbol(name))
-    case _ => new SchemaConst(StringSymbol(name), exptype)
-  }
-  def apply(name: String, exptype: String) : SchemaConst = SchemaConst(name, Type(exptype))
-  def unapply(exp: SchemaExpression) = exp match {
-    case c: SchemaConst => Some( (c.name, c.exptype) )
-    case _ => None
-  }
-}
-
-class SchemaApp private[schema] (function: SchemaExpression, arg: SchemaExpression) extends HOLApp(function, arg) with SchemaExpression
-object SchemaApp {
-  def apply(function: SchemaExpression, argument: SchemaExpression) = function.exptype match {
-    case ->(_, To) => new SchemaApp(function, argument) with SchemaFormula
-    case ->(_, Tindex) => new SchemaApp(function, argument) with IntegerTerm
-    case _ => new SchemaApp(function, argument)
-  }
-  def apply(function: SchemaExpression, arguments: List[SchemaExpression]) : SchemaExpression = arguments match {
-    case Nil => function
-    case h :: tl => apply(SchemaApp(function, h), tl)
-  }
-  def unapply(e: SchemaExpression) = e match {
-    case a: SchemaApp => Some( (a.function.asInstanceOf[SchemaExpression], a.arg.asInstanceOf[SchemaExpression]) )
-    case _ => None
-  }
-}
-
-class SchemaAbs private[schema] (variable: SchemaVar, expression: SchemaExpression) extends HOLAbs(variable, expression) with SchemaExpression
-object SchemaAbs {
-  def apply(v: SchemaVar, e: SchemaExpression) = new SchemaAbs(v, e)
-  def unapply(e: SchemaExpression) = e match {
-    case a: SchemaAbs => Some( (a.variable.asInstanceOf[IntVar], a.term.asInstanceOf[SchemaExpression]) )
-    case _ => None
-  }
-}
 
 /******************** SPECIAL INTEGERS ************************************/
 
@@ -326,7 +271,7 @@ object BigOr {
 
 object BiggerThan {
   def apply(l: IntegerTerm, r: IntegerTerm) = SchemaApp(SchemaApp(BiggerThanC, l), r)
-  def unapply(e: LambdaExpression) = e match {
+  def unapply(e: SchemaExpression) = e match {
     case SchemaApp(SchemaApp(BiggerThanC, l), r) => Some( (l, r) )
     case _ => None
   }
@@ -488,12 +433,4 @@ object sTermDB extends Iterable[(SchemaConst, sTermRewriteSys)] with Traversable
   def iterator = terms.iterator
 }
 
-/*********************** Factories *****************************/
-
-object SchemaFactory extends FactoryA {
-  def createVar( name: String, exptype: TA) : SchemaVar = SchemaVar(name, exptype)
-  def createConst(name: String, exptype: TA) : SchemaConst = SchemaConst(name, exptype)
-  def createAbs( variable: Var, exp: LambdaExpression ): SchemaAbs = SchemaAbs( variable.asInstanceOf[IntVar], exp.asInstanceOf[SchemaExpression] )
-  def createApp( fun: LambdaExpression, arg: LambdaExpression ): SchemaApp = SchemaApp(fun.asInstanceOf[SchemaExpression], arg.asInstanceOf[SchemaExpression])
-}
 

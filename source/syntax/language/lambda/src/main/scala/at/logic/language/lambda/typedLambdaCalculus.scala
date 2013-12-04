@@ -57,10 +57,10 @@ class Var(val sym: SymbolA, val exptype: TA) extends LambdaExpression {
   override def hashCode() = (41 * name.hashCode) + exptype.hashCode
 }
 object Var {
-  def apply(name: String, exptype: TA) = new Var(StringSymbol(name), exptype)
-  def apply(name: String, exptype: String) = new Var(StringSymbol(name), Type(exptype))
-  def apply(sym: SymbolA, exptype: TA) = new Var(sym, exptype)
-  def apply(sym: SymbolA, exptype: String) = new Var(sym, Type(exptype))
+  def apply(name: String, exptype: TA) = LambdaFactory.createVar(StringSymbol(name), exptype)
+  def apply(name: String, exptype: String) = LambdaFactory.createVar(StringSymbol(name), Type(exptype))
+  def apply(sym: SymbolA, exptype: TA) = LambdaFactory.createVar(sym, exptype)
+  def apply(sym: SymbolA, exptype: String) = LambdaFactory.createVar(sym, Type(exptype))
   def unapply(e: LambdaExpression) = e match {
     case v : Var => Some(v.name, v.exptype)
     case _ => None
@@ -93,10 +93,10 @@ class Const(val sym: SymbolA, val exptype: TA) extends LambdaExpression {
   override def hashCode() = (41 * name.hashCode) + exptype.hashCode
 }
 object Const {
-  def apply(name: String, exptype: TA) = new Const(StringSymbol(name), exptype)
-  def apply(name: String, exptype: String) = new Const(StringSymbol(name), Type(exptype))
-  def apply(sym: SymbolA, exptype: TA) = new Const(sym, exptype)
-  def apply(sym: SymbolA, exptype: String) = new Const(sym, Type(exptype))
+  def apply(name: String, exptype: TA) = LambdaFactory.createConst(StringSymbol(name), exptype)
+  def apply(name: String, exptype: String) = LambdaFactory.createConst(StringSymbol(name), Type(exptype))
+  def apply(sym: SymbolA, exptype: TA) = LambdaFactory.createConst(sym, exptype)
+  def apply(sym: SymbolA, exptype: String) = LambdaFactory.createConst(sym, Type(exptype))
   def unapply(e: LambdaExpression) = e match {
     case c : Const => Some(c.name, c.exptype)
     case _ => None
@@ -144,7 +144,7 @@ class App(val function: LambdaExpression, val arg: LambdaExpression) extends Lam
   override def hashCode() = (41 * function.hashCode) + arg.hashCode
 }
 object App {
-  def apply(f: LambdaExpression, a: LambdaExpression) = new App(f, a)
+  def apply(f: LambdaExpression, a: LambdaExpression) = a.factory.createApp(f, a)
   // create an n-ary application with left-associative parentheses
   def apply(function: LambdaExpression, arguments:List[LambdaExpression]): LambdaExpression = arguments match {
     case Nil => function
@@ -187,7 +187,7 @@ class Abs(val variable: Var, val term: LambdaExpression) extends LambdaExpressio
   override def hashCode() = (41 * variable.hashCode) + term.hashCode
 }
 object Abs {
-  def apply(v: Var, t: LambdaExpression) = new Abs(v, t)
+  def apply(v: Var, t: LambdaExpression) = t.factory.createAbs(v, t)
   def apply(variables: List[Var], expression: LambdaExpression): LambdaExpression = variables match {
     case Nil => expression
     case x::ls => Abs(x, apply(ls, expression))
@@ -201,15 +201,15 @@ object Abs {
 /*********************** Factories *****************************/
 
 trait FactoryA {
-  def createVar( name: String, exptype: TA ) : Var
-  def createConst( name: String, exptype: TA ) : Const
+  def createVar( name: SymbolA, exptype: TA ) : Var
+  def createConst( name: SymbolA, exptype: TA ) : Const
   def createAbs( variable: Var, exp: LambdaExpression ) : Abs
   def createApp( fun: LambdaExpression, arg: LambdaExpression ) : App
 }
 
 object LambdaFactory extends FactoryA {
-  def createVar( name: String, exptype: TA )  = Var( name, exptype)
-  def createConst( name: String, exptype: TA )  = Const( name, exptype)
-  def createAbs( variable: Var, exp: LambdaExpression ) = Abs( variable, exp )
-  def createApp( fun: LambdaExpression, arg: LambdaExpression ) = App( fun, arg )
+  def createVar( name: SymbolA, exptype: TA )  = new Var( name, exptype)
+  def createConst( name: SymbolA, exptype: TA )  = new Const( name, exptype)
+  def createAbs( variable: Var, exp: LambdaExpression ) = new Abs( variable, exp )
+  def createApp( fun: LambdaExpression, arg: LambdaExpression ) = new App( fun, arg )
 }

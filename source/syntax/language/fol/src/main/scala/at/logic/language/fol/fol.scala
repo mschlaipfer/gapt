@@ -165,7 +165,8 @@ object Function {
 }
 
 object Neg {
-  def apply(sub: FOLFormula) = FOLApp(NegC,sub).asInstanceOf[FOLFormula]
+  def apply(sub: FOLFormula) =
+    FOLApp(sub.factory.createConst(NegSymbol, Ti -> To).asInstanceOf[FOLExpression],sub).asInstanceOf[FOLFormula]
   def unapply(expression: FOLExpression) = expression match {
     case FOLApp(NegC,sub) => Some( (sub.asInstanceOf[FOLFormula]) )
     case _ => None
@@ -177,7 +178,7 @@ object And {
     case Nil => TopC
     case f::fs => fs.foldLeft(f)( (d, f) => And(d, f) )
   }
-  def apply(left: FOLFormula, right: FOLFormula) = (FOLApp(FOLApp(AndC,left),right)).asInstanceOf[FOLFormula]
+  def apply(left: FOLFormula, right: FOLFormula) = (FOLApp(FOLApp(left.factory.createConst(AndSymbol, Ti -> (Ti -> To)).asInstanceOf[FOLExpression],left),right)).asInstanceOf[FOLFormula]
   def unapply(expression: FOLExpression) = expression match {
     case FOLApp(FOLApp(AndC,left),right) => Some( (left.asInstanceOf[FOLFormula],right.asInstanceOf[FOLFormula]) )
     case _ => None
@@ -189,7 +190,7 @@ object Or {
       case Nil => BottomC
       case f::fs => fs.foldLeft(f)( (d, f) => Or(d, f) )
     }
-  def apply(left: FOLFormula, right: FOLFormula) = FOLApp(FOLApp(OrC,left),right).asInstanceOf[FOLFormula]
+  def apply(left: FOLFormula, right: FOLFormula) = FOLApp(FOLApp(left.factory.createConst(OrSymbol, Ti -> (Ti -> To)).asInstanceOf[FOLExpression],left),right).asInstanceOf[FOLFormula]
   def unapply(expression: FOLExpression) = expression match {
     case FOLApp(FOLApp(OrC,left),right) => Some( (left.asInstanceOf[FOLFormula],right.asInstanceOf[FOLFormula]) )
     case _ => None
@@ -197,7 +198,7 @@ object Or {
 }
 
 object Imp {
-  def apply(left: FOLFormula, right: FOLFormula) = FOLApp(FOLApp(ImpC,left),right).asInstanceOf[FOLFormula]
+  def apply(left: FOLFormula, right: FOLFormula) = FOLApp(FOLApp(left.factory.createConst(ImpSymbol, Ti -> (Ti -> To)).asInstanceOf[FOLExpression],left),right).asInstanceOf[FOLFormula]
   def unapply(expression: FOLExpression) = expression match {
       case FOLApp(FOLApp(ImpC,left),right) => Some( (left.asInstanceOf[FOLFormula],right.asInstanceOf[FOLFormula]) )
       case _ => None
@@ -205,7 +206,8 @@ object Imp {
 }
 
 private class ExQ extends FOLLambdaConst(ExistsSymbol, ->(->(Ti, To), To) )
-private object ExQ {
+private object ExQ extends ExQ {
+  def apply = this
   def unapply(v: FOLLambdaConst) = v match {
     case vo: ExQ => Some()
     case _ => None
@@ -213,7 +215,8 @@ private object ExQ {
 }
 
 private class AllQ extends FOLLambdaConst( ForallSymbol, ->(->(Ti, To), To) )
-private object AllQ {
+private object AllQ extends AllQ {
+  def apply = this
   def unapply(v: FOLLambdaConst) = v match {
     case vo: AllQ => Some()
     case _ => None
@@ -221,7 +224,7 @@ private object AllQ {
 }
 
 private object Ex {
-  def apply(sub: FOLExpression) = FOLApp(new ExQ, sub).asInstanceOf[FOLFormula]
+  def apply(sub: FOLExpression) = FOLApp(sub.factory.createConst(ExistsSymbol, (sub.exptype -> To)).asInstanceOf[FOLExpression], sub).asInstanceOf[FOLFormula]
   def unapply(expression: FOLExpression) = expression match {
     case FOLApp(c: ExQ, sub) => Some( sub )
     case _ => None
@@ -229,7 +232,8 @@ private object Ex {
 }
 
 private object All {
-  def apply(sub: FOLExpression) = FOLApp(new AllQ, sub).asInstanceOf[FOLFormula]
+  def apply(sub: FOLExpression) =  FOLApp(sub.factory.createConst(ForallSymbol, (sub.exptype -> To)).asInstanceOf[FOLExpression], sub).asInstanceOf[FOLFormula]
+
   def unapply(expression: FOLExpression) = expression match {
     case FOLApp(c: AllQ, sub) => Some( sub )
     case _ => None

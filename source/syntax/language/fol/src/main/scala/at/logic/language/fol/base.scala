@@ -10,6 +10,8 @@ import at.logic.language.lambda.{LambdaExpression, Var, Const, App, Abs, Factory
 import at.logic.language.lambda.symbols._
 import at.logic.language.lambda.types._
 import at.logic.language.hol.{HOLVar, HOLConst, HOLApp, HOLAbs}
+import at.logic.language.hol.logicSymbols._
+import scala.Some
 
 class FOLVar (sym: SymbolA) extends HOLVar(sym, Ti) with FOLTerm
 object FOLVar {
@@ -35,8 +37,8 @@ protected[fol] object FOLLambdaConst {
 
 class FOLConst (sym: SymbolA) extends FOLLambdaConst(sym, Ti) with FOLTerm
 object FOLConst {
-  def apply(name: String) : FOLConst = FOLFactory.createConst(StringSymbol(name), Ti)
-  def apply(sym: SymbolA) : FOLConst = FOLFactory.createConst(sym, Ti)
+  def apply(name: String) : FOLConst = FOLFactory.createConst(StringSymbol(name), Ti).asInstanceOf[FOLConst]
+  def apply(sym: SymbolA) : FOLConst = FOLFactory.createConst(sym, Ti).asInstanceOf[FOLConst]
   def unapply(exp: FOLExpression) = exp match {
     case c: FOLConst => Some( (c.name, c.exptype) )
     case _ => None
@@ -70,8 +72,19 @@ object FOLFactory extends FactoryA {
     case _ => throw new Exception("Trying to create a variable in FOL that has type different from i: " + exptype)
   }
 
-  def createConst( sym: SymbolA, exptype: TA ) : FOLConst = exptype match {
-    case Ti => new FOLConst(sym)
+  def createConst( sym: SymbolA, exptype: TA ) : HOLConst = (sym,exptype) match {
+    case (TopSymbol, To) => TopC
+    case (BottomSymbol, To) => BottomC
+    case (NegSymbol, Ti -> To) => NegC
+    case (AndSymbol, Ti -> (Ti -> To)) => AndC
+    case (OrSymbol,  Ti -> (Ti -> To)) => OrC
+    case (ImpSymbol, Ti -> (Ti -> To)) => ImpC
+    case (EqSymbol, Ti -> (Ti -> To)) => EqC
+    case (ForallSymbol, (Ti -> To) -> To) => AllQ
+    case (ExistsSymbol, (Ti -> To) -> To) => ExQ
+    case (sym : LogicalSymbolA, _ ) =>
+      throw new Exception("Trying to create an unrecognized logical constant in FOL : "+sym+" of type " + exptype)
+    case (_, Ti) =>  new FOLConst(sym)
     case _ => throw new Exception("Trying to create a constant in FOL that has type different from i: " + exptype)
   }
   

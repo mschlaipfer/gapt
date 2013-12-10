@@ -109,7 +109,7 @@ case class EqC(e:TA) extends HOLConst(EqSymbol, ->(e, ->(e,"o")))
 
 // We do in all of them additional casting into Formula as Formula is a static type and the only way to dynamically express it is via casting.
 object Neg {
-  def apply(sub: HOLFormula) = HOLApp(NegC,sub).asInstanceOf[HOLFormula]
+  def apply(sub: HOLFormula) = HOLApp(sub.factory.createConst(NegSymbol, Ti -> To).asInstanceOf[HOLExpression],sub).asInstanceOf[HOLFormula]
   def unapply(expression: HOLExpression) = expression match {
     case HOLApp(NegC,sub) => Some( (sub.asInstanceOf[HOLFormula]) )
     case _ => None
@@ -121,7 +121,9 @@ object And {
     case Nil => BottomC
     case f::fs => fs.foldLeft(f)( (d, f) => And(d, f) )
   }
-  def apply(left: HOLFormula, right: HOLFormula) = (HOLApp(HOLApp(AndC,left),right)).asInstanceOf[HOLFormula]
+  def apply(left: HOLFormula, right: HOLFormula) = (HOLApp(HOLApp(
+    left.factory.createConst(AndSymbol, Ti -> (Ti -> To)).asInstanceOf[HOLExpression],left),right)).asInstanceOf[HOLFormula]
+
   def unapply(expression: HOLExpression) = expression match {
     case HOLApp(HOLApp(AndC,left),right) => Some( (left.asInstanceOf[HOLFormula],right.asInstanceOf[HOLFormula]) )
     case _ => None
@@ -133,7 +135,7 @@ object Or {
     case Nil => BottomC
     case f::fs => fs.foldLeft(f)( (d, f) => Or(d, f) )
   }
-  def apply(left: HOLFormula, right: HOLFormula) : HOLFormula = HOLApp(HOLApp(OrC,left),right).asInstanceOf[HOLFormula]
+  def apply(left: HOLFormula, right: HOLFormula) : HOLFormula = HOLApp(HOLApp(left.factory.createConst(OrSymbol, Ti -> (Ti -> To)).asInstanceOf[HOLExpression],left),right).asInstanceOf[HOLFormula]
   def unapply(expression: HOLExpression) = expression match {
     case HOLApp(HOLApp(OrC,left),right) => Some( (left.asInstanceOf[HOLFormula],right.asInstanceOf[HOLFormula]) )
     case _ => None
@@ -141,7 +143,8 @@ object Or {
 }
 
 object Imp {
-  def apply(left: HOLFormula, right: HOLFormula) = HOLApp(HOLApp(ImpC,left),right).asInstanceOf[HOLFormula]
+  def apply(left: HOLFormula, right: HOLFormula) =
+    HOLApp(HOLApp(left.factory.createConst(ImpSymbol, Ti -> (Ti -> To)).asInstanceOf[HOLExpression],left),right).asInstanceOf[HOLFormula]
   def unapply(expression: HOLExpression) = expression match {
       case HOLApp(HOLApp(ImpC,left),right) => Some( (left.asInstanceOf[HOLFormula],right.asInstanceOf[HOLFormula]) )
       case _ => None
@@ -151,7 +154,7 @@ object Imp {
 object Equation {
   def apply(left: HOLExpression, right: HOLExpression) = {
     require(left.exptype == right.exptype)
-    HOLApp(HOLApp(EqC(left.exptype), left),right).asInstanceOf[HOLFormula]
+    HOLApp(HOLApp(left.factory.createConst(EqSymbol,left.exptype -> (left.exptype -> To)).asInstanceOf[HOLExpression], left),right).asInstanceOf[HOLFormula]
   }
   def unapply(expression: HOLExpression) = expression match {
       case HOLApp(HOLApp(EqC(_),left),right) => Some( left.asInstanceOf[HOLExpression],right.asInstanceOf[HOLExpression] )
@@ -244,7 +247,8 @@ private object AllQ {
 }
 
 private object Ex {
-  def apply(sub: HOLExpression) = HOLApp(new ExQ(sub.exptype),sub).asInstanceOf[HOLFormula]
+  def apply(sub: HOLExpression) =
+    HOLApp(sub.factory.createConst(ExistsSymbol, sub.exptype -> To ).asInstanceOf[HOLExpression],sub).asInstanceOf[HOLFormula]
   def unapply(expression: HOLExpression) = expression match {
     case HOLApp(ExQ(t),sub) => Some( (sub, t) )
     case _ => None
@@ -252,7 +256,9 @@ private object Ex {
 }
 
 private object All {
-  def apply(sub: HOLExpression) = HOLApp(new AllQ(sub.exptype),sub).asInstanceOf[HOLFormula]
+  def apply(sub: HOLExpression) =
+    HOLApp(sub.factory.createConst(ForallSymbol, sub.exptype -> To ).asInstanceOf[HOLExpression], sub).asInstanceOf[HOLFormula]
+
   def unapply(expression: HOLExpression) = expression match {
     case HOLApp(AllQ(t),sub) => Some( (sub, t) )
     case _ => None

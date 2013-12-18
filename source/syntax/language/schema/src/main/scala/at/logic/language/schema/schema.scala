@@ -161,7 +161,10 @@ case class LeqC(e:TA) extends SchemaConst(LeqSymbol, ->(Tindex, ->(Tindex, To)))
 case object SuccC extends SchemaConst(StringSymbol("s"), ->(Tindex, Tindex))
 
 object Neg {
-  def apply(sub: SchemaFormula) = SchemaApp(NegC,sub).asInstanceOf[SchemaFormula]
+  def apply(sub: SchemaFormula) = {
+    val neg = sub.factory.createConnective(NegSymbol).asInstanceOf[SchemaConst]
+    SchemaApp(neg, sub).asInstanceOf[SchemaFormula]
+  }
   def unapply(expression: SchemaExpression) = expression match {
     case SchemaApp(NegC,sub) => Some( sub.asInstanceOf[SchemaFormula] )
     case _ => None
@@ -169,7 +172,10 @@ object Neg {
 }
 
 object And {
-  def apply(left: SchemaFormula, right: SchemaFormula) = (SchemaApp(SchemaApp(AndC,left),right)).asInstanceOf[SchemaFormula]
+  def apply(left: SchemaFormula, right: SchemaFormula) = {
+    val and = left.factory.createConnective(AndSymbol).asInstanceOf[SchemaConst]
+    SchemaApp(SchemaApp(and, left), right).asInstanceOf[SchemaFormula]
+  }
   def unapply(expression: SchemaExpression) = expression match {
     case SchemaApp(SchemaApp(AndC,left),right) => Some( (left.asInstanceOf[SchemaFormula],right.asInstanceOf[SchemaFormula]) )
     case _ => None
@@ -177,7 +183,10 @@ object And {
 }
 
 object Or {
-  def apply(left: SchemaFormula, right: SchemaFormula) = (SchemaApp(SchemaApp(OrC,left),right)).asInstanceOf[SchemaFormula]
+  def apply(left: SchemaFormula, right: SchemaFormula) = {
+    val or = left.factory.createConnective(OrSymbol).asInstanceOf[SchemaConst]
+    SchemaApp(SchemaApp(or,left),right).asInstanceOf[SchemaFormula]
+  }
   def apply(fs: List[SchemaFormula]) : SchemaFormula = fs match {
     case Nil => BottomC
     case f::fs => fs.foldLeft(f)( (d, f) => Or(d, f) )
@@ -189,36 +198,47 @@ object Or {
 }
 
 object Imp {
-  def apply(left: SchemaFormula, right: SchemaFormula) = (SchemaApp(SchemaApp(ImpC,left),right)).asInstanceOf[SchemaFormula]
+  def apply(left: SchemaFormula, right: SchemaFormula) = {
+    val imp = left.factory.createConnective(ImpSymbol).asInstanceOf[SchemaConst]
+    SchemaApp(SchemaApp(imp, left), right).asInstanceOf[SchemaFormula]
+  }
   def unapply(expression: SchemaExpression) = expression match {
       case SchemaApp(SchemaApp(ImpC,left),right) => Some( (left.asInstanceOf[SchemaFormula],right.asInstanceOf[SchemaFormula]) )
       case _ => None
   }
 }
 
-object ExQ {
+private object ExQ {
+  def apply(tp: TA) = new ExQ(tp)
   def unapply(v: SchemaConst) = v match {
     case vo: ExQ => Some(vo.exptype)
     case _ => None
   }
 }
-object AllQ {
+private object AllQ {
+  def apply(tp: TA) = new AllQ(tp)
   def unapply(v: SchemaConst) = v match {
     case vo: AllQ => Some(vo.exptype)
     case _ => None
   }
 }
 
-object Ex {
-  def apply(sub: SchemaExpression) = SchemaApp(new ExQ(sub.exptype),sub).asInstanceOf[SchemaFormula]
+private object Ex {
+  def apply(sub: SchemaExpression) = {
+    val ex = sub.factory.createConnective(ExistsSymbol, sub.exptype).asInstanceOf[SchemaConst]
+    SchemaApp(ex, sub).asInstanceOf[SchemaFormula]
+  }
   def unapply(expression: SchemaExpression) = expression match {
     case SchemaApp(ExQ(t),sub) => Some( (sub, t) )
     case _ => None
   }
 }
 
-object All {
-  def apply(sub: SchemaExpression) = SchemaApp(new AllQ(sub.exptype),sub).asInstanceOf[SchemaFormula]
+private object All {
+  def apply(sub: SchemaExpression) = {
+    val all = sub.factory.createConnective(ForallSymbol, sub.exptype).asInstanceOf[SchemaConst]
+    SchemaApp(all, sub).asInstanceOf[SchemaFormula]
+  }
   def unapply(expression: SchemaExpression) = expression match {
     case SchemaApp(AllQ(t),sub) => Some( (sub, t) )
     case _ => None

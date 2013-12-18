@@ -11,7 +11,6 @@ import at.logic.language.lambda.symbols._
 import at.logic.language.lambda.types._
 import at.logic.language.hol.{HOLVar, HOLConst, HOLApp, HOLAbs}
 import at.logic.language.hol.logicSymbols._
-import scala.Some
 
 class FOLVar (sym: SymbolA) extends HOLVar(sym, Ti) with FOLTerm
 object FOLVar {
@@ -32,6 +31,10 @@ protected[fol] object FOLLambdaConst {
     case Ti => new FOLLambdaConst(sym, exptype) with FOLTerm
     case To => new FOLLambdaConst(sym, exptype) with FOLFormula
     case _ => new FOLLambdaConst(sym, exptype)
+  }
+  def unapply(exp: FOLExpression) = exp match {
+    case c: FOLLambdaConst => Some( (c.name, c.exptype) )
+    case _ => None
   }
 }
 
@@ -94,7 +97,20 @@ object FOLFactory extends FactoryA {
     case _ => new FOLApp(fun.asInstanceOf[FOLExpression], arg.asInstanceOf[FOLExpression])
   }
 
-   def createAbs( variable: Var, exp: LambdaExpression ) : FOLAbs = new FOLAbs( variable.asInstanceOf[FOLVar], exp.asInstanceOf[FOLExpression] )
+  def createAbs( variable: Var, exp: LambdaExpression ) : FOLAbs = new FOLAbs( variable.asInstanceOf[FOLVar], exp.asInstanceOf[FOLExpression] )
+
+  def createConnective(sym: SymbolA, tp: TA = Ti) : FOLLambdaConst = sym match {
+    case BottomSymbol => BottomC
+    case TopSymbol => TopC
+    case NegSymbol => NegC
+    case AndSymbol => AndC
+    case OrSymbol => OrC
+    case ImpSymbol => ImpC
+    case EqSymbol => EqC
+    case ForallSymbol => AllQ()
+    case ExistsSymbol => ExQ()
+    case _ => throw new Exception("Operator for " + sym.toString + " not defined for FOL.")
+  }
 }
 
 

@@ -10,7 +10,6 @@ import at.logic.language.lambda.{LambdaExpression, Var, Const, App, Abs, Factory
 import at.logic.language.lambda.symbols._
 import at.logic.language.lambda.types._
 import at.logic.language.hol.logicSymbols._
-import scala.Some
 
 class HOLVar protected[hol] (sym: SymbolA, exptype: TA) extends Var(sym, exptype) with HOLExpression 
 object HOLVar {
@@ -58,31 +57,35 @@ object HOLAbs {
 /*********************** Factory *****************************/
 
 object HOLFactory extends FactoryA {
+  
   def createVar(sym: SymbolA, exptype: TA) : HOLVar = exptype match {
     case To => new HOLVar(sym, exptype) with HOLFormula
     case _ => new HOLVar(sym, exptype)
   }
-  def createConst(sym: SymbolA, exptype: TA) : HOLConst = (sym, exptype) match {
-    case (TopSymbol, To) => TopC
-    case (BottomSymbol, To) => BottomC
-    case (NegSymbol, Ti -> To) => NegC
-    case (AndSymbol, Ti -> (Ti -> To)) => AndC
-    case (OrSymbol,  Ti -> (Ti -> To)) => OrC
-    case (ImpSymbol, Ti -> (Ti -> To)) => ImpC
-    case (EqSymbol, t1 -> (t2 -> To)) =>
-      require(t1 == t2, "Creating an equation needs both sides to be of the same type, not "+t1+" and "+t2)
-      EqC(t1)
-    case (ForallSymbol, t1 -> To) => new AllQ(t1)
-    case (ExistsSymbol, t1 -> To) => new ExQ(t1)
-    case (sym : LogicalSymbolA, _ ) =>
-      throw new Exception("Trying to create an unrecognized logical constant in HOL : "+sym+" of type " + exptype)
-    case (_,To) => new HOLConst(sym, exptype) with HOLFormula
+  
+  def createConst(sym: SymbolA, exptype: TA) : HOLConst = exptype match {
+    case To => new HOLConst(sym, exptype) with HOLFormula
     case _ => new HOLConst(sym, exptype)
   }
+  
   def createApp( fun: LambdaExpression, arg: LambdaExpression ) : HOLApp = fun.exptype match {
     case ->(_, To) => new HOLApp(fun.asInstanceOf[HOLExpression], arg.asInstanceOf[HOLExpression]) with HOLFormula
     case _ => new HOLApp(fun.asInstanceOf[HOLExpression], arg.asInstanceOf[HOLExpression])
   }
+  
   def createAbs( variable: Var, exp: LambdaExpression ) : HOLAbs  = new HOLAbs( variable.asInstanceOf[HOLVar], exp.asInstanceOf[HOLExpression] )
+
+  def createConnective(sym: SymbolA, tp: TA = Ti) : HOLConst = sym match {
+    case BottomSymbol => BottomC
+    case TopSymbol => TopC
+    case NegSymbol => NegC
+    case AndSymbol => AndC
+    case OrSymbol => OrC
+    case ImpSymbol => ImpC
+    case EqSymbol => EqC(tp)
+    case ForallSymbol => AllQ(tp)
+    case ExistsSymbol => ExQ(tp)
+    case _ => throw new Exception("Operator for " + sym.toString + " not defined for HOL.")
+  }
 }
 

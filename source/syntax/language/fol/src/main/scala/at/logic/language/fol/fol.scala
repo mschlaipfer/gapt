@@ -36,7 +36,8 @@ trait FOLExpression extends HOLExpression {
    */
   override def toString = this match {
     case FOLVar(x) => x.toString
-    case FOLConst(x,t) => x.toString + ": " + t.toString
+    case FOLConst(x,t) => x + ": " + t.toString
+    case FOLLambdaConst(x, t) => x + ": " + t.toString
     case Atom(x, args) => x + "(" +
       (if (args.size > 1) args.head.toString + args.tail.foldLeft("")((s,a) => s+", "+a.toString)
       else args.foldLeft("")((s,a) => s+a.toString)) + ")"
@@ -51,16 +52,9 @@ trait FOLExpression extends HOLExpression {
     case AllVar(x,f) => ForallSymbol + x.toString + "." + f.toString
     case FOLAbs(v, exp) => "(λ" + v.toString + "." + exp.toString + ")"
     case FOLApp(l, r) => "(" + l.toString + ")" + "(" + r.toString + ")"
-    /* TODO: this method usually fails if layers got mixed (a fol structure contains a hol structure). the cli
-     *       throws this exception when it tries to print such a malformed structure, but this is hard to see.
-     *       should we print a warning instead? */
-    /* Current status: print a warning, since algorithms for typed lambda calculus may create partial lambda terms
-       which are later completed. This only surfaces when one tries to print debug output. 
-       TODO: LAYERS MUST NOT GET MIXED. */
-    case _ => throw new Exception("toString: expression is not FOL.")
-      //val r = super.toString
-      //println("WARNING: Trying to do a string conversion on a term which is not a (full) FOL expression: "+r)
-      //r
+    case _ => 
+      val r = super.toString
+      throw new Exception("toString: expression is not FOL: " + r)
     }
 
     override def factory : FactoryA = FOLFactory
@@ -70,7 +64,6 @@ trait FOLExpression extends HOLExpression {
 trait FOLFormula extends FOLExpression with HOLFormula
 
 trait FOLTerm extends FOLExpression { require( exptype == Ti ) }
-
 
 case object TopC extends FOLLambdaConst(TopSymbol, To) with FOLFormula
 case object BottomC extends FOLLambdaConst(BottomSymbol, To) with FOLFormula
@@ -82,7 +75,8 @@ case object EqC extends FOLLambdaConst(EqSymbol,   Ti -> (Ti -> To))
 
 object Equation {
   def apply(left: FOLTerm, right: FOLTerm) = {
-    FOLApp(FOLApp(EqC, left),right).asInstanceOf[FOLFormula]
+    val eq = left.factory.createConnective(EqSymbol).asInstanceOf[FOLExpression]
+    FOLApp(FOLApp(eq, left),right).asInstanceOf[FOLFormula]
   }
   def unapply(expression: FOLExpression) = expression match {
       case FOLApp(FOLApp(EqC,left),right) => Some( left.asInstanceOf[FOLTerm],right.asInstanceOf[FOLTerm] )
@@ -165,8 +159,10 @@ object Function {
 }
 
 object Neg {
-  def apply(sub: FOLFormula) =
-    FOLApp(sub.factory.createConst(NegSymbol, Ti -> To).asInstanceOf[FOLExpression],sub).asInstanceOf[FOLFormula]
+  def apply(sub: FOLFormula) = {
+    val neg = sub.factory.createConnective(NegSymbol).asInstanceOf[FOLExpression]
+    FOLApp(neg, sub).asInstanceOf[FOLFormula]
+  }
   def unapply(expression: FOLExpression) = expression match {
     case FOLApp(NegC,sub) => Some( (sub.asInstanceOf[FOLFormula]) )
     case _ => None
@@ -178,7 +174,10 @@ object And {
     case Nil => TopC
     case f::fs => fs.foldLeft(f)( (d, f) => And(d, f) )
   }
-  def apply(left: FOLFormula, right: FOLFormula) = (FOLApp(FOLApp(left.factory.createConst(AndSymbol, Ti -> (Ti -> To)).asInstanceOf[FOLExpression],left),right)).asInstanceOf[FOLFormula]
+  def apply(left: FOLFormula, right: FOLFormula) = {
+    val and = left.factory.createConnective(AndSymbol).asInstanceOf[FOLExpression]
+    FOLApp(FOLApp(and, left), right).asInstanceOf[FOLFormula]
+  }
   def unapply(expression: FOLExpression) = expression match {
     case FOLApp(FOLApp(AndC,left),right) => Some( (left.asInstanceOf[FOLFormula],right.asInstanceOf[FOLFormula]) )
     case _ => None
@@ -190,7 +189,10 @@ object Or {
       case Nil => BottomC
       case f::fs => fs.foldLeft(f)( (d, f) => Or(d, f) )
     }
-  def apply(left: FOLFormula, right: FOLFormula) = FOLApp(FOLApp(left.factory.createConst(OrSymbol, Ti -> (Ti -> To)).asInstanceOf[FOLExpression],left),right).asInstanceOf[FOLFormula]
+  def apply(left: FOLFormula, right: FOLFormula) = {
+    val or = left.factory.createConnective(OrSymbol).asInstanceOf[FOLExpression]
+    FOLApp(FOLApp(or, left), right).asInstanceOf[FOLFormula]
+  }
   def unapply(expression: FOLExpression) = expression match {
     case FOLApp(FOLApp(OrC,left),right) => Some( (left.asInstanceOf[FOLFormula],right.asInstanceOf[FOLFormula]) )
     case _ => None
@@ -198,7 +200,10 @@ object Or {
 }
 
 object Imp {
-  def apply(left: FOLFormula, right: FOLFormula) = FOLApp(FOLApp(left.factory.createConst(ImpSymbol, Ti -> (Ti -> To)).asInstanceOf[FOLExpression],left),right).asInstanceOf[FOLFormula]
+  def apply(left: FOLFormula, right: FOLFormula) = {
+    val imp = left.factory.createConnective(ImpSymbol).asInstanceOf[FOLExpression]
+    FOLApp(FOLApp(imp, left), right).asInstanceOf[FOLFormula]
+  }
   def unapply(expression: FOLExpression) = expression match {
       case FOLApp(FOLApp(ImpC,left),right) => Some( (left.asInstanceOf[FOLFormula],right.asInstanceOf[FOLFormula]) )
       case _ => None
@@ -208,6 +213,7 @@ object Imp {
 private class ExQ extends FOLLambdaConst(ExistsSymbol, ->(->(Ti, To), To) )
 private object ExQ extends ExQ {
   def apply = this
+  def apply() = new ExQ
   def unapply(v: FOLLambdaConst) = v match {
     case vo: ExQ => Some()
     case _ => None
@@ -217,6 +223,7 @@ private object ExQ extends ExQ {
 private class AllQ extends FOLLambdaConst( ForallSymbol, ->(->(Ti, To), To) )
 private object AllQ extends AllQ {
   def apply = this
+  def apply() = new AllQ
   def unapply(v: FOLLambdaConst) = v match {
     case vo: AllQ => Some()
     case _ => None
@@ -224,7 +231,10 @@ private object AllQ extends AllQ {
 }
 
 private object Ex {
-  def apply(sub: FOLExpression) = FOLApp(sub.factory.createConst(ExistsSymbol, (sub.exptype -> To)).asInstanceOf[FOLExpression], sub).asInstanceOf[FOLFormula]
+  def apply(sub: FOLExpression) = {
+    val ex = sub.factory.createConnective(ExistsSymbol).asInstanceOf[FOLExpression]
+    FOLApp(ex, sub).asInstanceOf[FOLFormula]
+  }
   def unapply(expression: FOLExpression) = expression match {
     case FOLApp(c: ExQ, sub) => Some( sub )
     case _ => None
@@ -232,8 +242,10 @@ private object Ex {
 }
 
 private object All {
-  def apply(sub: FOLExpression) =  FOLApp(sub.factory.createConst(ForallSymbol, (sub.exptype -> To)).asInstanceOf[FOLExpression], sub).asInstanceOf[FOLFormula]
-
+  def apply(sub: FOLExpression) = {
+    val all = sub.factory.createConnective(ForallSymbol).asInstanceOf[FOLExpression]
+    FOLApp(all, sub).asInstanceOf[FOLFormula]
+  }
   def unapply(expression: FOLExpression) = expression match {
     case FOLApp(c: AllQ, sub) => Some( sub )
     case _ => None

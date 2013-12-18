@@ -205,6 +205,7 @@ trait FactoryA {
   def createConst( name: SymbolA, exptype: TA ) : Const
   def createAbs( variable: Var, exp: LambdaExpression ) : Abs
   def createApp( fun: LambdaExpression, arg: LambdaExpression ) : App
+  def createConnective( sym: SymbolA, tp: TA = Ti ) : Const
 }
 
 object LambdaFactory extends FactoryA {
@@ -212,4 +213,5 @@ object LambdaFactory extends FactoryA {
   def createConst( name: SymbolA, exptype: TA )  = new Const( name, exptype)
   def createAbs( variable: Var, exp: LambdaExpression ) = new Abs( variable, exp )
   def createApp( fun: LambdaExpression, arg: LambdaExpression ) = new App( fun, arg )
+  def createConnective( sym: SymbolA, tp: TA = Ti ) = throw new Exception("Logical connectives must not be created in the lambda layer.")
 }

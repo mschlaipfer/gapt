@@ -10,6 +10,7 @@ import at.logic.language.lambda.{LambdaExpression, Var, Const, App, Abs, Factory
 import at.logic.language.lambda.symbols._
 import at.logic.language.lambda.types._
 import at.logic.language.hol.{HOLVar, HOLConst, HOLApp, HOLAbs}
+import at.logic.language.hol.logicSymbols._
 
 class SchemaVar protected[schema] (sym: SymbolA, exptype: TA) extends HOLVar(sym, exptype) with SchemaExpression 
 object SchemaVar {
@@ -74,4 +75,16 @@ object SchemaFactory extends FactoryA {
   }
   
   def createAbs( variable: Var, exp: LambdaExpression ): SchemaAbs = new SchemaAbs( variable.asInstanceOf[IntVar], exp.asInstanceOf[SchemaExpression] )
+  
+  def createConnective(sym: SymbolA, tp: TA = Ti) : SchemaConst = sym match {
+    case BottomSymbol => BottomC
+    case TopSymbol => TopC
+    case NegSymbol => NegC
+    case AndSymbol => AndC
+    case OrSymbol => OrC
+    case ImpSymbol => ImpC
+    case ForallSymbol => AllQ(tp)
+    case ExistsSymbol => ExQ(tp)
+    case _ => throw new Exception("Operator for " + sym.toString + " not defined for HOL.")
+  }
 }

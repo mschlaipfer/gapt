@@ -1188,7 +1188,7 @@ object ExistsHyperRightRule {
   }
 
   def computeAux( main: SchemaFormula, term: SchemaExpression ) = main match {
-    case Ex( sub, _ ) => betaNormalize( SchemaApp( sub, term ) ).asInstanceOf[SchemaFormula]
+    case ExVar( _, sub ) => betaNormalize( SchemaApp( sub, term ) ).asInstanceOf[SchemaFormula]
     case _ => throw new LKRuleCreationException("Main formula of ExistsRightRule must have a universal quantifier as head symbol.")
   }
 
@@ -1270,7 +1270,7 @@ object ForallHyperRightRule {
     else {
       val aux_fo = term1op.get
       main match {
-        case All( sub, _ ) => {
+        case AllVar( _, sub ) => {
           // eigenvar condition
           assert( ( s1.antecedent ++ (s1.succedent.filterNot(_ == aux_fo)) ).forall( fo => !freeVariables(fo.formula.asInstanceOf[SchemaFormula]).contains( eigen_var ) ),
             "Eigenvariable " + eigen_var.toString + " occurs in context " + s1.toString )
@@ -1336,7 +1336,7 @@ object ExistsHyperLeftRule {
     else {
       val aux_fo = term1op.get
       main match {
-        case Ex( sub, _ ) => {
+        case ExVar( _, sub ) => {
           // eigenvar condition
           assert( ( (s1.antecedent.filterNot(_ == aux_fo)) ++ s1.succedent ).forall( fo => !freeVariables(fo.formula.asInstanceOf[SchemaFormula]).contains( eigen_var ) ),
             "Eigenvariable " + eigen_var.toString + " occurs in context " + s1.toString )

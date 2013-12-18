@@ -74,23 +74,12 @@ object FOLFactory extends FactoryA {
     case Ti => new FOLVar(sym)
     case _ => throw new Exception("Trying to create a variable in FOL that has type different from i: " + exptype)
   }
-
-  def createConst( sym: SymbolA, exptype: TA ) : HOLConst = (sym,exptype) match {
-    case (TopSymbol, To) => TopC
-    case (BottomSymbol, To) => BottomC
-    case (NegSymbol, Ti -> To) => NegC
-    case (AndSymbol, Ti -> (Ti -> To)) => AndC
-    case (OrSymbol,  Ti -> (Ti -> To)) => OrC
-    case (ImpSymbol, Ti -> (Ti -> To)) => ImpC
-    case (EqSymbol, Ti -> (Ti -> To)) => EqC
-    case (ForallSymbol, (Ti -> To) -> To) => AllQ
-    case (ExistsSymbol, (Ti -> To) -> To) => ExQ
-    case (sym : LogicalSymbolA, _ ) =>
-      throw new Exception("Trying to create an unrecognized logical constant in FOL : "+sym+" of type " + exptype)
-    case (_, Ti) =>  new FOLConst(sym)
+  
+  def createConst( sym: SymbolA, exptype: TA ) : FOLConst = exptype match {
+    case Ti => new FOLConst(sym)
     case _ => throw new Exception("Trying to create a constant in FOL that has type different from i: " + exptype)
   }
-  
+
   def createApp( fun: LambdaExpression, arg: LambdaExpression ) : FOLApp = fun.exptype match {
     case ->(_, To) => new FOLApp(fun.asInstanceOf[FOLExpression], arg.asInstanceOf[FOLExpression]) with FOLFormula
     case ->(_, Ti) => new FOLApp(fun.asInstanceOf[FOLExpression], arg.asInstanceOf[FOLExpression]) with FOLTerm

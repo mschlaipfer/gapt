@@ -25,7 +25,7 @@ class Substitution(val map: Map[Var, LambdaExpression]) {
     case v : Var if !map.contains(v) => v
     case Const(_, _) => t
     case App(t1, t2) =>
-      t.factory.createApp( apply(t1), apply(t2) )
+      App( apply(t1), apply(t2) )
     case Abs(v, t1) =>
       val fv = range
       val dom = domain
@@ -34,18 +34,18 @@ class Substitution(val map: Map[Var, LambdaExpression]) {
         // The replacement of v is not done, removing it from the substitution and applying to t1
         val newMap = map - v
         val newSub = Substitution(newMap)
-        t.factory.createAbs(v, newSub(t1))
+        Abs(v, newSub(t1))
       }
       else if (!fv.contains(v)) {
         // No variable capture
-        t.factory.createAbs(v, apply(t1))
+        Abs(v, apply(t1))
       }
       else {
         // Variable captured, renaming the abstracted variable
         val freshVar = rename(v, fv)
         val sub = Substitution(v, freshVar)
         val newTerm = sub(t1)
-        t.factory.createAbs(freshVar, apply(newTerm))
+        Abs(freshVar, apply(newTerm))
       }
   }
 

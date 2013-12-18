@@ -1,12 +1,5 @@
-package at.logic.algorithms.resolution
 
-/**
- * Created with IntelliJ IDEA.
- * User: shaolin
- * Date: 8/17/12
- * Time: 4:06 PM
- * To change this template use File | Settings | File Templates.
- */
+package at.logic.algorithms.resolution
 
 import at.logic.calculi.lk.base.types._
 import at.logic.calculi.lk.base._
@@ -17,7 +10,7 @@ import at.logic.language.fol.{Equation, FOLTerm, FOLFormula, FOLExpression}
 import at.logic.language.hol._
 import at.logic.language.lambda.substitutions.Substitution
 import at.logic.language.lambda.typedLambdaCalculus.{Var, App}
-import at.logic.calculi.resolution.base.{FClause, Clause}
+import at.logic.calculi.resolution.{FClause, Clause}
 import at.logic.algorithms.lk.{CleanStructuralRules, applySubstitution => applySub, CloneLKProof}
 
 

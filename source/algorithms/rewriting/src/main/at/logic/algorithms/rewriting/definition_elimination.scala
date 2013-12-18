@@ -1,10 +1,8 @@
 package at.logic.algorithms.rewriting
 
 import at.logic.calculi.lk.base._
-import at.logic.calculi.lk.base.types.FSequent
 import at.logic.calculi.occurrences.FormulaOccurrence
 import at.logic.language.hol._
-import at.logic.language.lambda.substitutions.Substitution
 import at.logic.language.lambda.symbols.SymbolA
 
 object defintion_elimination {

@@ -12,13 +12,11 @@ import at.logic.calculi.lk.base._
 import at.logic.language.fol._
 import at.logic.algorithms.lk._
 import at.logic.algorithms.lk.statistics._
-//import at.logic.algorithms.shlk._
 import at.logic.algorithms.interpolation._
 import at.logic.algorithms.resolution._
 import at.logic.calculi.resolution.FClause
 import at.logic.utils.logging.Logger
 import at.logic.calculi.expansionTrees.{ExpansionTree, toSequent}
-//import at.logic.calculi.expansionTrees.multi._
 
 class CutIntroException(msg: String) extends Exception(msg)
 

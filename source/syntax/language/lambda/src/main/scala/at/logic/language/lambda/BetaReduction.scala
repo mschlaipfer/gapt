@@ -55,10 +55,10 @@ object BetaReduction {
     case App(m,n) => 
       val mnorm = betaNormalize(m)
       mnorm match {
-        case _: Abs => betaNormalize(expression.factory.createApp(mnorm,betaNormalize(n)))
-        case _ => expression.factory.createApp(mnorm,betaNormalize(n))
+        case _: Abs => betaNormalize(App(mnorm,betaNormalize(n)))
+        case _ => App(mnorm,betaNormalize(n))
       }
-    case Abs(x,m) => expression.factory.createAbs(x,betaNormalize(m))
+    case Abs(x,m) => Abs(x,betaNormalize(m))
     case x: Var => x
     case x: Const => x
   }
@@ -75,10 +75,10 @@ object BetaReduction {
         
         case StrategyLeftRight.Rightmost => 
           val argr = betaReduce(arg)(strategyOI,strategyLR)   // Since it is innerrightmost redex strategy, we try first to reduce the argument.
-          if (argr != arg) expression.factory.createApp(expression.factory.createAbs(x, t), argr)               // If it succeeds, great!
+          if (argr != arg) App(Abs(x, t), argr)               // If it succeeds, great!
           else {                                              // If it doesn't, then we try to find an innermost redex in the left side, i.e. in the body.
             val bodyr = betaReduce(t)(strategyOI,strategyLR)
-            if (bodyr != t) expression.factory.createApp(expression.factory.createAbs(x, bodyr), arg)           // If it succeeds, great!
+            if (bodyr != t) App(Abs(x, bodyr), arg)           // If it succeeds, great!
             else {
               val sigma = Substitution(x, arg)
               sigma(t)
@@ -87,10 +87,10 @@ object BetaReduction {
 
         case StrategyLeftRight.Leftmost =>                     // Analogous to the previous case, but giving priority to the left side (body) instead of the ride side (arg)
           val bodyr = betaReduce(t)(strategyOI,strategyLR)
-          if (bodyr != t) expression.factory.createApp(expression.factory.createAbs(x, bodyr), arg)
+          if (bodyr != t) App(Abs(x, bodyr), arg)
           else {
             val argr = betaReduce(arg)(strategyOI,strategyLR)
-            if (argr != arg) expression.factory.createApp(expression.factory.createAbs(x, t), argr)
+            if (argr != arg) App(Abs(x, t), argr)
             else {
               val sigma = Substitution(x, arg)
               sigma(t)
@@ -102,17 +102,17 @@ object BetaReduction {
     case App(m,n) => strategyLR match {
       case StrategyLeftRight.Leftmost => {
         val mr = betaReduce(m)(strategyOI,strategyLR)        // Since it is leftmost redex strategy, we try first to reduce the left side (m).
-        if (mr != m) expression.factory.createApp(mr,n)                               // If it succeeds, great!
-        else expression.factory.createApp(m, betaReduce(n)(strategyOI,strategyLR))    // If it doesn't, then we try to find and reduce a redex in the right side (n)
+        if (mr != m) App(mr,n)                               // If it succeeds, great!
+        else App(m, betaReduce(n)(strategyOI,strategyLR))    // If it doesn't, then we try to find and reduce a redex in the right side (n)
       }
       case StrategyLeftRight.Rightmost => {
         val nr = betaReduce(n)(strategyOI,strategyLR)        // Since it is rightmost redex strategy, we try first to reduce the right side (n).
-        if (nr != n) expression.factory.createApp(m,nr)                               // If it succeeds, great!
-        else expression.factory.createApp(betaReduce(m)(strategyOI,strategyLR), n )   // If it doesn't, then we try to find and reduce a redex in the left side (m)
+        if (nr != n) App(m,nr)                               // If it succeeds, great!
+        else App(betaReduce(m)(strategyOI,strategyLR), n )   // If it doesn't, then we try to find and reduce a redex in the left side (m)
       }
     }
 
-    case Abs(x,m) => expression.factory.createAbs(x,betaReduce(m)(strategyOI,strategyLR))
+    case Abs(x,m) => Abs(x,betaReduce(m)(strategyOI,strategyLR))
     case x: Var => x
   }
 }

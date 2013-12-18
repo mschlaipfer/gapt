@@ -1,21 +1,14 @@
 package at.logic.algorithms.rewriting
 
-import at.logic.language.lambda.typedLambdaCalculus.{Abs, App, Var, LambdaExpression}
-import at.logic.language.hol.logicSymbols.{ConstantSymbolA, ConstantStringSymbol}
+import at.logic.language.lambda.{Abs, App, Var, Const, LambdaExpression}
 import at.logic.language.lambda.types._
-import at.logic.calculi.lk.base.types.FSequent
 import at.logic.calculi.lk.base.FSequent
-import at.logic.calculi.lk.base.types.FSequent
 import at.logic.calculi.resolution.robinson._
-import at.logic.calculi.resolution.base.Clause
+import at.logic.calculi.resolution.Clause
 import at.logic.calculi.occurrences.FormulaOccurrence
-import at.logic.language.lambda.substitutions.Substitution
+import at.logic.language.lambda.Substitution
 import at.logic.language.hol.HOLFormula
 import at.logic.language.fol.{FOLExpression, FOLTerm, FOLFormula}
-import at.logic.language.hol.logicSymbols.ConstantStringSymbol
-import scala.Some
-import at.logic.language.lambda.types.->
-import at.logic.calculi.resolution.instance.Instance
 
 /**
  * performs renaming of constants, functions and predicate symbols

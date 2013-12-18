@@ -1,16 +1,12 @@
+
 package at.logic.algorithms.rewriting
 
-import at.logic.language.lambda.typedLambdaCalculus.{Abs, App, Var, LambdaExpression}
-import at.logic.calculi.lk.base.types.FSequent
+import at.logic.language.lambda.{Abs, App, Var, LambdaExpression}
 import at.logic.language.hol.{HOLFormula, HOLExpression}
 import at.logic.calculi.lk.base.FSequent
-import at.logic.calculi.lk.base.types.FSequent
 import at.logic.calculi.resolution.robinson._
-import at.logic.language.fol.{FOLExpression, FOLFormula}
+import at.logic.language.fol.{FOLVar, FOLExpression, FOLFormula, Substitution}
 import at.logic.calculi.occurrences.FormulaOccurrence
-import at.logic.language.lambda.substitutions.Substitution
-import at.logic.calculi.resolution.instance.Instance
-import scala.Some
 import at.logic.utils.logging.Logger
 
 /******* Term Replacement **********
@@ -23,8 +19,6 @@ import at.logic.utils.logging.Logger
 object TermReplacement extends Logger {
   import NameReplacement.find_matching
 
-
-  // def debug(l : Int, m : Any) = { if (List().contains(l))  println("DEBUG: "+m.toString)}
 
   def apply[T <: LambdaExpression](term : T, what : T, by : T) : T = {
     require(what.exptype == by.exptype)
@@ -109,7 +103,7 @@ object TermReplacement extends Logger {
 
         case Variant(clause, parent1, sub) =>
           val (rpmap, rmap, rparent1) = if (pmap contains parent1) add_pmap(pmap, parent1) else rename_resproof(parent1, irules, smap, pmap)
-          val nsmap : Map[Var, FOLExpression] = sub.map map ((x:(Var, FOLExpression)) => (x._1, apply(x._2, smap)) )
+          val nsmap : Map[FOLVar, FOLExpression] = sub.map map ((x:(FOLVar, FOLExpression)) => (x._1, apply(x._2, smap)) )
           val nsub = Substitution(nsmap)
           var inference :RobinsonResolutionProof = Variant(rparent1, nsub)
 
@@ -127,7 +121,7 @@ object TermReplacement extends Logger {
 
         case Factor(clause, parent1, aux, sub) =>
           val (rpmap, rmap, rparent1) = if (pmap contains parent1) add_pmap(pmap, parent1) else rename_resproof(parent1, irules, smap, pmap)
-          val nsub = Substitution(sub.map map ((x:(Var, FOLExpression)) => (x._1, apply(x._2, smap)) ))
+          val nsub = Substitution(sub.map map ((x:(FOLVar, FOLExpression)) => (x._1, apply(x._2, smap)) ))
           var inference :RobinsonResolutionProof = aux match {
             case lit1 :: Nil =>
               Factor(rparent1, rmap(lit1.head), lit1.tail map rmap, nsub)
@@ -150,7 +144,7 @@ object TermReplacement extends Logger {
 
         case Instance(clause, parent1, sub) =>
           val (rpmap, rmap, rparent1) = if (pmap contains parent1) add_pmap(pmap, parent1) else rename_resproof(parent1, irules, smap, pmap)
-          val nsub = Substitution(sub.map map ((x:(Var, FOLExpression)) => (x._1, apply(x._2, smap)) ))
+          val nsub = Substitution(sub.map map ((x:(FOLVar, FOLExpression)) => (x._1, apply(x._2, smap)) ))
           var inference :RobinsonResolutionProof =  Instance(rparent1, nsub)
           trace("sub="+sub)
           trace("nsub="+nsub)
@@ -182,7 +176,7 @@ object TermReplacement extends Logger {
           //debug(2,"parent1: "+parent1.root)
           //debug(2,"parent2: "+parent2.root)
           //debug(2,"sub: "+sub)
-          val nsub = Substitution(sub.map map ((x:(Var, FOLExpression)) => {
+          val nsub = Substitution(sub.map map ((x:(FOLVar, FOLExpression)) => {
             //debug(2,smap)
             //debug(2,smap.keySet contains x._2)
             val repl = apply(x._2, smap)
@@ -225,7 +219,7 @@ object TermReplacement extends Logger {
           val (rpmap1, rmap1, rparent1) = if (pmap contains parent1) add_pmap(pmap, parent1) else rename_resproof(parent1, irules, smap, pmap)
           val (rpmap2, rmap2, rparent2) = if (pmap contains parent2) add_pmap(pmap, parent2) else rename_resproof(parent2, irules, smap, rpmap1)
 
-          val nsub = Substitution(sub.map map ((x:(Var, FOLExpression)) => (x._1, apply(x._2, smap)) ))
+          val nsub = Substitution(sub.map map ((x:(FOLVar, FOLExpression)) => (x._1, apply(x._2, smap)) ))
 
           val Some(prim) = clause.literals.map(_._1).find( occ => occ.ancestors == List(lit1,lit2) || occ.ancestors == List(lit2,lit1) )
           val nformula = apply(prim.formula.asInstanceOf[FOLExpression], smap).asInstanceOf[FOLFormula]

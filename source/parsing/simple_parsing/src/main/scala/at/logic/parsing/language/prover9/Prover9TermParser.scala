@@ -7,6 +7,7 @@ import at.logic.calculi.lk.base.FSequent
 import at.logic.language.hol.HOLFormula
 import scala.util.parsing.combinator.PackratParsers
 import scala.collection.immutable.HashSet
+import at.logic.language.lambda.symbols.StringSymbol
 
 /**
  * Parser for first order formulas in the prover 9 format.
@@ -95,16 +96,16 @@ abstract trait Prover9TermParserA extends JavaTokenParsers with PackratParsers {
     case x ~ "(" ~ params ~ ")" => Atom(x, params.asInstanceOf[List[FOLTerm]]) }
   lazy val atom2: PackratParser[FOLFormula] = atomsymb ^^ {case x => Atom(x, Nil)}
 
-  val plus_sym = ("+")
-  val times_sym = ("*")
-  val minus_sym = ("-")
-  val div_sym = ("-")
-  val wedge_sym = ("^")
+  val plus_sym = StringSymbol("+")
+  val times_sym = StringSymbol("*")
+  val minus_sym = StringSymbol("-")
+  val div_sym = StringSymbol("-")
+  val wedge_sym = StringSymbol("^")
 //  val vee_sym = ("v")
-  val less_sym = ("<")
-  val greater_sym = (">")
-  val lesseq_sym = ("<=")
-  val greatereq_sym = (">=")
+  val less_sym = StringSymbol("<")
+  val greater_sym = StringSymbol(">")
+  val lesseq_sym = StringSymbol("<=")
+  val greatereq_sym = StringSymbol(">=")
 
   //infixatom
   lazy val iatom : PackratParser[FOLFormula] = term ~ """((<|>)=?)|(!?=)|[+\-*]""".r  ~ term ^^ {
@@ -125,8 +126,8 @@ abstract trait Prover9TermParserA extends JavaTokenParsers with PackratParsers {
   def orderings : Parser[FOLFormula] = term ~ """(<|>)=?""".r  ~ term ^^ { case t1 ~ sym ~ t2 => fol.Atom(ConstantStringSymbol(sym), List(t1,t2))}
   */
   lazy val atomsymb: Parser[String] = """[a-zA-Z][a-zA-Z0-9_]*""".r
-  lazy val term: PackratParser[FOLExpression] = ifunction | noniterm
-  lazy val noniterm: PackratParser[FOLExpression] = function | constant | variable
+  lazy val term: PackratParser[FOLTerm] = ifunction | noniterm
+  lazy val noniterm: PackratParser[FOLTerm] = function | constant | variable
   lazy val ifunction: PackratParser[FOLTerm] = (noniterm|parens(ifunction)) ~ """[+\-*/^]""".r ~ (noniterm|parens(ifunction)) ^^ {
     _ match {
       case t1 ~ "+" ~ t2 => fol.Function(plus_sym, List(t1,t2))

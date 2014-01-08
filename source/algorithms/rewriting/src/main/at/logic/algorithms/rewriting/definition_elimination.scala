@@ -7,7 +7,7 @@ import at.logic.language.lambda.symbols.SymbolA
 
 object defintion_elimination {
   type DefinitionsMap = Map[HOLFormula, HOLFormula]
-  type ProcessedDefinitionsMap = Map[SymbolA, (List[HOLVar], HOLFormula)]
+  type ProcessedDefinitionsMap = Map[String, (List[HOLVar], HOLFormula)]
 
   def fixedpoint_val[A](f : (A=>A), l : A) : A = {
     val r = f(l)
@@ -31,10 +31,10 @@ object defintion_elimination {
 
   def eliminate_from(defs : DefinitionsMap, f : HOLFormula) : HOLFormula = {
     //preprocess definitions
-    var map : ProcessedDefinitionsMap = Map[SymbolA, (List[HOLVar], HOLFormula)]()
+    var map : ProcessedDefinitionsMap = Map[String, (List[HOLVar], HOLFormula)]()
     //TODO: expand definitions in map
     for (k <- defs.keys) k match {
-      case Atom(sym, args) =>
+      case Atom(HOLConst(sym,_), args) =>
         if (args forall (_.isInstanceOf[HOLVar]))
           map = map + Tuple2(sym, (args.asInstanceOf[List[HOLVar]], defs(k)))
         else
@@ -47,8 +47,8 @@ object defintion_elimination {
 
   private def eliminate_from_(defs : ProcessedDefinitionsMap, f : HOLFormula) : HOLFormula = {
     f match {
-      case Atom(sym, args) =>
-        defs.get(sym) match {
+      case Atom(HOLConst(name,_), args) =>
+        defs.get(name) match {
           case Some((definition_args, defined_formula)) =>
             if (args.length != definition_args.length) {
               println("Warning: ignoring definition replacement because argument numbers dont match!")

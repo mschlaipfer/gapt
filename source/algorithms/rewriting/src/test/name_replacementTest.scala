@@ -3,16 +3,13 @@ package at.logic.algorithms.rewriting
 import org.junit.runner.RunWith
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.runner.JUnitRunner
-import util.parsing.input.Reader
-import at.logic.parsing.readers.StringReader
 import at.logic.parsing.language.simple.{SimpleHOLParser, SimpleFOLParser}
-import at.logic.language.fol.{FOLExpression, FOLVar, FOLTerm, FOLFormula}
+import at.logic.language.fol.{FOLExpression, FOLVar, FOLTerm, FOLFormula, Substitution}
 import java.io.{FileInputStream, InputStreamReader}
-import at.logic.language.lambda.substitutions.Substitution
 import at.logic.calculi.resolution.robinson._
-import at.logic.calculi.resolution.base.Clause
-import at.logic.calculi.agraphProofs.AGraphProof
+import at.logic.calculi.resolution._
 import at.logic.utils.ds.acyclicGraphs.{BinaryAGraph, UnaryAGraph, LeafAGraph, AGraph}
+import at.logic.parsing.readers.StringReader
 
 /**
  * Test for renaming of constant symbols
@@ -23,8 +20,8 @@ class name_replacementTest extends SpecificationWithJUnit {
   object proof1 {
     val List(c1,c2,c3,c4) = List("P(g(a))", "P(g(x))","Q(f(ladr0))", "Q(x)") map (parse fol)
     val List(x,a,fl) = List("x","a","f(ladr0)") map (parse folterm)
-    val s1 = Substitution[FOLExpression]((x.asInstanceOf[FOLVar], a))
-    val s2 = Substitution[FOLExpression]((x.asInstanceOf[FOLVar], fl))
+    val s1 = Substitution((x.asInstanceOf[FOLVar], a))
+    val s2 = Substitution((x.asInstanceOf[FOLVar], fl))
     val p1 = InitialClause(List(c1,c1), List(c3))
     val p2 = InitialClause(Nil, List(c2))
     val p3 = InitialClause(List(c4), Nil)
@@ -36,8 +33,8 @@ class name_replacementTest extends SpecificationWithJUnit {
   object proof2 {
     val List(d1,d2,d3,d4) = List("R(f(a))", "R(f(x))","Q(h(c0))", "Q(x)") map (parse fol)
     val List(x,a,hc) = List("x","a","h(c0)") map (parse folterm)
-    val r1 = Substitution[FOLExpression]((x.asInstanceOf[FOLVar], a))
-    val r2 = Substitution[FOLExpression]((x.asInstanceOf[FOLVar], hc))
+    val r1 = Substitution((x.asInstanceOf[FOLVar], a))
+    val r2 = Substitution((x.asInstanceOf[FOLVar], hc))
     val q1 = InitialClause(List(d1,d1), List(d3))
     val q2 = InitialClause(Nil, List(d2))
     val q3 = InitialClause(List(d4), Nil)
@@ -49,10 +46,10 @@ class name_replacementTest extends SpecificationWithJUnit {
   object proof3 {
     val List(c1,c2,c3,c4) = List("P(g(a))", "P(g(x))","Q(f(ladr0))", "Q(x)") map (parse fol)
     val List(x,a,fl) = List("x","a","f(ladr0)") map (parse folterm)
-    val s1 = Substitution[FOLExpression]((x.asInstanceOf[FOLVar], a))
-    val s2 = Substitution[FOLExpression]((x.asInstanceOf[FOLVar], fl))
+    val s1 = Substitution((x.asInstanceOf[FOLVar], a))
+    val s2 = Substitution((x.asInstanceOf[FOLVar], fl))
     val p0 = InitialClause(List(c1,c2), List(c3))
-    val p1 = Factor(p0, p0.root.negative(1), p0.root.negative(0)::Nil, Substitution[FOLExpression]())
+    val p1 = Factor(p0, p0.root.negative(1), p0.root.negative(0)::Nil, Substitution())
     val p2 = InitialClause(Nil, List(c2))
     val p3 = InitialClause(List(c4), Nil)
     val p5 = Resolution(p2, p1, p2.root.positive(0), p1.root.negative(0), s1)
@@ -63,10 +60,10 @@ class name_replacementTest extends SpecificationWithJUnit {
     //this proof has errors: the factor rule needs a unification
     val List(d1,d2,d3,d4) = List("R(f(a))", "R(f(x))","Q(h(c0))", "Q(x)") map (parse fol)
     val List(x,a,hc) = List("x","a","h(c0)") map (parse folterm)
-    val r1 = Substitution[FOLExpression]((x.asInstanceOf[FOLVar], a))
-    val r2 = Substitution[FOLExpression]((x.asInstanceOf[FOLVar], hc))
+    val r1 = Substitution((x.asInstanceOf[FOLVar], a))
+    val r2 = Substitution((x.asInstanceOf[FOLVar], hc))
     val q0 = InitialClause(List(d1,d2), List(d3))
-    val q1 = Factor(q0, q0.root.negative(1), q0.root.negative(0)::Nil, Substitution[FOLExpression]())
+    val q1 = Factor(q0, q0.root.negative(1), q0.root.negative(0)::Nil, Substitution())
     val q2 = InitialClause(Nil, List(d2))
     val q3 = InitialClause(List(d4), Nil)
     val q5 = Resolution(q2, q1, q2.root.positive(0), q1.root.negative(0), r1)
@@ -80,7 +77,7 @@ class name_replacementTest extends SpecificationWithJUnit {
     val List(d1,d2,d3,d4) = List("R(f(a))", "R(f(x))","R(f(y))", "R(z)") map (parse fol)
     val List(x,a,y) = List("x","a","y") map (parse folterm)
     /*
-    val s1 = Substitution[FOLExpression]((x.asInstanceOf[FOLVar], a))
+    val s1 = Substitution((x.asInstanceOf[FOLVar], a))
     val p0 = InitialClause(List(c1,c1), List(c3))
     val p1 = Factor(p0, p0.root.negative(0), p0.root.negative(1)::Nil, s1)
     val p2 = InitialClause(Nil, List(c2))

@@ -42,7 +42,7 @@ trait SimpleHOLParser extends HOLParser with JavaTokenParsers with at.logic.lang
   //def eq_infix: Parser[HOLFormula] = term ~ "=" ~ term ^^ {case x ~ "=" ~ y => Equation(x,y)}
   def eq_prefix: Parser[HOLFormula] = "=" ~ "(" ~ term ~ "," ~ term  ~ ")" ^^ {case "=" ~ "(" ~ x ~ "," ~ y  ~ ")" => Equation(x,y)}
   def var_func: Parser[HOLExpression] = regex(new Regex("[u-z]" + word)) ~ "(" ~ repsep(term,",") ~ ")"  ~ ":" ~ Type ^^ {
-    case x ~ "(" ~ params ~ ")" ~ ":" ~ tp => Function(HOLConst(x, tp.prepend(params.map(_.exptype))), params)
+    case x ~ "(" ~ params ~ ")" ~ ":" ~ tp => Function(HOLVar(x, tp.prepend(params.map(_.exptype))), params)
   }
 
   def const_func: Parser[HOLExpression] = regex(new Regex("["+symbols+"a-tA-Z0-9]" + word)) ~ "(" ~ repsep(term,",") ~ ")" ~ ":" ~ Type ^^ {

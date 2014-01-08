@@ -11,7 +11,7 @@ import at.logic.language.lambda.symbols._
 import at.logic.language.lambda.types._
 import at.logic.language.hol.logicSymbols._
 
-class HOLVar protected[hol] (sym: SymbolA, exptype: TA) extends Var(sym, exptype) with HOLExpression 
+class HOLVar protected[hol] (sym: SymbolA, exptype: TA) extends Var(sym, exptype) with HOLExpression
 object HOLVar {
   def apply(name: String, exptype: TA) : HOLVar = HOLFactory.createVar(StringSymbol(name), exptype)
   def apply(sym: SymbolA, exptype: TA) : HOLVar = HOLFactory.createVar(sym, exptype)

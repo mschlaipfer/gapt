@@ -22,7 +22,6 @@ abstract class LambdaExpression {
 
   // Factory for Lambda-Expressions
   def factory : FactoryA = LambdaFactory
-
 }
 
 // Defines the elements that generate lambda-expressions: variables,

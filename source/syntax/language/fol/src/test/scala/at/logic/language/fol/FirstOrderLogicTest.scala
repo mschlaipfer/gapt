@@ -190,6 +190,56 @@ class FirstOrderLogicTest extends SpecificationWithJUnit {
 
     }
 
+    "work well together with the hol layer" in {
+      val a1 = Atom("P",List(FOLConst("a")))
+      val a2 = Atom("Q",List(FOLVar("x")))
+      val neg = Neg(a1)
+      val conj = And(a1,a2)
+      val or = Or(a1,a2)
+      val imp = Imp(a1,a2)
+      val (t1,t2) = (FOLConst("a"), FOLVar("x"))
+      val eq = Equation(t1,t2)
+      val all = AllVar(t2, a2)
+      val ex = ExVar(t2, a2)
+      neg match {
+        case hol.Neg(b1) =>
+          ok
+        case _ => ko("HOL created negation did not match against fol conjunction!")
+      }
+      conj match {
+        case hol.And(b1,b2) =>
+          ok
+        case _ => ko("HOL created conjunction did not match against fol conjunction!")
+      }
+      or match {
+        case hol.Or(b1,b2) =>
+          ok
+        case _ => ko("HOL created disjunction did not match against fol conjunction!")
+      }
+      imp match {
+        case hol.Imp(b1,b2) =>
+          ok
+        case _ => ko("HOL created implication did not match against fol conjunction!")
+      }
+      eq match {
+        case hol.Equation(b1,b2) =>
+          ok
+        case _ => ko("HOL created equation did not match against fol conjunction!")
+      }
+      all match {
+        case hol.AllVar(b1,b2) =>
+          ok
+        case _ => ko("HOL created universal quantification did not match against fol conjunction!")
+      }
+      ex match {
+        case hol.ExVar(b1,b2) =>
+          ok
+        case _ => ko("HOL created existential quantification did not match against fol conjunction!")
+      }
+
+    }
+
+
   }
 
 }

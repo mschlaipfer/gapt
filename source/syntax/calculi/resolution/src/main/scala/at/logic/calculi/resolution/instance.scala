@@ -25,7 +25,7 @@ object Instance {
 
   def unapply(proof: ResolutionProof[Clause] with AppliedSubstitution) = if (proof.rule == InstanceType) {
       val pr = proof.asInstanceOf[UnaryResolutionProof[Clause] with AppliedSubstitution]
-      Some((pr.root, pr.uProof.asInstanceOf[RobinsonResolutionProof], pr.substitution))
+      Some((pr.root, pr.uProof.asInstanceOf[RobinsonResolutionProof], pr.substitution.asInstanceOf[Substitution]))
     }
     else None
 }

@@ -40,6 +40,7 @@ object testCutIntro {
 
   def compressAll() = {
     // note: the "now starting" - lines are logged in the data file so that it can be separated into the particular test runs later
+    /*
     CutIntroDataLogger.trace( "---------- now starting ProofSeq/cut-intro" )
     compressProofSequences( 60, false, false )
     CutIntroDataLogger.trace( "---------- now starting ProofSeq/generalized cut-intro" )
@@ -48,20 +49,25 @@ object testCutIntro {
     compressProofSequences( 60, false, true )
     CutIntroDataLogger.trace( "---------- now starting ProofSeqEq/generalized cut-intro/EquationalProver" )
     compressProofSequences( 60, true, true )
+    */
 
+    /*
     CutIntroDataLogger.trace( "---------- now starting TSTP-Prover9/cut-intro/DefaultProver" )
     compressTSTP( "../testing/resultsCutIntro/tstp_non_trivial_termset.csv", 60, false, false )
     CutIntroDataLogger.trace( "---------- now starting TSTP-Prover9/generalized cut-intro/DefaultProver" )
     compressTSTP( "../testing/resultsCutIntro/tstp_non_trivial_termset.csv", 60, true, false )
+    */
     CutIntroDataLogger.trace( "---------- now starting TSTP-Prover9/cut-intro/chooseProver" )
     compressTSTP( "../testing/resultsCutIntro/tstp_non_trivial_termset.csv", 60, false, true )
     CutIntroDataLogger.trace( "---------- now starting TSTP-Prover9/generalized cut-intro/chooseProver" )
     compressTSTP( "../testing/resultsCutIntro/tstp_non_trivial_termset.csv", 60, true, true )
 
+    /*
     CutIntroDataLogger.trace( "---------- now starting SMT-LIB-QF_UF-veriT/cut-intro/DefaultProver" )
     compressVeriT( "../testing/veriT-SMT-LIB/QF_UF/", 60, false )
     CutIntroDataLogger.trace( "---------- now starting SMT-LIB-QF_UF-veriT/generalized cut-intro/DefaultProver" )
     compressVeriT( "../testing/veriT-SMT-LIB/QF_UF/", 60, true )
+    */
   }
 
   var total = 0

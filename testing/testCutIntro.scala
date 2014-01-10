@@ -21,9 +21,9 @@ import at.logic.provers._
  * scala> testCutIntro.findNonTrivialTSTPExamples( "../testing/prover9-TSTP/", 60 )
  *
  * test the tests by
- * scala> testCutIntro.compressTSTP( "../testing/resultsCutIntro/tstp_minitest.csv", 60, false, false )
- * scala> testCutIntro.compressVeriT( "../testing/veriT-SMT-LIB/QF_UF/eq_diamond/", 60, false )
- * scala> testCutIntro.compressProofSequences( 60, false, false )
+ * scala> testCutIntro.compressTSTP( "../testing/resultsCutIntro/tstp_minitest.csv", 60, true, true, true )
+ * scala> testCutIntro.compressVeriT( "../testing/veriT-SMT-LIB/QF_UF/eq_diamond/", 60, true )
+ * scala> testCutIntro.compressProofSequences( 60, true, true )
  *
  * run the tests by
  * scala> testCutIntro.compressAll
@@ -51,16 +51,14 @@ object testCutIntro {
     compressProofSequences( 60, true, true )
     */
 
-    /*
-    CutIntroDataLogger.trace( "---------- now starting TSTP-Prover9/cut-intro/DefaultProver" )
-    compressTSTP( "../testing/resultsCutIntro/tstp_non_trivial_termset.csv", 60, false, false )
-    CutIntroDataLogger.trace( "---------- now starting TSTP-Prover9/generalized cut-intro/DefaultProver" )
-    compressTSTP( "../testing/resultsCutIntro/tstp_non_trivial_termset.csv", 60, true, false )
-    */
-    CutIntroDataLogger.trace( "---------- now starting TSTP-Prover9/cut-intro/chooseProver" )
-    compressTSTP( "../testing/resultsCutIntro/tstp_non_trivial_termset.csv", 60, false, true )
-    CutIntroDataLogger.trace( "---------- now starting TSTP-Prover9/generalized cut-intro/chooseProver" )
-    compressTSTP( "../testing/resultsCutIntro/tstp_non_trivial_termset.csv", 60, true, true )
+    CutIntroDataLogger.trace( "---------- now starting TSTP-Prover9/cut-intro/chooseProver/NoForgetfulPara" )
+    compressTSTP( "../testing/resultsCutIntro/tstp_non_trivial_termset.csv", 60, false, true, false )
+    CutIntroDataLogger.trace( "---------- now starting TSTP-Prover9/generalized cut-intro/chooseProver/NoForgetfulPara" )
+    compressTSTP( "../testing/resultsCutIntro/tstp_non_trivial_termset.csv", 60, true, true, false )
+    CutIntroDataLogger.trace( "---------- now starting TSTP-Prover9/cut-intro/chooseProver/WithForgetfulPara" )
+    compressTSTP( "../testing/resultsCutIntro/tstp_non_trivial_termset.csv", 60, false, true, true )
+    CutIntroDataLogger.trace( "---------- now starting TSTP-Prover9/generalized cut-intro/chooseProver/WithForgetfulPara" )
+    compressTSTP( "../testing/resultsCutIntro/tstp_non_trivial_termset.csv", 60, true, true, true )
 
     /*
     CutIntroDataLogger.trace( "---------- now starting SMT-LIB-QF_UF-veriT/cut-intro/DefaultProver" )
@@ -167,7 +165,7 @@ object testCutIntro {
   }
 
   // Compress the prover9-TSTP proofs whose names are in the csv-file passed as parameter str
-  def compressTSTP( str: String, timeout: Int, useGenCutIntro: Boolean, chooseProver: Boolean ) = {
+  def compressTSTP( str: String, timeout: Int, useGenCutIntro: Boolean, chooseProver: Boolean, useForgetfulPara: Boolean ) = {
     
     TestCutIntroLogger.trace("================ Compressing non-trivial TSTP examples ===============")
     
@@ -179,12 +177,12 @@ object testCutIntro {
       number += 1
       val data = l.split(",")
       TestCutIntroLogger.trace("Processing proof number: " + number)
-      compressTSTPProof( data(0), timeout, useGenCutIntro, chooseProver )
+      compressTSTPProof( data(0), timeout, useGenCutIntro, chooseProver, useForgetfulPara )
     }
   }
 
   /// compress the prover9-TSTP proof found in file fn
-  def compressTSTPProof( fn: String, timeout: Int, useGenCutIntro: Boolean, chooseProver: Boolean ) = {
+  def compressTSTPProof( fn: String, timeout: Int, useGenCutIntro: Boolean, chooseProver: Boolean, useForgetfulPara: Boolean ) = {
     var log_ptime_ninfcf_nqinfcf = ""
     var status = "ok"
     var cutintro_logline = ""
@@ -227,7 +225,7 @@ object testCutIntro {
         case Some(ep) =>
           // TODO: choosing prover depending on EqR should eventually go into the stable CLI-command for cut-introduction
           val prover = if ( chooseProver && ( EqR == "true" ) ) new EquationalProver() else new DefaultProver()
-          val r = compressExpansionProof( ep, prover, useGenCutIntro, timeout )
+          val r = compressExpansionProof( ep, prover, useGenCutIntro, timeout, chooseProver && ( EqR == "true" ) && useForgetfulPara )
           status = r._1
           cutintro_logline = r._2
         case None => ()
@@ -298,7 +296,7 @@ object testCutIntro {
 
     opt_expproof match {
       case Some(ep) =>
-        val r = compressExpansionProof( ep, new DefaultProver(), useGenCutIntro, timeout )
+        val r = compressExpansionProof( ep, new DefaultProver(), useGenCutIntro, timeout, false )
         status = r._1
         cutintro_logline = r._2
       case None => ()
@@ -309,69 +307,69 @@ object testCutIntro {
 
   /***************************** Proof Sequences ******************************/
 
-  def compressProofSequences( timeout: Int, useGenCutIntro: Boolean, moduloEq: Boolean ) {
+  def compressProofSequences( timeout: Int, useGenCutIntro: Boolean, moduloEq: Boolean, useForgetfulPara: Boolean ) {
     TestCutIntroLogger.trace("================ Compressing proof sequences " + ( if (moduloEq) "(modulo equality)" else "(modulo propositional logic)" ) + "===============")
 
     for ( i <- 1 to 15 ) {
       val pn = "LinearExampleProof(" + i + ")"
       TestCutIntroLogger.trace( "PROOF: " + pn )
-      compressLKProof( pn, LinearExampleProof( i ), timeout, useGenCutIntro, moduloEq )
+      compressLKProof( pn, LinearExampleProof( i ), timeout, useGenCutIntro, moduloEq, useForgetfulPara )
     }
 
     for ( i <- 1 to 16 ) {
       val pn = "SquareDiagonalExampleProof(" + i + ")"
       TestCutIntroLogger.trace( "PROOF: " + pn )
-      compressLKProof( pn, SquareDiagonalExampleProof( i ), timeout, useGenCutIntro, moduloEq )
+      compressLKProof( pn, SquareDiagonalExampleProof( i ), timeout, useGenCutIntro, moduloEq, useForgetfulPara )
     }
 
     for ( i <- 1 to 12 ) {
       val pn = "SquareEdgesExampleProof(" + i + ")"
       TestCutIntroLogger.trace( "PROOF: " + pn )
-      compressLKProof( pn, SquareEdgesExampleProof( i ), timeout, useGenCutIntro, moduloEq )
+      compressLKProof( pn, SquareEdgesExampleProof( i ), timeout, useGenCutIntro, moduloEq, useForgetfulPara )
     }
 
     for ( i <- 1 to 16 ) {
       val pn = "SquareEdges2DimExampleProof(" + i + ")"
       TestCutIntroLogger.trace( "PROOF: " + pn )
-      compressLKProof( pn, SquareEdges2DimExampleProof( i ), timeout, useGenCutIntro, moduloEq )
+      compressLKProof( pn, SquareEdges2DimExampleProof( i ), timeout, useGenCutIntro, moduloEq, useForgetfulPara )
     }
 
     for ( i <- 1 to 15 ) {
       val pn = "LinearEqExampleProof(" + i + ")"
       TestCutIntroLogger.trace( "PROOF: " + pn )
-      compressLKProof( pn, LinearEqExampleProof( i ), timeout, useGenCutIntro, moduloEq )
+      compressLKProof( pn, LinearEqExampleProof( i ), timeout, useGenCutIntro, moduloEq, useForgetfulPara )
     }
 
     for ( i <- 1 to 8 ) {
       val pn = "SumOfOnesF2ExampleProof(" + i + ")"
       TestCutIntroLogger.trace( "PROOF: " + pn )
-      compressLKProof( pn, SumOfOnesF2ExampleProof( i ), timeout, useGenCutIntro, moduloEq )
+      compressLKProof( pn, SumOfOnesF2ExampleProof( i ), timeout, useGenCutIntro, moduloEq, useForgetfulPara )
     }
 
     for ( i <- 1 to 8 ) {
       val pn = "SumOfOnesFExampleProof(" + i + ")"
       TestCutIntroLogger.trace( "PROOF: " + pn )
-      compressLKProof( pn, SumOfOnesFExampleProof( i ), timeout, useGenCutIntro, moduloEq )
+      compressLKProof( pn, SumOfOnesFExampleProof( i ), timeout, useGenCutIntro, moduloEq, useForgetfulPara )
     }
 
     for ( i <- 1 to 10 ) {
       val pn = "SumOfOnesExampleProof(" + i + ")"
       TestCutIntroLogger.trace( "PROOF: " + pn )
-      compressLKProof( pn, SumOfOnesExampleProof( i ), timeout, useGenCutIntro, moduloEq )
+      compressLKProof( pn, SumOfOnesExampleProof( i ), timeout, useGenCutIntro, moduloEq, useForgetfulPara )
     }
 
     for ( i <- 1 to 4 ) {
       val pn = "UniformAssociativity3ExampleProof(" + i + ")"
       TestCutIntroLogger.trace( "PROOF: " + pn )
-      compressLKProof( pn, UniformAssociativity3ExampleProof( i ), timeout, useGenCutIntro, moduloEq )
+      compressLKProof( pn, UniformAssociativity3ExampleProof( i ), timeout, useGenCutIntro, moduloEq, useForgetfulPara )
     }
   }
 
-  def compressLKProof( name: String, p: LKProof, timeout: Int, useGenCutIntro: Boolean, moduloEq: Boolean ) = {
+  def compressLKProof( name: String, p: LKProof, timeout: Int, useGenCutIntro: Boolean, moduloEq: Boolean, useForgetfulPara: Boolean ) = {
     val r = if ( moduloEq )
-      compressExpansionProof( removeEqAxioms( extractExpansionTrees( p )), new EquationalProver() , useGenCutIntro, timeout )
+      compressExpansionProof( removeEqAxioms( extractExpansionTrees( p )), new EquationalProver() , useGenCutIntro, timeout, useForgetfulPara )
     else
-      compressExpansionProof( extractExpansionTrees( p ), new DefaultProver(), useGenCutIntro, timeout )
+      compressExpansionProof( extractExpansionTrees( p ), new DefaultProver(), useGenCutIntro, timeout, false )
 
     val status = r._1
     val cutintro_logline = r._2
@@ -405,11 +403,11 @@ object testCutIntro {
    *
    * @return ( status, logline )
    **/
-  def compressExpansionProof( ep: (Seq[ExpansionTree],Seq[ExpansionTree]), prover: Prover, useGenCutIntro: Boolean, timeout: Int ) : ( String, String ) = {
+  def compressExpansionProof( ep: (Seq[ExpansionTree],Seq[ExpansionTree]), prover: Prover, useGenCutIntro: Boolean, timeout: Int, useForgetfulPara: Boolean ) : ( String, String ) = {
     val r = if ( useGenCutIntro )
-      Generalized.CutIntroduction.applyStat( ep, new Generalized.Deltas.UnboundedVariableDelta(), prover, timeout )
+      Generalized.CutIntroduction.applyStat( ep, new Generalized.Deltas.UnboundedVariableDelta(), prover, timeout, useForgetfulPara )
     else
-      CutIntroduction.applyExp( ep, prover, timeout )
+      CutIntroduction.applyExp( ep, prover, timeout, useForgetfulPara )
 
     val status = r._2
     val logline = "," + quantRulesNumberET( ep ) + r._3 // log #qnodes

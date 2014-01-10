@@ -177,13 +177,14 @@ object CutIntroduction extends at.logic.utils.logging.Logger {
    * @param prover: The prover used for checking validity and constructing the final proof.
                     Default: use MiniSAT for validity check, LK proof search for proof building.
    * @param timeout: the timeout (in seconds)
+   * @param useForgetfulPara: whether to use also forgetful paramodulation when improving solution
    *
    * @return a triple ( p: Option[LKProof], s: String, l: String ) where s is a status string,
    * and l is a logging string with quantitative data,
    * see testing/resultsCutIntro/stats.ods ('format' sheet) for details.
    **/
   def applyExp( ep: (Seq[ExpansionTree], Seq[ExpansionTree]), prover: Prover = new DefaultProver(),
-                timeout: Int = 3600 /* 1 hour */ ) : ( Option[LKProof] , String, String ) = {
+                timeout: Int = 3600 /* 1 hour */, useForgetfulPara: Boolean = false ) : ( Option[LKProof] , String, String ) = {
     var log = ""
     var status = "ok"
     var phase = "termex" // used for knowing when a TimeOutException has been thrown, "term extraction"
@@ -240,7 +241,10 @@ object CutIntroduction extends at.logic.utils.logging.Logger {
         val t1 = System.currentTimeMillis
         val cutFormula0 = computeCanonicalSolution(endSequent, grammar)
         val ehs = new ExtendedHerbrandSequent(endSequent, grammar, cutFormula0)
-        val ehs1 = MinimizeSolution.apply2(ehs, prover)
+        val ehs1 = if ( useForgetfulPara )
+          MinimizeSolution.applyEq(ehs, prover)
+        else
+          MinimizeSolution.apply2(ehs, prover)
         val t2 = System.currentTimeMillis
         SolutionCTime += t2 - t1
    

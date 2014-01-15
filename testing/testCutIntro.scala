@@ -69,6 +69,7 @@ object testCutIntro {
   }
 
   var total = 0
+  var num_trivial_termset = 0
   var error_parser = 0
   var error_parser_OOM = 0
   var error_parser_SO = 0
@@ -123,6 +124,7 @@ object testCutIntro {
     bw.close()
 
     bw_s.write("Total number of proofs: " + total + "\n")
+    bw_s.write("Total number of proofs with trivial termsets: " + num_trivial_termset + "\n")
     bw_s.write("Total number of proofs with non-trivial termsets: " + termsets.size + "\n")
     bw_s.write("Time limit exceeded or exception during parsing: " + error_parser + "\n")
     bw_s.write("Time limit exceeded or exception during terms extraction: " + error_term_extraction + "\n")
@@ -154,7 +156,10 @@ object testCutIntro {
             //cutIntro(p) 
           } match {
             case Some(n) =>
-              if(n > 0) {
+              if( n == 0 ) {
+                num_trivial_termset += 1
+              }
+              else {
                 TestCutIntroLogger.trace("File: " + file.getAbsolutePath + " has term-set of size " + n)
               }
             case None => error_term_extraction += 1

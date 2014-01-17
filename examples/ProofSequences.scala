@@ -1176,3 +1176,148 @@ object FactorialFunctionEqualityExampleProof {
     induction_step_rec(p1, n)
   }
 }
+
+// Functions to construct cut-free FOL LK proofs of the sequents
+//
+// P(f^(2n)0,0), \ALL x. fx = ssx, \ALL xy . P(sx,y) -> P(x,sy) :- P(0,f^(2n)0)
+//
+// where n is an Integer parameter >= 0.
+object TwoDimFProof {
+  val s = new ConstantStringSymbol("s")
+  val f = new ConstantStringSymbol("f")
+  val p = new ConstantStringSymbol("P")
+
+  val c = FOLConst( new ConstantStringSymbol("a") )
+  val x = FOLVar( VariableStringSymbol("x") )
+  val y = FOLVar( VariableStringSymbol("y") )
+
+  val ax_1 = AllVar(x, Equation( Function(f, x::Nil), Function(s, Function( s, x::Nil )::Nil ) ) )
+  val ax_2 = AllVar(x, AllVar( y, Imp( Atom(p, Function(s, x::Nil)::y::Nil), Atom(p, x::Function(s, y::Nil)::Nil) ) ) )
+
+  def contract( p : LKProof ) : LKProof = {
+  p.root.antecedent.find( fo1 => p.root.antecedent.exists( fo2 => fo1 != fo2 && fo1.formula == fo2.formula )) match {
+      case Some(fo) => contract( ContractionLeftRule( p, fo.formula ) )
+      case None => p
+    }
+  }
+
+  def quantifyEq( p: LKProof ) : LKProof = p.root.antecedent.find( fo => fo.formula match { 
+      case Equation(_, _) => true
+      case _ => false
+    }) match {
+      case Some(fo) =>
+       val term = fo.formula match {
+         case Equation( Function( _, term::Nil ), _ ) => term
+       }
+      quantifyEq( ForallLeftRule( p, fo.formula, ax_1, term ) )
+      case None => p
+    }
+
+  def quantifyImp( proof: LKProof ) : LKProof = {
+    proof.root.antecedent.find( fo => fo.formula match { 
+      case Imp(_, _) => true
+      case _ => false
+    }) match {
+      case Some(fo) =>
+       val (termx,termy) = fo.formula match {
+         case Imp( Atom( _, Function(_, termx::Nil)::_ ), Atom(_, _::Function(_, termy::Nil)::Nil ) ) => (termx, termy)
+       }
+       val main = AllVar( y, Imp( Atom(p, Function(s, termx::Nil)::y::Nil), Atom(p, termx::Function(s, y::Nil)::Nil) ) )
+       val inf = ForallLeftRule( proof, fo.formula, main, termy )
+       quantifyImp(ForallLeftRule( inf, main, ax_2, termx ))
+      case None => proof
+    }
+  }
+
+  // TODO: quantify
+  def apply( n: Int ) = contract(quantifyImp(quantifyEq(contract( main( n, n )))))
+
+  private def fterm(t: FOLTerm, k: Int) = Utils.iterateTerm( t, f, k )
+  private def sterm(t: FOLTerm, k: Int) = Utils.iterateTerm( t, s, k )
+
+  // returns LKProof with end-sequent  :- f^n a = s^(2k)f^(n-k) a with some context.
+  def eq_proof( k: Int, n: Int ) : LKProof = {
+    if ( k == 0 )
+    {
+      val eq = Equation(fterm(c,n), fterm(c,n))
+      Axiom( Nil, eq::Nil)
+    }
+    else
+    {
+      val p = eq_proof( k-1, n )
+      
+      val eq = Equation(fterm(c, n-k+1), sterm(fterm(c, n-k), 2))
+      val ax = Axiom(eq::Nil, eq::Nil)
+      
+      val aux = Equation( fterm( c, n ), sterm(fterm( c, n - k + 1 ), 2*k-2) )
+      val main = Equation( fterm( c, n ), sterm(fterm( c, n - k ), 2*k) )
+      EquationRight1Rule( ax, p, eq, aux, main )
+    }
+  }
+   
+  // returns LKProof with end-sequent  P(f^n 0,s^(2n) 0)) :- P(s^(2n) 0,f^n 0) with some context.
+  def main_base( n: Int ) : LKProof =
+  {
+    val eqp1 = eq_proof( n, n )
+    val eqp2 = eq_proof( n, n )
+
+    val eq = Equation( fterm(c,n), sterm(c, 2*n) )
+
+    val at = Atom(p, fterm(c,n)::fterm(c,n)::Nil)
+    val ax = Axiom(at::Nil, at::Nil)
+
+    val left = Atom(p, fterm(c, n)::sterm(c, 2*n)::Nil )
+
+    val inf = EquationLeft2Rule(eqp1, ax, eq, at, left )
+
+    val right = Atom(p, sterm(c, 2*n)::fterm(c, n)::Nil )
+
+    EquationRight1Rule(eqp2, inf, eq, at, right )
+  }
+
+  // returns LKProof with end-sequent  P(f^(n+k)0,s^(2(n-k)0)) :- P(s^(2(n-k)0,f^(n+k)0) with some context.
+  def main( k: Int, n: Int )  : LKProof =
+  {
+    if ( k == 0 )
+      main_base( n )
+    else
+    {
+      val parent = main( k - 1, n )
+
+      val ass = Atom(p, fterm(c,n+k-1)::sterm(c,2*(n-(k-1)))::Nil )
+      val conc = Atom(p, sterm(c,2*(n-(k-1)))::fterm(c,n+k-1)::Nil )
+
+      val at = Atom(p, sterm(c,2*(n-(k-1))-1)::sterm(fterm(c,n+k-1),1)::Nil)
+      val ax = Axiom( at::Nil, at::Nil )
+      
+      val inf = ImpLeftRule( parent, ax, conc, at )
+
+      val at2 = Atom(p, sterm(c,2*(n-(k-1))-2)::sterm(fterm(c,n+k-1),2)::Nil)
+      val ax2 = Axiom( at2::Nil, at2::Nil )
+
+      val inf2 = ImpLeftRule( inf, ax2, at, at2 )
+
+      val eq = Equation( fterm( c, n+k ), sterm( fterm( c, n+k-1), 2) )
+      val eqax = Axiom( eq::Nil, eq::Nil )
+      val mainf = Atom(p, sterm(c, 2*(n-k))::fterm(c, n+k)::Nil )
+
+      val inf3 = EquationRight2Rule(eqax, inf2, eq, at2, mainf)
+      
+      val at3 = Atom(p, sterm(fterm(c,n+k-1),1)::sterm(c,2*(n-k+1)-1)::Nil)
+      val ax3 = Axiom( at3::Nil, at3::Nil )
+
+      val inf4 = ImpLeftRule( ax3, inf3, at3, ass )
+
+      val at4 = Atom(p, sterm(fterm(c,n+k-1),2)::sterm(c,2*(n-k+1)-2)::Nil)
+      val ax4 = Axiom( at4::Nil, at4::Nil )
+
+      val inf5 = ImpLeftRule( ax4, inf4, at4, at3 )
+
+      val eq2 = Equation( fterm( c, n+k ), sterm( fterm(c, n+k-1), 2) )
+      val eqax2 = Axiom( eq2::Nil, eq2::Nil )
+      val mainf2 = Atom(p, fterm(c, n+k)::sterm(c, 2*(n-k))::Nil )
+
+      EquationLeft2Rule(eqax2, inf5, eq, at4, mainf2)
+    }
+  }
+}

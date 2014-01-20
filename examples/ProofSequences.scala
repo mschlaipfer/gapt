@@ -1182,6 +1182,9 @@ object FactorialFunctionEqualityExampleProof {
 // P(f^(2n)0,0), \ALL x. fx = ssx, \ALL xy . P(sx,y) -> P(x,sy) :- P(0,f^(2n)0)
 //
 // where n is an Integer parameter >= 0.
+//
+// Note that the proof generalizes the proof (in particular the term set) of the
+// example in the CUTINTRO_EXP paper (n=2).
 object TwoDimFProof {
   val s = new ConstantStringSymbol("s")
   val f = new ConstantStringSymbol("f")
@@ -1229,8 +1232,7 @@ object TwoDimFProof {
     }
   }
 
-  // TODO: quantify
-  def apply( n: Int ) = contract(quantifyImp(quantifyEq(contract( main( n, n )))))
+  def apply( n: Int ) = contract(quantifyImp(quantifyEq(contract( real_main( 2*n )))))
 
   private def fterm(t: FOLTerm, k: Int) = Utils.iterateTerm( t, f, k )
   private def sterm(t: FOLTerm, k: Int) = Utils.iterateTerm( t, s, k )
@@ -1255,27 +1257,30 @@ object TwoDimFProof {
     }
   }
    
-  // returns LKProof with end-sequent  P(f^n 0,s^(2n) 0)) :- P(s^(2n) 0,f^n 0) with some context.
+  // returns LKProof with end-sequent  :- f^n a = s^(2n) a with some context.
+  def eq_proof_simp( n: Int ) : LKProof = eq_proof( n, n )
+
+  // returns LKProof with end-sequent  P(s^(n-4)f^2 a,s^n a)) :- P(s^n a, s^(n-4)f^2 a) with some context.
   def main_base( n: Int ) : LKProof =
   {
-    val eqp1 = eq_proof( n, n )
-    val eqp2 = eq_proof( n, n )
+    val eqp1 = eq_proof_simp( 2 )
+    val eqp2 = eq_proof_simp( 2 )
 
-    val eq = Equation( fterm(c,n), sterm(c, 2*n) )
+    val eq = Equation( fterm(c,2), sterm(c, 4) )
 
-    val at = Atom(p, fterm(c,n)::fterm(c,n)::Nil)
+    val at = Atom(p, sterm(c,n)::sterm(c,n)::Nil)
     val ax = Axiom(at::Nil, at::Nil)
 
-    val left = Atom(p, fterm(c, n)::sterm(c, 2*n)::Nil )
+    val left = Atom(p, sterm(fterm(c,2), n-4)::sterm(c, n)::Nil )
 
     val inf = EquationLeft2Rule(eqp1, ax, eq, at, left )
 
-    val right = Atom(p, sterm(c, 2*n)::fterm(c, n)::Nil )
+    val right = Atom(p, sterm(c, n)::sterm(fterm(c, 2), n-4)::Nil )
 
     EquationRight1Rule(eqp2, inf, eq, at, right )
   }
 
-  // returns LKProof with end-sequent  P(f^(n+k)0,s^(2(n-k)0)) :- P(s^(2(n-k)0,f^(n+k)0) with some context.
+  // returns LKProof with end-sequent  P(s^(n-4+k)f^2 a,s^(n-k)a) :- P(s^(n-k)a,s^(n-4+k)f^2) with some context.
   def main( k: Int, n: Int )  : LKProof =
   {
     if ( k == 0 )
@@ -1284,40 +1289,45 @@ object TwoDimFProof {
     {
       val parent = main( k - 1, n )
 
-      val ass = Atom(p, fterm(c,n+k-1)::sterm(c,2*(n-(k-1)))::Nil )
-      val conc = Atom(p, sterm(c,2*(n-(k-1)))::fterm(c,n+k-1)::Nil )
+      val ass = Atom(p, sterm(fterm(c,2),n+k-5)::sterm(c,n-k+1)::Nil )
+      val conc = Atom(p, sterm(c,n-k+1)::sterm(fterm(c,2),n+k-5)::Nil )
 
-      val at = Atom(p, sterm(c,2*(n-(k-1))-1)::sterm(fterm(c,n+k-1),1)::Nil)
+      val at = Atom(p, sterm(c,n-k)::sterm(fterm(c,2),n+k-4)::Nil)
       val ax = Axiom( at::Nil, at::Nil )
       
       val inf = ImpLeftRule( parent, ax, conc, at )
 
-      val at2 = Atom(p, sterm(c,2*(n-(k-1))-2)::sterm(fterm(c,n+k-1),2)::Nil)
+      val at2 = Atom(p, sterm(fterm(c,2),n+k-4)::sterm(c,n-k)::Nil)
       val ax2 = Axiom( at2::Nil, at2::Nil )
 
-      val inf2 = ImpLeftRule( inf, ax2, at, at2 )
-
-      val eq = Equation( fterm( c, n+k ), sterm( fterm( c, n+k-1), 2) )
-      val eqax = Axiom( eq::Nil, eq::Nil )
-      val mainf = Atom(p, sterm(c, 2*(n-k))::fterm(c, n+k)::Nil )
-
-      val inf3 = EquationRight2Rule(eqax, inf2, eq, at2, mainf)
-      
-      val at3 = Atom(p, sterm(fterm(c,n+k-1),1)::sterm(c,2*(n-k+1)-1)::Nil)
-      val ax3 = Axiom( at3::Nil, at3::Nil )
-
-      val inf4 = ImpLeftRule( ax3, inf3, at3, ass )
-
-      val at4 = Atom(p, sterm(fterm(c,n+k-1),2)::sterm(c,2*(n-k+1)-2)::Nil)
-      val ax4 = Axiom( at4::Nil, at4::Nil )
-
-      val inf5 = ImpLeftRule( ax4, inf4, at4, at3 )
-
-      val eq2 = Equation( fterm( c, n+k ), sterm( fterm(c, n+k-1), 2) )
-      val eqax2 = Axiom( eq2::Nil, eq2::Nil )
-      val mainf2 = Atom(p, fterm(c, n+k)::sterm(c, 2*(n-k))::Nil )
-
-      EquationLeft2Rule(eqax2, inf5, eq, at4, mainf2)
+      ImpLeftRule( ax2, inf, at2, ass )
     }
+  }
+
+  // returns LKProof with end-sequent  P(f^n a,a) :- P(a,f^n a) with some context.
+  def real_main( n: Int ) : LKProof = {
+    val proof = main( n, n ) // proves P(s^(2n-4)f^2 a, a) :- P(a, s^(2n-4)f^2 a)
+     
+    val eqp = eq_proof_simp( 2 )
+    val eq = Equation( fterm(c,2), sterm(c, 4) )
+
+    val oldat = Atom(p, sterm(fterm(c, 2), 2*n-4)::c::Nil)
+    val newat = Atom(p, sterm(c, 2*n)::c::Nil)
+
+    val inf = EquationLeft2Rule(eqp, proof, eq, oldat, newat )
+
+    val eqp2 = eq_proof_simp( 2 )
+    val oldat2 = Atom(p, c::sterm(fterm(c, 2), 2*n-4)::Nil)
+    val newat2 = Atom(p, c::sterm(c, 2*n)::Nil)
+    val inf2 = EquationRight2Rule(eqp2, inf, eq, oldat2, newat2 ) // proves P(s^(2n)a, a) :- P(a, s^(2n)f a)
+
+    val eqp3 = eq_proof_simp( n )
+    val eq2 = Equation( fterm(c,n), sterm(c, 2*n) )
+    val newat3 = Atom(p, fterm(c, n)::c::Nil)
+    val inf3 = EquationLeft2Rule(eqp3, inf2, eq2, newat, newat3 )
+
+    val eqp4 = eq_proof_simp( n )
+    val newat4 = Atom(p, c::fterm(c, n)::Nil)
+    EquationRight2Rule(eqp4, inf3, eq2, newat2, newat4 )
   }
 }

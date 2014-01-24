@@ -20,6 +20,8 @@
     <module>latex_parsing</module>
     <module>arithmetic_parsing</module>
     <module>veriT</module>
+    <module>hlk</module>
+    <module>shlk_parsing</module>
   </modules>
 
   <dependencies>

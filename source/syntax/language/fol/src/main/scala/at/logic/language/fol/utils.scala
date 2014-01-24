@@ -5,9 +5,12 @@
 package at.logic.language.fol
 
 import at.logic.language.lambda.types._
+import at.logic.language.lambda.symbols.getRenaming
 import at.logic.language.lambda.{freeVariables => freeVariablesLambda, rename => renameLambda}
 import at.logic.language.hol.{isPrenex => isPrenexHOL, containsQuantifier => containsQuantifierHOL}
 
+// Returns a list *without duplicates* of the free variables in the expression.
+// There is no guarantee on the ordering of the list.
 object freeVariables {
   def apply(e: FOLExpression) : List[FOLVar] = freeVariablesLambda(e).asInstanceOf[List[FOLVar]]
 }
@@ -37,7 +40,10 @@ object instantiate {
 // variables/constants in the blackList, returns this variable if this variable 
 // is not in the blackList
 object rename {
-  def apply(v: FOLVar, blackList: List[FOLVar]) : FOLVar = renameLambda(v, blackList).asInstanceOf[FOLVar]
+  // FIXME
+  // Why doesn't the first method work??? If needed, the same should be done for renaming of constants...
+  //def apply(v: FOLVar, blackList: List[FOLVar]) : FOLVar = renameLambda(v, blackList).asInstanceOf[FOLVar]
+  def apply(v: FOLVar, blackList: List[FOLVar]) : FOLVar = new FOLVar(getRenaming(v.sym, blackList.map(v => v.sym)))
   def apply(c: FOLConst, blackList: List[FOLConst]) : FOLConst = renameLambda(c, blackList).asInstanceOf[FOLConst]
 }
 

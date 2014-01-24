@@ -102,7 +102,7 @@ class PrimeProofTest extends SpecificationWithJUnit {
 //          x.antecedent.map(y => reduceHolToFol(y.asInstanceOf[HOLExpression],imap,iid).asInstanceOf[FOLFormula]),
 //          x.succedent.map(y => reduceHolToFol(y.asInstanceOf[HOLExpression],imap,iid).asInstanceOf[FOLFormula])
 //      ))
-//      val sections = ("Definitions", imap.toList.map(x => (x._1, createExampleFOLConstant(x._1, x._2))))::sectionsPre
+//      val sections = ("Definitions", imap.toList.map(x => (x._1, FOLConst(x._2))))::sectionsPre
 //
 //      val dcs = deleteTautologies( cs )
 //      Console.println("dcs size: " + dcs.size)

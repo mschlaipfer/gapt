@@ -6,7 +6,7 @@
 package at.logic.provers.minisat
 
 import at.logic.language.hol._
-import at.logic.calculi.resolution.base._
+import at.logic.calculi.resolution._
 import at.logic.algorithms.resolution.CNFp
   
 import java.io.BufferedReader

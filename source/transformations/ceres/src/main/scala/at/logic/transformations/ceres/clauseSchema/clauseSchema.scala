@@ -105,7 +105,6 @@ abstract class sResolutionTerm {}
         else
           res.tail.foldLeft(res.head)((acc, clause) => nonVarSclause(acc.asInstanceOf[nonVarSclause].ant ++ clause.asInstanceOf[nonVarSclause].ant, acc.asInstanceOf[nonVarSclause].succ ++ clause.asInstanceOf[nonVarSclause].succ)).asInstanceOf[sClause]
       }
-//      println("mergeNonVarSClauses = "+mergeNonVarSClauses)
       val sClauseVars = getSClausVars(c)
       if(sClauseVars.isEmpty)
         return mergeNonVarSClauses.asInstanceOf[nonVarSclause]
@@ -117,7 +116,6 @@ abstract class sResolutionTerm {}
       case comp:sClauseComposition =>
         getNonVarSclauses(comp.sclause1) ++ getNonVarSclauses(comp.sclause2)
       case _ => {
-//        println("case _ => "+c)
         throw new Exception("Error in getNonVarSclauses!")
       }
     }
@@ -151,7 +149,6 @@ abstract class sResolutionTerm {}
   //the sub is of type Var -> HOLExpression
   object applySubToSclauseOrSclauseTerm {
     def apply(sub: SchemaSubstitution3, c: sClauseTerm): sClauseTerm = {
-  //    println("sub, c = "+c)
       c match {
         case v:sClauseVar => c
         case cs:clauseSetTerm => {
@@ -222,7 +219,6 @@ abstract class sResolutionTerm {}
       require(l.head.exptype == Tindex())
       val typ = l.map(x => x.exptype).foldRight(Ti().asInstanceOf[TA])((x,t) => ->(x, t))
       val func = HOLConst(new ConstantStringSymbol(f), typ)
-//      println("func = "+func)
       return Function(func, l)
     }
     def apply(f: HOLConst, i: IntegerTerm, l: List[HOLExpression]): HOLExpression = {
@@ -298,7 +294,6 @@ abstract class sResolutionTerm {}
       t match {
         case sTermN(func, i, arg) if trs.map.contains(func) => {
           if (i == IntZero()) {
-      //            println("\n\ni == 0")
             val map = if(arg.size != 0)
                         Map[Var, HOLExpression]() + Pair(k, i) + Pair(l, arg.last)
                       else
@@ -331,7 +326,6 @@ abstract class sResolutionTerm {}
       t match {
         case sTermN(func, i, arg) if trs.map.contains(func) => {
           if (i == IntZero()) {
-//            println("\n\ni == 0")
             val base = trs.map.get(func).get._1._2
             subst(subst(base))
           }
@@ -365,9 +359,7 @@ abstract class sResolutionTerm {}
       val k = IntVar(new VariableStringSymbol("k"))
       t match {
         case clauseSchema(func, i::arg) if trsSclause.map.contains(func) => {
-//          println("\ncase clauseSchema(...)")
           if (i == IntZero()) {
-//            println("\n\ni == 0")
             val base = trsSclause.map.get(func).get._1._2
             unfoldSchemaClause(base, trsSclause, trsSterms, subst)//subst(base)
           }
@@ -375,21 +367,16 @@ abstract class sResolutionTerm {}
           if (i == k)
             t
           else {
-//            println("\nelse")
             apply(trsSclause.map.get(func).get._2._2, trsSclause, trsSterms, subst)
           }
         }
         case nonVarSclause(ant, succ) => {
-//          println("\n\nnonVarSclause !")
           val newant = ant.map(x => subst(x).asInstanceOf[HOLFormula])
           val newsucc = succ.map(x => subst(x).asInstanceOf[HOLFormula])
           nonVarSclause(newant.map(x => unfoldGroundAtom(x, trsSterms)), newsucc.map(x => unfoldGroundAtom(x, trsSterms)))
-//          nonVarSclause(newant, newsucc)
         }
         case co:sClauseComposition => {
-//          println("\nco : "+subst.map.head._2.asInstanceOf[IntegerTerm])
           val k = IntVar(new VariableStringSymbol("k"))
-//          println("map = "+subst.map)
           val map =
             if (subst.map.get(k).get.asInstanceOf[IntegerTerm] == IntZero())
               subst.map
@@ -409,79 +396,56 @@ abstract class sResolutionTerm {}
 
   class SchemaSubstitution3(val map: Map[Var, HOLExpression])  {
     def apply(expression: HOLExpression): HOLExpression = {
-//      println("subst :    "+expression)
       expression match {
         case x:IntVar => {
-//                println("\nIntVar = "+x)
           map.get(x) match {
             case Some(t) => {
-//                        println("substituting " + t.toStringSimple + " for " + x.toStringSimple)
               t
             }
             case _ => {
-//                        println(x + " Error in schema subst 1")
               x.asInstanceOf[HOLExpression]
             }
           }
         }
         case x:foVar => {
-//                  println("\nfoVar = "+x)
           map.get(x) match {
             case Some(t) => {
-              //          println("substituting " + t.toStringSimple + " for " + x.toStringSimple)
               t
             }
             case _ => {
-//                        println(x + " Error in schema subst 1")
               x.asInstanceOf[HOLExpression]
             }
           }
         }
         case IndexedPredicate(pointer @ f, l @ ts) => IndexedPredicate(pointer.name.asInstanceOf[ConstantSymbolA], apply(l.head.asInstanceOf[HOLExpression]).asInstanceOf[IntegerTerm]).asInstanceOf[HOLExpression]
-  //      case BigAnd(v, formula, init, end) => BigAnd(v, formula, apply(init.asInstanceOf[HOLExpression]).asInstanceOf[IntegerTerm], apply(end.asInstanceOf[T]).asInstanceOf[IntegerTerm] ).asInstanceOf[HOLExpression]
-  //      case BigOr(v, formula, init, end) =>   BigOr(v, formula, apply(init.asInstanceOf[HOLExpression]).asInstanceOf[IntegerTerm], apply(end.asInstanceOf[T]).asInstanceOf[IntegerTerm] ).asInstanceOf[HOLExpression]
         case Succ(n) => Succ(apply(n).asInstanceOf[IntegerTerm]).asInstanceOf[HOLExpression]
-  //      case Or(l @ left, r @ right) => Or(apply(l.asInstanceOf[T]).asInstanceOf[SchemaFormula], apply(r.asInstanceOf[T]).asInstanceOf[SchemaFormula]).asInstanceOf[T]
-  //      case And(l @ left, r @ right) => And(apply(l.asInstanceOf[T]).asInstanceOf[SchemaFormula], apply(r.asInstanceOf[T]).asInstanceOf[SchemaFormula]).asInstanceOf[T]
-  //      case Neg(l @ left) => Neg(apply(l.asInstanceOf[T]).asInstanceOf[SchemaFormula]).asInstanceOf[T]
         case at.logic.language.hol.Imp(l, r) => at.logic.language.hol.Imp(apply(l.asInstanceOf[HOLExpression]).asInstanceOf[HOLFormula], apply(r.asInstanceOf[HOLExpression]).asInstanceOf[HOLFormula]).asInstanceOf[HOLExpression]
         case AllVar(v, f) => AllVar(v, apply(f.asInstanceOf[HOLExpression]).asInstanceOf[HOLFormula]).asInstanceOf[HOLExpression]
         case ifo: indexedFOVar => {
-//          println("indexedFOVar")
           indexedFOVar(ifo.name, apply(ifo.index).asInstanceOf[IntegerTerm])
         }
         case Atom(name, args) => {
-//          println("Atom")
           val newAtomName = HOLConst(new ConstantStringSymbol(name.toString()), args.reverse.map(x => x.exptype).foldRight(To().asInstanceOf[TA])((x,t) => ->(x, t)))
-//        val newAtomName = HOLConst(new ConstantStringSymbol(name.toString()), FunctionType( To(), args.map( a => a.exptype ) ))
           Atom(newAtomName, args.map(x => {
-//              println("sub atom x = "+x)
             val rez = apply(x)
-//            println("rez sub atom = "+rez)
             rez
           }))
         }
 
 //        the indexed variable
         case HOLApp(fo2Var(name), index) if index.exptype == Tindex() => {
-//          println("HOLApp(func, arg) = "+expression)
-//          indexedFOVar(new VariableStringSymbol("x"), IntZero()).asInstanceOf[HOLExpression]
           HOLApp(fo2Var(name), apply(index))
         }
         case sTermN(name, i, args) => {
-//          println("sTermN = "+expression)
           sTermN(name, apply(i).asInstanceOf[IntegerTerm] :: args.map(x => apply(x)))
         }
         case foTerm(v, arg) => {
-//          println("foTerm")
           foTerm(v.asInstanceOf[HOLConst], apply(arg.asInstanceOf[HOLExpression])::Nil).asInstanceOf[HOLExpression]
         }
         case sIndTerm(func, i) => {
-//          println("subst sIndTerm")
           sIndTerm(func.name.toString(), apply(i).asInstanceOf[IntegerTerm])
         }
         case _ => {
-//                println("\ncase _ => " + expression)
           expression
         }
       }
@@ -644,7 +608,6 @@ abstract class sResolutionTerm {}
             }
         }
         case _ => {
-//          println("\ncase _ => "+t)
           t
         }
       }
@@ -674,7 +637,6 @@ abstract class sResolutionTerm {}
   //grounded rTerm
   object resolutionDeduction {
     def apply(t: sResolutionTerm, trsSclause: dbTRSclauseSchema, trsSterms: dbTRSsTermN, subst: SchemaSubstitution3, mapX: Map[sClauseVar, sClause]): sResolutionTerm = {
-//      println("resolutionDeduction")
       t match {
         case non:nonVarSclause => non
         case r:rTerm => {
@@ -688,7 +650,6 @@ abstract class sResolutionTerm {}
             return nonVarSclause(r.left.asInstanceOf[nonVarSclause].ant ::: non2Ant, r.right.asInstanceOf[nonVarSclause].succ ::: non1Succ)
           }
           else {
-//            println("else")
             val left = apply(r.left, trsSclause, trsSterms, subst, mapX)
             val right = apply(r.right, trsSclause, trsSterms, subst, mapX)
             apply(rTerm(left, right, r.atom), trsSclause, trsSterms, subst, mapX)
@@ -739,7 +700,6 @@ abstract class sResolutionTerm {}
         case t: sclTimes => sclTimes(apply(t.left, trsSclause, trsSterms, subst, mapX), apply(t.right, trsSclause, trsSterms, subst, mapX))
         case t: sclPlus => sclPlus(apply(t.left, trsSclause, trsSterms, subst, mapX), apply(t.right, trsSclause, trsSterms, subst, mapX))
         case _ => {
-//          println("case _ => "+cst)
           cst
         }
       }
@@ -774,7 +734,6 @@ abstract class sResolutionTerm {}
       rho match {
         case rho1: ResolutionProofSchema if resolutionProofSchemaDB.map.contains(rho1.name) => {
           if (rho1.args.head == IntZero()) {
-//            println("i == 0")
             val base = resolutionProofSchemaDB.map.get(rho1.name).get._1._2
             val new_mapX = Map[sClauseVar, sClause]() + Pair(X.asInstanceOf[sClauseVar], rho1.args.last.asInstanceOf[sClause])
             val delX = sClauseVarSubstitution(base, new_mapX)
@@ -790,29 +749,22 @@ abstract class sResolutionTerm {}
               }
             val step = resolutionProofSchemaDB.map.get(rho1.name).get._2._2
             var new_subst = new SchemaSubstitution3(map)
-//            println("new_subst = "+new_subst.map)
             val new_mapX = Map[sClauseVar, sClause]() + Pair(X.asInstanceOf[sClauseVar], rho1.args.last.asInstanceOf[sClause])
-//            println("new_mapX = "+new_mapX)
             val rho_new = IntVarSubstitution(step, subst)
-//            println("rho_new = "+rho_new)
             val delX = sClauseVarSubstitution(rho_new, new_mapX)
-//            println("delX = "+delX)
 
             apply(delX, trsSclause, trsSterms, new_subst, new_mapX)
           }
         }
         case r:rTerm => {
-//          println("r = "+r)
           var left = apply(r.left, trsSclause, trsSterms, subst, mapX)
           if (left.isInstanceOf[nonVarSclause]) {
             left = nonVarSclause(left.asInstanceOf[nonVarSclause].ant.map(f => unfoldGroundAtom(f, trsSterms)) , left.asInstanceOf[nonVarSclause].succ.map(f => unfoldGroundAtom(f, trsSterms)))
           }
-//          println("left = "+left)
           var right = apply(r.right, trsSclause, trsSterms, subst, mapX)
           if (right.isInstanceOf[nonVarSclause]) {
             right = nonVarSclause(right.asInstanceOf[nonVarSclause].ant.map(f => unfoldGroundAtom(f, trsSterms)) , right.asInstanceOf[nonVarSclause].succ.map(f => unfoldGroundAtom(f, trsSterms)))
           }
-//          println("right = "+right)
           rTerm(left, right, unfoldGroundAtom(r.atom, trsSterms))
         }
 //        case c:clauseSchema => TODO
@@ -853,7 +805,6 @@ abstract class sResolutionTerm {}
   //substitution for the  sClauseVar X in a resolution term
   object sClauseVarSubstitution {
     def apply(rho : sResolutionTerm, mapX: Map[sClauseVar, sClause]) : sResolutionTerm = {
-//      println("sClauseVarSubstitution : "+rho+"    "+mapX)
       rho match {
         case x:sClauseVar if mapX.contains(x) => mapX.get(x).get
         case r:rTerm => {
@@ -863,12 +814,10 @@ abstract class sResolutionTerm {}
 //        case c:clauseSchema => TODO
         case rps:ResolutionProofSchema => ResolutionProofSchema(rps.name, rps.args.map(x =>
           if (x.isInstanceOf[sResolutionTerm]) {
-//            println("x = "+x)
             sClauseVarSubstitution(x.asInstanceOf[sResolutionTerm], mapX)
           }
           else x) )
         case _ => {
-//          println("case _ => "+rho)
           rho
         }
       }
@@ -909,58 +858,40 @@ abstract class sResolutionTerm {}
   // it is applied after unfoldingAtomsInResTerm, i.e. after the substitution of all ω and X variables
   object fo2VarSubstitution {
     def apply(o: Object, mapfo2: Map[fo2Var, LambdaExpression]): Object = {
-//      println("\no = "+o)
-//      println("o.getClass = "+o.getClass)
       o match {
         case r:rTerm => {
           rTerm(apply(r.left, mapfo2).asInstanceOf[sResolutionTerm], apply(r.right, mapfo2).asInstanceOf[sResolutionTerm], apply(r.atom, mapfo2).asInstanceOf[HOLFormula])
         }
         case Atom(name, args) => {
-//          println("Atom")
           val newAtomName = HOLConst(new ConstantStringSymbol(name.toString()), args.reverse.map(x => x.exptype).foldRight(To().asInstanceOf[TA])((x,t) => ->(x, t)))
           val unfAtom = unfoldGroundAtom2(Atom(newAtomName, args.map(x => {
             val rez = apply(apply(x, mapfo2), mapfo2)
             rez.asInstanceOf[HOLExpression]
           })) )
-//          println("unfAtom = "+unfAtom)
           unfAtom
         }
         case at.logic.language.hol.Imp(f1, f2) => at.logic.language.hol.Imp(apply(f1, mapfo2).asInstanceOf[HOLFormula], apply(f2, mapfo2).asInstanceOf[HOLFormula])
         case at.logic.language.hol.And(f1, f2) => at.logic.language.hol.And(apply(f1, mapfo2).asInstanceOf[HOLFormula], apply(f2, mapfo2).asInstanceOf[HOLFormula])
         case at.logic.language.hol.Or(f1, f2) =>  at.logic.language.hol.Or(apply(f1, mapfo2).asInstanceOf[HOLFormula], apply(f2, mapfo2).asInstanceOf[HOLFormula])
         case HOLApp(v , index) if index.exptype == Tindex()  => {
-//          println("HOLApp(v , index) = "+o)
           val exp = HOLApp(mapfo2.get(v.asInstanceOf[fo2Var]).get, index)
-//          println("exp = "+exp)
           val beta = BetaReduction.betaReduce(exp)(BetaReduction.StrategyOuterInner.Innermost, BetaReduction.StrategyLeftRight.Leftmost)
-//          println("beta = "+unfoldSTerm(beta.asInstanceOf[HOLExpression]))
           unfoldSTerm(beta.asInstanceOf[HOLExpression])
         }
         case foTerm(v, arg) if v.exptype == ->(Ti(),Ti()) => {
-//          println("foTerm = "+o)
-//          println("v.getClass = "+v.getClass)
-//          println("v = "+v)
-//          println("arg = "+arg)
           val t = foTerm(v.asInstanceOf[HOLConst], apply(arg.asInstanceOf[HOLExpression], mapfo2).asInstanceOf[HOLExpression]::Nil).asInstanceOf[HOLExpression]
           //          println("t = "+t)
           t
         }
         case sTerm(v, i, args) => {
-//          println("sTerm = "+o)
-//          val t = foTerm(v.asInstanceOf[HOLVar], apply(args.asInstanceOf[HOLExpression], mapfo2).asInstanceOf[HOLExpression]::Nil).asInstanceOf[HOLExpression]
-//          //          println("t = "+t)
-//          t
           unfoldSTerm(o.asInstanceOf[HOLExpression])
         }
         case non: nonVarSclause => nonVarSclause(non.ant.map(f => apply(f, mapfo2).asInstanceOf[HOLFormula]), non.succ.map(f => apply(f, mapfo2).asInstanceOf[HOLFormula]))
         case indFOvar: indexedFOVar => {
-//          println("indexedFOVar = "+o)
           val z = fo2Var(new VariableStringSymbol(indFOvar.name.toString()))
           apply(HOLApp(z, indFOvar.index), mapfo2)
         }
-//        case v: foVar =>
         case _ => {
-//          println("case _ => " + o +" : "+o.getClass)
           o
         }
       }
@@ -979,19 +910,9 @@ abstract class sResolutionTerm {}
             val left = up1.root.succedent.filter(fo => fo.formula.syntaxEquals(t.atom)).tail.foldLeft(up1)((acc, fo) => ContractionRightRule(acc, fo.formula))
             val right = up2.root.antecedent.filter(fo => fo.formula.syntaxEquals(t.atom)).tail.foldLeft(up2)((acc, fo) => ContractionLeftRule(acc, fo.formula))
             if(! left.root.succedent.map(fo=>fo.formula).filter(x => x.syntaxEquals(t.atom)).isEmpty) {
-//              println("\nleft1")
-//              printSchemaProof(left)
-//              println("\nright1")
-//              printSchemaProof(right)
-//              println("\nt.atom = "+t.atom)
               return CutRule(left, right, t.atom)
             }
             else {
-//              println("\nleft2")
-//              printSchemaProof(left)
-//              println("\nright2")
-//              printSchemaProof(right)
-//              println("\nt.atom = "+t.atom)
               return CutRule(right, left, t.atom)
             }
           }
@@ -1004,11 +925,6 @@ abstract class sResolutionTerm {}
                       else
                         up2.root.succedent.filter(fo => fo.formula.syntaxEquals(t.atom)).tail.foldLeft(up2)((acc, fo) => ContractionRightRule(acc, fo.formula))
           if(! left.root.succedent.map(fo=>fo.formula).filter(x => x.syntaxEquals(t.atom)).isEmpty ) {
-//            println("\nleft3")
-//            printSchemaProof(left)
-//            println("\nright3")
-//            printSchemaProof(right)
-//            println("\nt.atom = "+t.atom)
             return CutRule(left, right, t.atom)
           }
           else {

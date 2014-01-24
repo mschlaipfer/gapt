@@ -9,7 +9,7 @@ package at.logic.language.schema
 import at.logic.language.lambda.types._
 import at.logic.language.lambda.FactoryA
 import at.logic.language.lambda.symbols._
-import at.logic.language.hol.{HOLFormula, HOLExpression, HOLVar, HOLConst, HOLApp, HOLAbs, isLogicalSymbol}
+import at.logic.language.hol.{HOLFormula, HOLExpression, isLogicalSymbol}
 import at.logic.language.hol.logicSymbols._
 import at.logic.language.schema.logicSymbols._
 
@@ -88,7 +88,7 @@ class indexedOmegaVar(sym: SymbolA, val index: SchemaExpression) extends SchemaV
   }
 }
 object indexedOmegaVar {
-  def apply(name: String, i: SchemaExpression): HOLVar = {
+  def apply(name: String, i: SchemaExpression): SchemaVar = {
     new indexedOmegaVar(StringSymbol(name), i)
   }
   def unapply(s: SchemaExpression) = s match {

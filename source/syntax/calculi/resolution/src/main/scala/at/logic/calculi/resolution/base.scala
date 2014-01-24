@@ -10,7 +10,6 @@ import at.logic.calculi.proofs._
 import at.logic.calculi.lk.base.{Sequent, createContext => lkCreateContext}
 import at.logic.calculi.lksk.LabelledFormulaOccurrence
 import at.logic.calculi.lksk.TypeSynonyms.Label
-import at.logic.language.fol.FOLFormula
 import at.logic.language.hol._
 import at.logic.language.hol.skolemSymbols.TypeSynonyms.SkolemSymbol
 import at.logic.language.lambda.types.{TA, FunctionType}
@@ -56,8 +55,8 @@ object StripNeg {
 // TODO: make a class out of this?? (That extends sequent, maybe) I did not manage to reuse it where I wanted... 
 // Too many castings and adaptations had to be done (seqs to sets or lists, Formulas to FOLFormulas, etc) :(
 trait FClause {
-  def neg:Seq[Formula]
-  def pos:Seq[Formula]
+  def neg:Seq[HOLFormula]
+  def pos:Seq[HOLFormula]
   def multisetEquals(f : FClause, g : FClause) : Boolean =
     f.neg.diff(g.neg).isEmpty && f.pos.diff(g.pos).isEmpty &&
       g.neg.diff(f.neg).isEmpty && g.pos.diff(f.pos).isEmpty
@@ -96,7 +95,7 @@ trait FClause {
 
 // a default factory
 object FClause {
- def apply(n:Seq[Formula], p:Seq[Formula]): FClause = new FClause {def neg = n; def pos = p}
+ def apply(n:Seq[HOLFormula], p:Seq[HOLFormula]): FClause = new FClause {def neg = n; def pos = p}
  def unapply(fc : FClause) = Some((fc.neg,fc.pos))
 }
 

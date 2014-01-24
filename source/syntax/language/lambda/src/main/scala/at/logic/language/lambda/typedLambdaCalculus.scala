@@ -87,7 +87,7 @@ class Const(val sym: SymbolA, val exptype: TA) extends LambdaExpression {
   }
   
   // Printing
-  override def toString() = "Cons(" + name + "," + exptype + ")"
+  override def toString() = "Const(" + name + "," + exptype + ")"
 
   override def hashCode() = (41 * name.hashCode) + exptype.hashCode
 }

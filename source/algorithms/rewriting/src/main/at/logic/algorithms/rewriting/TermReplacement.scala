@@ -1,7 +1,7 @@
 
 package at.logic.algorithms.rewriting
 
-import at.logic.language.lambda.{Abs, App, Var, LambdaExpression}
+import at.logic.language.lambda.{Abs, App, Var, Const, LambdaExpression}
 import at.logic.language.hol.{HOLVar, HOLFormula, HOLExpression}
 import at.logic.calculi.lk.base.FSequent
 import at.logic.calculi.resolution.robinson._
@@ -47,6 +47,8 @@ object TermReplacement extends Logger {
     if (term == what) by else
     term match {
       case Var(s, t) =>
+        if (what == term) by else term
+      case Const(s, t) =>
         if (what == term) by else term
       case App(s,t) =>
         val s_ = rename_term(s, what, by)

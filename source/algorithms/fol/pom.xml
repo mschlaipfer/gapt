@@ -10,4 +10,12 @@
   <artifactId>folalgorithms</artifactId>
   <packaging>jar</packaging>  
   <name>Algorithms for FOL and related datastructures</name>
+  
+  <dependencies>
+    <dependency>
+      <groupId>at.logic</groupId>
+      <artifactId>schema</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
 </project>

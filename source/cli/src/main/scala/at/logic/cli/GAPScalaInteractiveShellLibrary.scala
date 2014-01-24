@@ -372,7 +372,7 @@ object printProofStats {
              x.antecedent.map(y => reduceHolToFol(y.asInstanceOf[HOLExpression],imap,iid).asInstanceOf[FOLFormula]),
              x.succedent.map(y => reduceHolToFol(y.asInstanceOf[HOLExpression],imap,iid).asInstanceOf[FOLFormula])
              ))*/
-          ("Definitions", imap.toList.map(x => (x._1, createExampleFOLConstant(x._1, x._2))))::sectionsPre
+          ("Definitions", imap.toList.map(x => (x._1, FOLConst(x._2))))::sectionsPre
         }
       catch {
         case _ => sectionsPre

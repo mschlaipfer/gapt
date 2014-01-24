@@ -67,10 +67,6 @@ class Substitution(val map: Map[Var, LambdaExpression]) {
   // note: compose is in function application notation i.e. (sigma compose tau) apply x = sigma(tau(x)) = x.tau.sigma
   def compose(sub: Substitution): Substitution = Substitution(map ++ sub.map.map(x => (x._1, apply(x._2))))
 
-  // TODO ??? used twice in resolution/PCNF.scala
-  // like compose but do not apply the first sub to the second not that the sub might not be idempotent
-  def simultaneousCompose(sub: Substitution): Substitution = Substitution(map ++ sub.map)
-
   //REMARK: this does not imply the substitution is injective
   def isRenaming = map.forall( p => p._2.isInstanceOf[Var] )
 

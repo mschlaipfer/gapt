@@ -142,9 +142,9 @@ object delta {
     case 1 => return (eigenvariable, terms)
     case _ => terms.head match {
       // If the variables are reached
-      case FOLVar(s) =>
+      case FOLVar(_) | FOLConst(_) =>
         // If all variables are equal
-        if ( terms.forall(t => t.syntaxEquals(terms.head)) ) { return (FOLVar(s), Nil) }
+        if ( terms.forall(t => t.syntaxEquals(terms.head)) ) { return (terms.head, Nil) }
         // If there are different variables 
         else { return (eigenvariable, terms) }
  

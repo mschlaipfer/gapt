@@ -11,13 +11,8 @@ package at.logic.algorithms.cutIntroduction
 import at.logic.calculi.occurrences._
 import at.logic.calculi.lk._
 import at.logic.calculi.lk.base._
-//import at.logic.calculi.lk.propositionalRules._
-//import at.logic.calculi.lk.quantificationRules._
 import at.logic.language.fol._
-//import at.logic.language.fol.Utils._
 import at.logic.algorithms.lk.solvePropositional._
-//import at.logic.language.lambda.symbols._
-//import at.logic.language.hol.logicSymbols._
 import at.logic.algorithms.resolution._
 import at.logic.calculi.resolution.FClause
 import at.logic.utils.logging.Logger

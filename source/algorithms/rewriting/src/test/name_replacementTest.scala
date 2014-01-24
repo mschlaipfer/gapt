@@ -3,25 +3,38 @@ package at.logic.algorithms.rewriting
 import org.junit.runner.RunWith
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.runner.JUnitRunner
-import at.logic.parsing.language.simple.{SimpleHOLParser, SimpleFOLParser}
-import at.logic.language.fol.{FOLExpression, FOLVar, FOLTerm, FOLFormula, Substitution}
-import java.io.{FileInputStream, InputStreamReader}
+import at.logic.language.fol._
+import at.logic.language.hol.{HOLConst, HOLVar, Atom => HOLAtom, Function => HOLFunction, And => HOLAnd, Or => HOLOr, Neg => HOLNeg}
+import at.logic.language.lambda.types._
 import at.logic.calculi.resolution.robinson._
 import at.logic.calculi.resolution._
 import at.logic.utils.ds.acyclicGraphs.{BinaryAGraph, UnaryAGraph, LeafAGraph, AGraph}
-import at.logic.parsing.readers.StringReader
 
 /**
  * Test for renaming of constant symbols
  */
 @RunWith(classOf[JUnitRunner])
 class name_replacementTest extends SpecificationWithJUnit {
-
+    
+  val c1 = Atom("P", Function("g", FOLConst("a")::Nil)::Nil)
+  val c2 = Atom("P", Function("g", FOLVar("x")::Nil)::Nil)
+  val c3 = Atom("Q", Function("f", FOLConst("ladr0")::Nil)::Nil)
+  val c4 = Atom("Q", FOLVar("x")::Nil)
+  
+  val x = FOLVar("x")
+  val a = FOLConst("a")
+  val fl = Function("f", FOLConst("ladr0")::Nil)
+  
+  val d1 = Atom("R", Function("f", FOLConst("a")::Nil)::Nil)
+  val d2 = Atom("R", Function("f", FOLVar("x")::Nil)::Nil)
+  val d3 = Atom("Q", Function("h", FOLConst("c0")::Nil)::Nil)
+  val d4 = Atom("Q", FOLVar("x")::Nil)
+  
+  val hc = Function("h", FOLConst("c0")::Nil)
+  
   object proof1 {
-    val List(c1,c2,c3,c4) = List("P(g(a))", "P(g(x))","Q(f(ladr0))", "Q(x)") map (parse fol)
-    val List(x,a,fl) = List("x","a","f(ladr0)") map (parse folterm)
-    val s1 = Substitution((x.asInstanceOf[FOLVar], a))
-    val s2 = Substitution((x.asInstanceOf[FOLVar], fl))
+    val s1 = Substitution(Map(x -> a))
+    val s2 = Substitution(Map(x -> fl))
     val p1 = InitialClause(List(c1,c1), List(c3))
     val p2 = InitialClause(Nil, List(c2))
     val p3 = InitialClause(List(c4), Nil)
@@ -31,10 +44,8 @@ class name_replacementTest extends SpecificationWithJUnit {
   }
 
   object proof2 {
-    val List(d1,d2,d3,d4) = List("R(f(a))", "R(f(x))","Q(h(c0))", "Q(x)") map (parse fol)
-    val List(x,a,hc) = List("x","a","h(c0)") map (parse folterm)
-    val r1 = Substitution((x.asInstanceOf[FOLVar], a))
-    val r2 = Substitution((x.asInstanceOf[FOLVar], hc))
+    val r1 = Substitution(Map(x -> a))
+    val r2 = Substitution(Map(x -> hc))
     val q1 = InitialClause(List(d1,d1), List(d3))
     val q2 = InitialClause(Nil, List(d2))
     val q3 = InitialClause(List(d4), Nil)
@@ -44,10 +55,8 @@ class name_replacementTest extends SpecificationWithJUnit {
   }
 
   object proof3 {
-    val List(c1,c2,c3,c4) = List("P(g(a))", "P(g(x))","Q(f(ladr0))", "Q(x)") map (parse fol)
-    val List(x,a,fl) = List("x","a","f(ladr0)") map (parse folterm)
-    val s1 = Substitution((x.asInstanceOf[FOLVar], a))
-    val s2 = Substitution((x.asInstanceOf[FOLVar], fl))
+    val s1 = Substitution(Map(x -> a))
+    val s2 = Substitution(Map(x -> fl))
     val p0 = InitialClause(List(c1,c2), List(c3))
     val p1 = Factor(p0, p0.root.negative(1), p0.root.negative(0)::Nil, Substitution())
     val p2 = InitialClause(Nil, List(c2))
@@ -58,10 +67,8 @@ class name_replacementTest extends SpecificationWithJUnit {
 
   object proof4 {
     //this proof has errors: the factor rule needs a unification
-    val List(d1,d2,d3,d4) = List("R(f(a))", "R(f(x))","Q(h(c0))", "Q(x)") map (parse fol)
-    val List(x,a,hc) = List("x","a","h(c0)") map (parse folterm)
-    val r1 = Substitution((x.asInstanceOf[FOLVar], a))
-    val r2 = Substitution((x.asInstanceOf[FOLVar], hc))
+    val r1 = Substitution(Map(x -> a))
+    val r2 = Substitution(Map(x -> hc))
     val q0 = InitialClause(List(d1,d2), List(d3))
     val q1 = Factor(q0, q0.root.negative(1), q0.root.negative(0)::Nil, Substitution())
     val q2 = InitialClause(Nil, List(d2))
@@ -70,22 +77,6 @@ class name_replacementTest extends SpecificationWithJUnit {
     val q6 = Resolution(q5, q3, q5.root.positive(0) ,q3.root.negative(0), r2)
 
   }
-
-
-  object proof5 {
-    val List(c1,c2,c3,c4) = List("P(g(a))", "P(g(x))","P(g(y))", "P(z)") map (parse fol)
-    val List(d1,d2,d3,d4) = List("R(f(a))", "R(f(x))","R(f(y))", "R(z)") map (parse fol)
-    val List(x,a,y) = List("x","a","y") map (parse folterm)
-    /*
-    val s1 = Substitution((x.asInstanceOf[FOLVar], a))
-    val p0 = InitialClause(List(c1,c1), List(c3))
-    val p1 = Factor(p0, p0.root.negative(0), p0.root.negative(1)::Nil, s1)
-    val p2 = InitialClause(Nil, List(c2))
-    val p5 = Resolution(p2, p1, p2.root.positive(0), p1.root.negative(0), s1)
-    */
-  }
-
-
 
   def checkClause(c: Clause, d:Clause) = c.toFSequent multiSetEquals(d.toFSequent)
   def checkTree(r : AGraph[Clause], o : AGraph[Clause]) : Option[(AGraph[Clause], AGraph[Clause])] = {
@@ -113,24 +104,51 @@ class name_replacementTest extends SpecificationWithJUnit {
   }}
 
 
-    def debug(s:String) = {println("Debug: "+s)}
-    val map : NameReplacement.SymbolMap = Map[String, (Int,String)](
-      "P" -> (2, "R"),
-      "f" -> (1, "h"),
-      "g" -> (2, "f"),
-      "ladr0" -> (0, "c0")
-      )
+  val map : NameReplacement.SymbolMap = Map[String, (Int,String)](
+    "P" -> (2, "R"),
+    "f" -> (1, "h"),
+    "g" -> (2, "f"),
+    "ladr0" -> (0, "c0")
+  )
 
   "The renaming interface " should {
-    "rewrite hol formulas" in {
-      val fol1  = parse hol "And P(ladr0:i,f(ladr0:i):i) Or Neg P(a:i,ladr0:i) Q(g(x:o):i)"
-      val fol1_ = parse hol "And R(c0:i,h(c0:i):i) Or Neg R(a:i,c0:i) Q(g(x:o):i)"
-      fol1_ must beEqualTo( NameReplacement(fol1, map ))
-    }
-
     "rewrite fol formulas" in {
-      val fol1  = parse fol "And P(ladr0,f(ladr0)) Or Neg P(a,ladr0) Q(g(x))"
-      val fol1_ = parse fol "And R(c0,h(c0)) Or Neg R(a,c0) Q(g(x))"
+      val p_ladr_fladr = Atom("P", FOLConst("ladr0")::Function("f", FOLConst("ladr0")::Nil)::Nil)
+      val p_a_ladr = Atom("P", FOLConst("a")::FOLConst("ladr0")::Nil)
+      val q_gx = Atom("Q", Function("g", FOLVar("x")::Nil)::Nil)
+      
+      val fol1 = And(p_ladr_fladr, Or(Neg(p_a_ladr), q_gx))
+
+      val r_c_hc = Atom("R", FOLConst("c0")::Function("h", FOLConst("c0")::Nil)::Nil)
+      val r_a_c = Atom("R", FOLConst("a")::FOLConst("c0")::Nil)
+      
+      val fol1_ = And(r_c_hc, Or(Neg(r_a_c), q_gx))
+
+      fol1_ must beEqualTo( NameReplacement(fol1, map ))
+    }    
+    
+    "rewrite hol formulas" in {
+      val P = HOLConst("P", Ti -> (Ti -> To))
+      val Q = HOLConst("Q", Ti -> To)
+      val R = HOLConst("R", Ti -> (Ti -> To))
+      val f = HOLConst("f", Ti -> Ti)
+      val g = HOLConst("g", Ti -> Ti)
+      val h = HOLConst("h", Ti -> Ti)
+
+      val ladr = HOLConst("ladr0", Ti)
+      val c0 = HOLConst("c0", Ti)
+
+      val p_ladr_fladr = HOLAtom(P, ladr::HOLFunction(f, ladr::Nil)::Nil)
+      val p_a_ladr = HOLAtom(P, HOLConst("a", Ti)::ladr::Nil)
+      val q_gx = HOLAtom(Q, HOLFunction(g, HOLVar("x", Ti)::Nil)::Nil)
+      
+      val fol1 = HOLAnd(p_ladr_fladr, HOLOr(HOLNeg(p_a_ladr), q_gx))
+
+      val r_c_hc = HOLAtom(R, c0::HOLFunction(h, c0::Nil)::Nil)
+      val r_a_c = HOLAtom(R, HOLConst("a", Ti)::c0::Nil)
+      
+      val fol1_ = HOLAnd(r_c_hc, HOLOr(HOLNeg(r_a_c), q_gx))
+
       fol1_ must beEqualTo( NameReplacement(fol1, map ))
     }
 
@@ -162,34 +180,7 @@ class name_replacementTest extends SpecificationWithJUnit {
       val (_,fproof) = NameReplacement.rename_resproof(proof3.p6, map)
       //fproof.nodes map println
       checkTree(fproof, proof4.q6) must beEmpty
-
-
     }
-
- }
-
-}
-
-//helpers for parsing
-private[rewriting] object parse {
-  private class CLIParserFOL(input: String) extends StringReader(input) with SimpleFOLParser
-  private class CLIParserHOL(input: String) extends StringReader(input) with SimpleHOLParser
-
-  def fol(string:String) = {
-    new CLIParserFOL(string).getTerm.asInstanceOf[FOLFormula]
   }
-
-  def folterm(string:String) = {
-    new CLIParserFOL(string).getTerm.asInstanceOf[FOLTerm]
-  }
-
-  //this is redundant
-  def hol(string:String) = {
-    new CLIParserHOL(string) getTerm
-  }
-
-  //    def slk(file:String) = {
-  //      ParseQMON.parseProofFlat( new InputStreamReader(new FileInputStream( file ) ) )
-  //    }
 }
 

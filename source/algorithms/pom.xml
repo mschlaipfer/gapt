@@ -40,16 +40,21 @@
     </dependency>
     <dependency>
       <groupId>at.logic</groupId>
-      <artifactId>lambda</artifactId>
+      <artifactId>schema</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
     <dependency>
-    <groupId>at.logic</groupId>
+      <groupId>at.logic</groupId>
       <artifactId>lk</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
     <dependency>
-    <groupId>at.logic</groupId>
+      <groupId>at.logic</groupId>
+      <artifactId>slk</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>at.logic</groupId>
       <artifactId>lksk</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>

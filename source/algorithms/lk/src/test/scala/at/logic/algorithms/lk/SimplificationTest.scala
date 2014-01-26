@@ -6,7 +6,6 @@ import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 
 import at.logic.language.fol.{FOLFormula, FOLExpression}
-import at.logic.parsing.language.simple.{SimpleFOLParser, SimpleHOLParser}
 import at.logic.language.hol._
 import at.logic.language.fol.{Function => FOLFunction, Atom => FOLAtom, FOLVar, FOLConst}
 import at.logic.language.lambda.types._

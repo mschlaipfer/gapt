@@ -270,7 +270,7 @@ Formulas can be entered as strings which are parsed as follows:
 scala> val F = parse.fol( "Imp A Imp B And A B" )
 F: at.logic.language.fol.FOLFormula = (A$\supset$(B$\supset$(A$\land$B)))
 \end{lstlisting}
-For a first-order examples consider:
+For a first-order example consider:
 \begin{lstlisting}
 scala> val G = parse.fol( "Forall x Imp P(x,f(x)) Exists y P(x,y)" )
 G: at.logic.language.fol.FOLFormula = $\forall$x.(P(x, f(x))$\supset\exists$y.P(x, y))
@@ -385,26 +385,16 @@ Section~\ref{sec.entering_formulas}, suppose that we want to enter a
 proof of \texttt{F}. It is convenient to prepare the subformulas first.
 \begin{lstlisting}
 scala> val F1 = parse.fol( "Imp B And A B" )
-F1: at.logic.language.fol.FOLFormula = (B$\supset$(A$\land$B))
-
 scala> val F2 = parse.fol( "And A B" )
-F2: at.logic.language.fol.FOLFormula = (A$\land$B)
-
 scala> val A = parse.fol( "A" )
-A: at.logic.language.fol.FOLFormula = A
-
 scala> val B = parse.fol( "B" )
-B: at.logic.language.fol.FOLFormula = B
 \end{lstlisting}
 %
 We start with the axioms:
 %
 \begin{lstlisting}
 scala> val p1 = Axiom( A::Nil, A::Nil )
-p1: at.logic.utils.ds.trees.LeafTree[at.logic.calculi.lk.base.Sequent] with at.logic.calculi.lk.base.NullaryLKProof{def rule: at.logic.calculi.lk.propositionalRules.InitialRuleType.type} = InitialRuleType(A :- A)
-
 scala> val p2 = Axiom( B::Nil, B::Nil )
-p2: at.logic.utils.ds.trees.LeafTree[at.logic.calculi.lk.base.Sequent] with at.logic.calculi.lk.base.NullaryLKProof{def rule: at.logic.calculi.lk.propositionalRules.InitialRuleType.type} = InitialRuleType(B :- B)
 \end{lstlisting}
 %
 These are joined by an $\land:\mathrm{right}$-inference. See Appendix~\ref{app:sequent_calculus}
@@ -412,17 +402,13 @@ for the formal definition of the sequent calculus used in GAPT.
 %
 \begin{lstlisting}
 scala> val p3 = AndRightRule( p1, p2, A, B )
-p3: at.logic.calculi.lk.base.BinaryLKProof with at.logic.calculi.lk.base.BinaryLKProof with at.logic.calculi.lk.base.AuxiliaryFormulas with at.logic.calculi.lk.base.PrincipalFormulas = AndRightRuleType(A, B :- (A∧B), InitialRuleType(A :- A), InitialRuleType(B :- B))
 \end{lstlisting}
 %
 To finish the proof it remains to apply two $\impl:\mathrm{right}$-inferences:
 %
 \begin{lstlisting}
 scala> val p4 = ImpRightRule( p3, B, F2 )
-p4: at.logic.utils.ds.trees.UnaryTree[at.logic.calculi.lk.base.Sequent] with at.logic.calculi.lk.base.UnaryLKProof with at.logic.calculi.lk.base.AuxiliaryFormulas with at.logic.calculi.lk.base.PrincipalFormulas = ImpRightRuleType(A :- (B⊃(A∧B)), AndRightRuleType(A, B :- (A∧B), InitialRuleType(A :- A), InitialRuleType(B :- B)))
-
 scala> val p5 = ImpRightRule( p4, A, F1 )
-p5: at.logic.utils.ds.trees.UnaryTree[at.logic.calculi.lk.base.Sequent] with at.logic.calculi.lk.base.UnaryLKProof with at.logic.calculi.lk.base.AuxiliaryFormulas with at.logic.calculi.lk.base.PrincipalFormulas = ImpRightRuleType( :- (A⊃(B⊃(A∧B))), ImpRightRuleType(A :- (B⊃(A∧B)), AndRightRuleType(A, B :- (A∧B), InitialRuleType(A :- A), InitialRuleType(B :- B))))
 \end{lstlisting}
 %
 You can now view this proof by typing:
@@ -490,8 +476,7 @@ first order logic to propositional logic. In short, if $\varphi$ is a proof and
 $H$ is its Herbrand sequent, then $H$ contains all instances of the formulas in
 the end-sequent of $\varphi$ and $H$ is a tautology. It is important to note
 that $\varphi$ may not have strong quantifiers nor cuts on quantified formulas.
-A more detailed explanation of Herbrand sequent extraction can be found in
-\ref{Hetzl2008}. 
+A more detailed explanation of Herbrand sequent extraction can be found in~\cite{Hetzl2008}. 
 
 This method extracts a Herbrand sequent from a proof $\varphi$ that satisfies
 the constraints. 
@@ -1066,4 +1051,5 @@ the number of quantifiers of the formula.
 
 \bibliographystyle{plain}
 \bibliography{references}
+
 \end{document}

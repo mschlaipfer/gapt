@@ -128,7 +128,7 @@ object getMatrix {
     assert(isPrenex(f))
     f match {
       case FOLVar(_) |
-           FOLConst(_,_) |
+           FOLConst(_) |
            Atom(_,_) |
            Imp(_,_) |
            And(_,_) |

@@ -1,41 +1,33 @@
-package at.logic.provers.atp.commands
+package at.logic.provers.atp.commands.replay
 
 /**
  * this file contains command for a guided search using ids for clauses,as for example when parsing the output of theorem provers and using the rules from there
  */
-package replay {
-
-import _root_.at.logic.algorithms.matching.fol.FOLMatchingAlgorithm
-import _root_.at.logic.algorithms.subsumption.StillmanSubsumptionAlgorithm
-import _root_.at.logic.algorithms.unification.fol.FOLUnificationAlgorithm
-import _root_.at.logic.calculi.resolution.base.ResolutionProof
-import _root_.at.logic.calculi.resolution.robinson.{RobinsonResolutionProof}
-import at.logic.calculi.resolution.base.Clause
-import _root_.at.logic.language.hol.HOLFormula
-import _root_.at.logic.provers.atp.commands.sequents._
-import at.logic.calculi.lk.base.types.FSequent
-import _root_.at.logic.provers.atp.Definitions._
+import at.logic.algorithms.matching.FOLMatchingAlgorithm
+import at.logic.algorithms.subsumption.StillmanSubsumptionAlgorithmFOL
+import at.logic.algorithms.unification.fol.FOLUnificationAlgorithm
+import at.logic.calculi.resolution.{ResolutionProof, Clause}
+import at.logic.calculi.resolution.robinson.{RobinsonResolutionProof}
 import at.logic.calculi.lk.base.{Sequent, FSequent}
-import at.logic.calculi.occurrences.{FormulaOccurrence, defaultFormulaOccurrenceFactory}
+import at.logic.calculi.occurrences.FormulaOccurrence
 import at.logic.calculi.resolution.robinson.InitialClause._
 import at.logic.language.fol.{FOLVar, FOLExpression, FOLFormula}
-import at.logic.language.lambda.typedLambdaCalculus.Var
+import at.logic.provers.atp.Definitions._
 import at.logic.provers.atp.Prover
 import at.logic.utils.ds.PublishingBuffer
-import refinements.simple.SimpleRefinementGetCommand
-import guided.{AddGuidedResolventCommand, GetGuidedClausesCommand,IsGuidedNotFoundCommand,SetGuidedFoundCommand}
-import sequents.RefutationReachedCommand._
-import base.BranchCommand._
-import robinson.ParamodulationCommand._
-import robinson._
-import base._
-import logical.DeterministicAndCommand
-import scala.collection._
-import refinements.base.SequentsMacroCommand._
-import refinements.base.SequentsMacroCommand
 
-  //TODO: i'm not sure, why the other publishing buffers are robinsonproofs -- since we cannot upcast here and the gmap
-  // only holds resolution proofs, i'm not sure what is better
+import at.logic.provers.atp.commands.guided.{AddGuidedResolventCommand, GetGuidedClausesCommand,IsGuidedNotFoundCommand,SetGuidedFoundCommand}
+import at.logic.provers.atp.commands.sequents._
+import at.logic.provers.atp.commands.base._
+import at.logic.provers.atp.commands.robinson._
+import at.logic.provers.atp.commands.logical.DeterministicAndCommand
+import at.logic.provers.atp.commands.refinements.base.SequentsMacroCommand
+import at.logic.provers.atp.commands.refinements.simple.SimpleRefinementGetCommand
+
+import scala.collection.mutable.{Map => MMap}
+
+//TODO: i'm not sure, why the other publishing buffers are robinsonproofs -- since we cannot upcast here and the gmap
+// only holds resolution proofs, i'm not sure what is better
 case class SetClauseWithProofCommand(clauses : Iterable[ResolutionProof[Clause]]) extends DataCommand[Clause] {
   def apply(state:State, data: Any) = {
     val pb = new PublishingBuffer[ResolutionProof[Clause]]
@@ -55,7 +47,7 @@ case class ReplayCommand(parentIds: Iterable[String], id: String, cls: FSequent)
     //println("\nReplayCommand")
     //get guided clauses mapping from id to resolution proof of id
     //println("\nTarget clause :"+id+"\nfrom "+parentIds.toList)
-    val gmap = state("gmap").asInstanceOf[mutable.Map[String,ResolutionProof[Clause]]]
+    val gmap = state("gmap").asInstanceOf[MMap[String,ResolutionProof[Clause]]]
     //println("\nData="+data)
     //println("\nTarget clause="+cls)
 
@@ -76,8 +68,8 @@ case class ReplayCommand(parentIds: Iterable[String], id: String, cls: FSequent)
       List(VariantsCommand, DeterministicAndCommand[Clause](
         List(ApplyOnAllPolarizedLiteralPairsCommand[Clause], ResolveCommand(FOLUnificationAlgorithm), FactorCommand(FOLUnificationAlgorithm)),
         List(ParamodulationCommand(FOLUnificationAlgorithm))),
-        SimpleForwardSubsumptionCommand[Clause](new StillmanSubsumptionAlgorithm[FOLExpression] {val matchAlg = FOLMatchingAlgorithm}),
-        SimpleBackwardSubsumptionCommand[Clause](new StillmanSubsumptionAlgorithm[FOLExpression] {val matchAlg = FOLMatchingAlgorithm}),
+        SimpleForwardSubsumptionCommand[Clause](StillmanSubsumptionAlgorithmFOL),
+        SimpleBackwardSubsumptionCommand[Clause](StillmanSubsumptionAlgorithmFOL),
         InsertResolventCommand[Clause]),
       RefutationReachedCommand[Clause]), stream1)
       //RefutationReachedCommand is replaced by SubsumedTargedReachedCommand
@@ -100,32 +92,31 @@ case class ReplayCommand(parentIds: Iterable[String], id: String, cls: FSequent)
 }
 
 
-  // we dont have subsumption as it might prevent reaching the exact clause we look for
-  case class OldReplayCommand(parentIds: Iterable[String], id: String, cls: FSequent) extends DataCommand[Clause] {
-    def apply(state: State, data: Any) = {
-      //println("replay: " + parentIds + " - " + id + " - target: " + cls)
-      def stream1: Stream[Command[Clause]] =
-        Stream.cons(SimpleRefinementGetCommand[Clause],
-          Stream.cons(VariantsCommand,
-          Stream.cons(ClauseFactorCommand(FOLUnificationAlgorithm),
-          Stream.cons(DeterministicAndCommand[Clause]((
-            List(ApplyOnAllPolarizedLiteralPairsCommand[Clause], ResolveCommand(FOLUnificationAlgorithm)),
-            List(ParamodulationCommand(FOLUnificationAlgorithm)))),
-          Stream.cons(IsGuidedNotFoundCommand,
-          Stream.cons(InsertResolventCommand[Clause],
-          Stream.cons(PrependOnCondCommand[Clause](
-            (s: State,d: Any) => {
-              val gtf = s.isDefinedAt("guided_target_found")
-              val fveq = fvarInvariantMSEquality(d.asInstanceOf[RobinsonResolutionProof].root, s("targetClause").asInstanceOf[FSequent])
-                if (fveq) s("guided_target_found") = true
-              !gtf && fveq
-            } ,
-              RestoreCommand[Clause](AddGuidedResolventCommand(id)::InsertResolventCommand[Clause]::RefutationReachedCommand[Clause]::Nil)::Nil),
-          stream1))))))
-        )
-      List((state,Stream.cons(GetGuidedClausesCommand(parentIds), Stream.cons(SetClausesFromDataCommand, Stream.cons(SetTargetClause(cls), stream1)))))
-    }
-
-    override def toString = "ReplayCommand("+parentIds+", " + id + ", " +cls+ ")"
+// we dont have subsumption as it might prevent reaching the exact clause we look for
+case class OldReplayCommand(parentIds: Iterable[String], id: String, cls: FSequent) extends DataCommand[Clause] {
+  def apply(state: State, data: Any) = {
+    //println("replay: " + parentIds + " - " + id + " - target: " + cls)
+    def stream1: Stream[Command[Clause]] =
+      Stream.cons(SimpleRefinementGetCommand[Clause],
+        Stream.cons(VariantsCommand,
+        Stream.cons(ClauseFactorCommand(FOLUnificationAlgorithm),
+        Stream.cons(DeterministicAndCommand[Clause]((
+          List(ApplyOnAllPolarizedLiteralPairsCommand[Clause], ResolveCommand(FOLUnificationAlgorithm)),
+          List(ParamodulationCommand(FOLUnificationAlgorithm)))),
+        Stream.cons(IsGuidedNotFoundCommand,
+        Stream.cons(InsertResolventCommand[Clause],
+        Stream.cons(PrependOnCondCommand[Clause](
+          (s: State,d: Any) => {
+            val gtf = s.isDefinedAt("guided_target_found")
+            val fveq = fvarInvariantMSEquality(d.asInstanceOf[RobinsonResolutionProof].root, s("targetClause").asInstanceOf[FSequent])
+              if (fveq) s("guided_target_found") = true
+            !gtf && fveq
+          } ,
+            RestoreCommand[Clause](AddGuidedResolventCommand(id)::InsertResolventCommand[Clause]::RefutationReachedCommand[Clause]::Nil)::Nil),
+        stream1))))))
+      )
+    List((state,Stream.cons(GetGuidedClausesCommand(parentIds), Stream.cons(SetClausesFromDataCommand, Stream.cons(SetTargetClause(cls), stream1)))))
   }
+
+  override def toString = "ReplayCommand("+parentIds+", " + id + ", " +cls+ ")"
 }

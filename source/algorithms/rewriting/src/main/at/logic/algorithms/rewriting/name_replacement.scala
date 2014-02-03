@@ -29,13 +29,6 @@ object NameReplacement {
   type SymbolMap = Map[String, (Int,String)]
   val emptySymbolMap = Map[String, (Int,String)]()
 
-  //gives the arity of a function - simple types have arity 0, complex types have 1 + arity of return value (because
-  // of currying)
-  def arity(t:TA) : Int = t match {
-    case t1 -> t2 => 1 + arity(t2)
-    case _ => 0
-  }
-
   // The following code is duplicated because there is a class cast exception
   // in one of the tests if I have only the one for HOL. The problem is the 
   // reconstruction of constants. Create a method that changes only the names
@@ -49,7 +42,7 @@ object NameReplacement {
     
     case HOLConst(name, exptype) => map.get(name) match {
       case Some((rarity, rname)) =>
-        if (arity(exptype) == rarity) {
+        if (Arity(exptype) == rarity) {
           HOLConst(StringSymbol(rname), exptype)
         }
         else {
@@ -76,9 +69,9 @@ object NameReplacement {
     
     case FOLVar(_) => exp
     
-    case FOLConst(name, _) => map.get(name) match {
+    case FOLConst(name) => map.get(name) match {
       case Some((rarity, rname)) =>
-        if (arity(exp.exptype) == rarity) {
+        if (Arity(exp.exptype) == rarity) {
           FOLConst(StringSymbol(rname))
         }
         else {
@@ -124,8 +117,15 @@ object NameReplacement {
   def rename_symbols(exp : FOLFormula, map : SymbolMap) : FOLFormula =
     rename_symbols(exp.asInstanceOf[FOLExpression],map).asInstanceOf[FOLFormula]
 
+  // Yes, this sucks. But it was the easiest and fastest way to deal with 
+  // FSequents which are supposed to have FOLFormulas instead of HOLFormulas.
+  def rename_symbols_bla(f: HOLFormula, map: SymbolMap) = f.isInstanceOf[FOLFormula] match {
+    case true => rename_symbols(f.asInstanceOf[FOLFormula], map)
+    case false => rename_symbols(f, map)
+  }
+
   def rename_fsequent(fs: FSequent, map : SymbolMap) =
-    FSequent(fs.antecedent map (rename_symbols(_,map)), fs.succedent map (rename_symbols(_,map)))
+    FSequent(fs.antecedent map (rename_symbols_bla(_,map)), fs.succedent map (rename_symbols_bla(_,map)))
 
   //def rename_substitution(sub : Substitution, map : SymbolMap) : Substitution = {
   //  Substitution(for ( (key,value) <- sub.map) yield { (key, apply(value, map)) } )

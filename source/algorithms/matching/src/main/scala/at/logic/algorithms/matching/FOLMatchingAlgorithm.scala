@@ -36,7 +36,7 @@ object FOLMatchingAlgorithm {
 
     case ((FOLConst (name1),FOLConst (name2))::s,s2) if name1 != name2 => None
     case (((Function(f1,args1), Function(f2, args2)):: s), s2)
-      if args1.length == args2.length && f1==f2  => {
+      if args1.length == args2.length && f1 == f2  => {
           return matchSetOfTuples(moduloVarList, args1.zip(args2) ::: s, s2)
       }
     case ((Atom(f1,args1), Atom(f2, args2)):: s, s2)
@@ -49,36 +49,18 @@ object FOLMatchingAlgorithm {
 
 
   def matchSetOfTuples1(moduloVarList: List[FOLVar], s1: List[(FOLExpression, FOLExpression)], s2 : List[(FOLExpression, FOLExpression)]) : Option[(List[(FOLExpression, FOLExpression)], List[(FOLExpression, FOLExpression)])] = (s1,s2) match {
-    case ((And(left1, right1), And(left2, right2)) ::s, s2) =>
-      {
-        return matchSetOfTuples(moduloVarList, (left1, left2) :: (right1, right2) :: s, s2)
-      }
-    case ((Or(left1, right1), Or(left2, right2)) ::s, s2) =>
-      {
-        return matchSetOfTuples(moduloVarList, (left1, left2) :: (right1, right2) :: s, s2)
-      }
-    case ((Imp(left1: FOLFormula, right1: FOLFormula), Imp(left2: FOLFormula, right2: FOLFormula)) ::s, s2) =>
-      {
-        return matchSetOfTuples(moduloVarList, (left1, left2) :: (right1, right2) :: s, s2)
-      }
+    case ((And(left1, right1), And(left2, right2)) ::s, s2) => matchSetOfTuples(moduloVarList, (left1, left2) :: (right1, right2) :: s, s2)
+    case ((Or(left1, right1), Or(left2, right2)) ::s, s2) => matchSetOfTuples(moduloVarList, (left1, left2) :: (right1, right2) :: s, s2)
+    case ((Imp(left1, right1), Imp(left2, right2)) ::s, s2) => matchSetOfTuples(moduloVarList, (left1, left2) :: (right1, right2) :: s, s2)
     case _ => matchSetOfTuples2(moduloVarList, s1, s2)
   }
 
 
 
   def matchSetOfTuples2(moduloVarList: List[FOLVar], s1: List[(FOLExpression, FOLExpression)], s2 : List[(FOLExpression, FOLExpression)]) : Option[(List[(FOLExpression, FOLExpression)], List[(FOLExpression, FOLExpression)])] = (s1,s2) match {
-    case ((Neg(sub1), Neg(sub2)) ::s, s2) =>
-      {
-        return matchSetOfTuples(moduloVarList, (sub1, sub2) :: s, s2)
-      }
-    case ((AllVar(var1: FOLVar, sub1: FOLFormula), AllVar(var2: FOLVar, sub2: FOLFormula)) ::s, s2) =>
-      {
-        return matchSetOfTuples(var1::var2::moduloVarList, (sub1, sub2) :: s, s2)
-      }
-    case ((ExVar(var1: FOLVar, sub1: FOLFormula), ExVar(var2: FOLVar, sub2: FOLFormula)) ::s, s2) =>
-      {
-        return matchSetOfTuples(var1::var2::moduloVarList, (sub1, sub2) :: s, s2)
-      }
+    case ((Neg(sub1), Neg(sub2)) ::s, s2) => matchSetOfTuples(moduloVarList, (sub1, sub2) :: s, s2)
+    case ((AllVar(var1, sub1), AllVar(var2, sub2)) ::s, s2) => matchSetOfTuples(var1::var2::moduloVarList, (sub1, sub2) :: s, s2)
+    case ((ExVar(var1, sub1), ExVar(var2, sub2)) ::s, s2) => matchSetOfTuples(var1::var2::moduloVarList, (sub1, sub2) :: s, s2)
     case _ => matchSetOfTuples3(moduloVarList, s1, s2)
   }
 

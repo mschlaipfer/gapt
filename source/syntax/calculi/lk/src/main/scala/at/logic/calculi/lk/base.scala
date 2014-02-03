@@ -34,6 +34,8 @@ class FSequent(val antecedent : Seq[HOLFormula], val succedent : Seq[HOLFormula]
   override def toString : String = 
     lst2string(((x: HOLFormula) => x.toString), ", ", this.antecedent.toList) + " :- " + lst2string(((x: HOLFormula) => x.toString), ", ", this.succedent.toList)
   
+  def toFormula = Or( antecedent.toList.map( f => Neg( f ) ) ++ succedent )
+  
 }
 object FSequent {
   def apply(ant: Seq[HOLFormula], succ: Seq[HOLFormula]) : FSequent =  new FSequent(ant,succ)

@@ -28,7 +28,7 @@ protected[fol] class FOLLambdaConst (sym: SymbolA, exptype: TA) extends HOLConst
 protected[fol] object FOLLambdaConst {
   def apply(name: String, exptype: TA) : FOLLambdaConst = FOLLambdaConst(StringSymbol(name), exptype)
   def apply(sym: SymbolA, exptype: TA) : FOLLambdaConst = exptype match {
-    case Ti => new FOLLambdaConst(sym, exptype) with FOLTerm
+    case Ti => FOLConst(sym)
     case To => new FOLLambdaConst(sym, exptype) with FOLFormula
     case _ => new FOLLambdaConst(sym, exptype)
   }
@@ -43,7 +43,7 @@ object FOLConst {
   def apply(name: String) : FOLConst = FOLFactory.createConst(StringSymbol(name), Ti).asInstanceOf[FOLConst]
   def apply(sym: SymbolA) : FOLConst = FOLFactory.createConst(sym, Ti).asInstanceOf[FOLConst]
   def unapply(exp: FOLExpression) = exp match {
-    case c: FOLConst => Some( (c.name, c.exptype) )
+    case c: FOLConst => Some( c.name )
     case _ => None
   }
 }

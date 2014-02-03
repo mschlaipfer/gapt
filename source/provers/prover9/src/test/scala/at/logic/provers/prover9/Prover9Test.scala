@@ -4,34 +4,30 @@
 
 package at.logic.provers.prover9
 
-import _root_.at.logic.calculi.resolution.base.ResolutionProof
-import _root_.at.logic.calculi.resolution.base.Clause
-import _root_.at.logic.parsing.calculi.simple.SimpleResolutionParserFOL
-import _root_.at.logic.parsing.language.simple.SimpleFOLParser
-import _root_.at.logic.parsing.readers.StringReader
-import _root_.at.logic.provers.atp.commands.base.{SetStreamCommand, PrependCommand}
-import _root_.at.logic.provers.atp.commands.sequents.SetTargetClause
-import _root_.at.logic.provers.atp.Prover
 import at.logic.calculi.lk.base.FSequent
-import at.logic.provers.prover9.commands.Prover9InitCommand
-import org.specs2.mutable._
-import org.junit.runner.RunWith
-import org.specs2.runner.JUnitRunner
-import org.specs2.mock.Mockito
-import org.mockito.Matchers._
-import java.io.IOException
-import at.logic.calculi.resolution.robinson.{Formatter, RobinsonResolutionProof}
-
 import at.logic.calculi.occurrences.factory
-import at.logic.parsing.language.tptp.TPTPFOLExporter
-
+import at.logic.calculi.resolution.Clause
+import at.logic.calculi.resolution.ResolutionProof
+import at.logic.calculi.resolution.robinson.{Formatter, RobinsonResolutionProof}
 import at.logic.language.fol._
-import at.logic.language.hol.logicSymbols._
-import at.logic.calculi.lk.base.types.FSequent
+import at.logic.parsing.calculi.simple.SimpleResolutionParserFOL
+import at.logic.parsing.language.simple.SimpleFOLParser
+import at.logic.parsing.language.tptp.TPTPFOLExporter
+import at.logic.parsing.readers.StringReader
+import at.logic.provers.atp.Prover
+import at.logic.provers.atp.commands.base.{SetStreamCommand, PrependCommand}
+import at.logic.provers.atp.commands.sequents.SetTargetClause
+import at.logic.provers.prover9.commands.Prover9InitCommand
 import java.io.File.separator
+import java.io.IOException
+
+import org.junit.runner.RunWith
+import org.mockito.Matchers._
+import org.specs2.mock.Mockito
+import org.specs2.mutable._
+import org.specs2.runner.JUnitRunner
 
 private class MyParser(str: String) extends StringReader(str) with SimpleResolutionParserFOL
-
 
 @RunWith(classOf[JUnitRunner])
 class Prover9Test extends SpecificationWithJUnit {
@@ -143,7 +139,6 @@ class Prover9Test extends SpecificationWithJUnit {
       }) must beTrue
     }
      "prove an example from the automated deduction exercises" in {
-     (1 === 2).orSkip //workaround to simulate specs1 skip
 
       /* loops at derivation of clause 7:
         <clause id="7">
@@ -181,13 +176,13 @@ class Prover9Test extends SpecificationWithJUnit {
       //checks, if the execution of prover9 works, o.w. skip test
       Prover9.refute(box ) must not(throwA[IOException]).orSkip
 
-      val p = Atom(new ConstantStringSymbol("P"), Nil)
+      val p = Atom("P", Nil)
       val s1 = FSequent(Nil, p::Nil)
       val s2 = FSequent(p::Nil, Nil)
       val result : Option[RobinsonResolutionProof] = Prover9.refute( s1::s2::Nil )
       result match {
         case Some(proof) =>
-          println(Formatter.asHumanReadableString(proof))
+          //println(Formatter.asHumanReadableString(proof))
           true must beEqualTo(true)
         case None => "" must beEqualTo( "Refutation failed!" )
       }

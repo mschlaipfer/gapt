@@ -1,31 +1,16 @@
 /*
  * TPTPFOLParser.scala
  *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
  */
 
 package at.logic.parsing.language.tptp
 
 import at.logic.language.fol._
-import at.logic.language.hol.{Neg => HOLNEG, HOLFormula, Or => HOLOR}
-import at.logic.language.hol.logicSymbols._
-import at.logic.calculi.lk.base.types.FSequent
-import at.logic.algorithms.fol.hol2fol._
+import at.logic.language.lambda.symbols.SymbolA
+import at.logic.calculi.lk.base.FSequent
 import scala.collection.immutable.HashMap
-import scala.collection.mutable
-import at.logic.language.lambda.typedLambdaCalculus.LambdaExpression
 
 object TPTPFOLExporter {
-  // FIXME: this should not be here!
-  def hol2fol(f: HOLFormula) : FOLFormula = 
-  {
-    val imap = mutable.Map[LambdaExpression, ConstantStringSymbol]()
-    val iid = new {var idd = 0; def nextId = {idd = idd+1; idd}}
-    reduceHolToFol(f, imap, iid )
-  } 
-
-  def toFormula(s: FSequent): HOLFormula =  HOLOR( s._1.toList.map( f => HOLNEG( f ) ) ++ s._2 )
 
   // TODO: have to give a different name because of erasure :-(
   def tptp_problem_named( ss: List[Pair[String, FSequent]] ) =
@@ -37,16 +22,16 @@ object TPTPFOLExporter {
   def sequentToProblem( s: FSequent, n: String ) =
     "cnf( " + n + ",axiom," + export( s ) + ")."
 
-  // TODO: would like to have FOLSequent here --- instead, we convert
+  // TODO: would like to have FOLSequent here --- instead, we cast
   // we export it as a disjunction
   def export( s: FSequent ) = {
-    val f = hol2fol(toFormula(s))
+    val f = s.toFormula.asInstanceOf[FOLFormula]
     val map = getFreeVarRenaming( f )
     tptp( f )( map )
   }
 
   def getFreeVarRenaming( f: FOLFormula ) = {
-    getFreeVariablesFOL( f ).toList.zipWithIndex.foldLeft( new HashMap[FOLVar, String] )( (m, p) =>
+    freeVariables(f).zipWithIndex.foldLeft( new HashMap[FOLVar, String] )( (m, p) =>
       m + (p._1 -> ("X" + p._2.toString) )
     )
   }
@@ -66,13 +51,12 @@ object TPTPFOLExporter {
   }
 
   def tptp( t: FOLTerm )(implicit s_map: Map[FOLVar, String]) : String = t match {
-    case FOLConst(c) => single_quote( c.toString )
-    case FOLVar(x) => s_map( t.asInstanceOf[FOLVar] )
+    case v: FOLVar => s_map( v )
+    case FOLConst(c) => single_quote( c )
     case Function(x, args) => handleAtom( x, args )
   }
 
-  // todo: introduce special constant for equality and use it here!
-  def handleAtom( x: ConstantSymbolA, args: List[FOLTerm] )(implicit s_map: Map[FOLVar, String]) =
+  def handleAtom( x: SymbolA, args: List[FOLTerm] )(implicit s_map: Map[FOLVar, String]) =
     if ( x.toString.equals("=") )
       tptp( args.head ) + " = " + tptp( args.last )
     else

@@ -6,29 +6,26 @@
 
 package at.logic.provers.prover9
 
-import at.logic.calculi.resolution.base._
-import at.logic.calculi.lk.base._
-import at.logic.language.lambda.typedLambdaCalculus._
-import at.logic.language.lambda.substitutions._
-import at.logic.language.hol._
+import at.logic.algorithms.resolution.InstantiateElimination
+import at.logic.algorithms.rewriting.NameReplacement
+import at.logic.calculi.lk.base.FSequent
+import at.logic.calculi.lk.{CutRule, Axiom}
+import at.logic.calculi.resolution.Clause
+import at.logic.calculi.resolution.robinson.{InitialClause, RobinsonResolutionProof}
+//import at.logic.language.hol._
+import at.logic.language.fol._
+//import at.logic.language.lambda.types.Arity
+import at.logic.parsing.ivy.IvyParser
+import at.logic.parsing.ivy.IvyParser.{IvyStyleVariables, PrologStyleVariables, LadrStyleVariables}
+import at.logic.parsing.ivy.conversion.IvyToRobinson
+import at.logic.parsing.language.prover9._
 import at.logic.parsing.language.tptp.TPTPFOLExporter
+import at.logic.provers.prover9.commands.InferenceExtractor
+import java.io.File
 import java.io._
+import scala.collection.immutable.HashMap
 import scala.io.Source
 import scala.util.matching.Regex
-import scala.collection.immutable.HashMap
-import at.logic.calculi.lk.base.types.FSequent
-import at.logic.parsing.ivy.IvyParser
-import at.logic.parsing.ivy.conversion.IvyToRobinson
-import at.logic.calculi.resolution.robinson.{InitialClause, RobinsonResolutionProof}
-import java.io.File
-import at.logic.parsing.ivy.IvyParser.{IvyStyleVariables, PrologStyleVariables, LadrStyleVariables}
-import at.logic.algorithms.rewriting.NameReplacement
-import at.logic.algorithms.resolution.InstantiateElimination
-import at.logic.provers.prover9.commands.InferenceExtractor
-import at.logic.parsing.language.prover9._
-import at.logic.language.hol.logicSymbols.ConstantStringSymbol
-import at.logic.calculi.occurrences.{defaultFormulaOccurrenceFactory, FormulaOccurrence}
-import at.logic.calculi.lk.propositionalRules.{CutRule, Axiom}
 
 class Prover9Exception(msg: String) extends Exception(msg)
 
@@ -106,9 +103,6 @@ object Prover9 {
         case _ => m
     })
 
-//    println( "translation map: " )
-//    println( symbol_map )
-
     val ret = refute( input_file, output_file )
     ret match {
       case 0 =>
@@ -162,39 +156,47 @@ object Prover9 {
     proof
   }
 
-  def getVar(t:LambdaExpression, l:Set[(Int,String)]) : Set[(Int,String)] = t match {
-    case Var(ConstantStringSymbol(s),_) => l+((0,s)) ;
-    case Var(_,_) => l;
-    case AppN(Var(ConstantStringSymbol(s),_),ts) => ts.foldLeft(l)((x: Set[(Int,String)], y:LambdaExpression) => x ++ getVar(y, x) ) + ((ts.size,s))
-    case App(s,t) => getVar(s, getVar(t,l))
-    //case AppN(s,ts) => getVar(s, ts.foldLeft(l)((x: Set[(Int,String)], y:LambdaExpression) => x ++ getVar(y, x) ))
-    case Abs(_,s) => getVar(s,l)
+  // Get the constants and its arity
+  def getConstArity(t:FOLExpression) : Set[(Int,String)] = t match {
+    case FOLConst(s) => Set((0, s))
+    case FOLVar(_) => Set[(Int, String)]()
+    case Atom(h, args) => Set((args.length, h.toString)) ++ args.map(arg => getConstArity(arg)).flatten
+    case Function(h, args) => Set((args.length, h.toString)) ++ args.map(arg => getConstArity(arg)).flatten
+    
+    case And(x,y) => getConstArity(x) ++ getConstArity(y)
+    case Equation(x,y) => getConstArity(x) ++ getConstArity(y)
+    case Or(x,y) => getConstArity(x) ++ getConstArity(y)
+    case Imp(x,y) => getConstArity(x) ++ getConstArity(y)
+    case Neg(x) => getConstArity(x)
+    case ExVar(x,f) => getConstArity(f)
+    case AllVar(x,f) => getConstArity(f)
+
+//    case Var(ConstantStringSymbol(s),_) => l+((0,s)) ;
+//    case Var(_,_) => l;
+//    case AppN(Var(ConstantStringSymbol(s),_),ts) => ts.foldLeft(l)((x: Set[(Int,String)], y:LambdaExpression) => x ++ getVar(y, x) ) + ((ts.size,s))
+//    case App(s,t) => getVar(s, getVar(t,l))
+//    case Abs(_,s) => getVar(s,l)
   }
 
-
-  //def escape_constants[T<:LambdaExpression](r:RobinsonResolutionProof, f:T) : (RobinsonResolutionProof,T) = {}
   def escape_constants(r:RobinsonResolutionProof, f:FSequent) : (RobinsonResolutionProof,FSequent) = {
-    val names : Set[(Int,String)] = r.nodes.map( _.asInstanceOf[RobinsonResolutionProof].root.occurrences.map((fo:FormulaOccurrence) => getVar(fo.formula,Set[(Int,String)]()))).flatten.flatten
+    val names : Set[(Int,String)] = r.nodes.map( _.asInstanceOf[RobinsonResolutionProof].root.occurrences.map(fo => getConstArity(fo.formula.asInstanceOf[FOLFormula]))).flatten.flatten
     val pairs : Set[(String, (Int,String))] = (names.map((x:(Int,String)) =>
       (x._2, ((x._1, x._2.replaceAll("_","\\\\_")))   ))
       )
 
     val mapping = NameReplacement.emptySymbolMap ++ (pairs)
 
-    (NameReplacement.apply(r, mapping), NameReplacement(f,mapping))
+    (NameReplacement(r, mapping), NameReplacement(f,mapping))
   }
 
 
   /* Takes the output of prover9, extracts a resolution proof and the endsequent. */
   def parse_prover9(p9_file : String, escape_underscore : Boolean = true, newimpl : Boolean = true) : (RobinsonResolutionProof, FSequent) = {
-    //println((new File(".")).getCanonicalPath)
 
     val pt_file = File.createTempFile( "gapt-prover9", ".pt", null )
     p9_to_p9(p9_file, pt_file.getCanonicalPath)
     val ivy_file = File.createTempFile( "gapt-prover9", ".ivy", null )
     p9_to_ivy(pt_file.getCanonicalPath, ivy_file.getCanonicalPath)
-
-    def debugline(s:String) = { println(s); true}
 
     val iproof = IvyParser(ivy_file.getCanonicalPath, IvyStyleVariables)
     val rproof = IvyToRobinson(iproof)
@@ -208,7 +210,6 @@ object Prover9 {
     val fs = if (newimpl) InferenceExtractor.viaLADR(p9_file) else InferenceExtractor.viaXML(p9_file)
     //println("extracted formula: "+fs)
     val (eproof, efs) = if (escape_underscore) escape_constants(mproof, fs)  else (mproof, fs)
-
 
     (eproof, efs)
 

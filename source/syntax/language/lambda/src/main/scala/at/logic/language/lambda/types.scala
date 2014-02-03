@@ -50,7 +50,7 @@ object Definitions {
 }
 */
 
-// convenience factory to create function types
+// convenience function to create function types
 // with argument types from and return type to
 object FunctionType {
   def apply(to: TA, from: List[TA]) : TA = if (!from.isEmpty) from.foldRight(to)((t, acc) => ->(t, acc)) else to
@@ -64,6 +64,14 @@ object FunctionType {
       }
     }
     case _ => None
+  }
+}
+  //gives the arity of a function - simple types have arity 0, complex types have 1 + arity of return value (because
+  // of currying)
+object Arity {
+  def apply(t:TA) : Int = t match {
+    case t1 -> t2 => 1 + Arity(t2)
+    case _ => 0
   }
 }
 

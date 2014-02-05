@@ -1,27 +1,18 @@
 package at.logic.algorithms.shlk
 
-import at.logic.calculi.lk.base.types.FSequent
-import at.logic.calculi.lk.macroRules._
-import at.logic.calculi.slk._
-import at.logic.language.schema.IndexedPredicate._
-import at.logic.calculi.lk.propositionalRules._
 import scala.util.parsing.combinator._
 import scala.util.matching.Regex
-import at.logic.parsing.language.HOLParser
-import at.logic.language.hol._
-import at.logic.language.hol.Definitions._
-import at.logic.language.hol.ImplicitConverters._
-import at.logic.language.lambda.types.TA
-import at.logic.language.lambda.typedLambdaCalculus._
-import at.logic.language.lambda.symbols.VariableStringSymbol
-import at.logic.language.lambda.types.Definitions._
-import at.logic.language.lambda.types._
-import logicSymbols.{ConstantSymbolA, ConstantStringSymbol}
 import java.io.InputStreamReader
-import at.logic.language.schema.{sTerm, SchemaFormula, BigAnd, BigOr, IntVar, IntegerTerm, IndexedPredicate, Succ, IntZero, Neg => SNeg}
-import at.logic.calculi.lk.base.FSequent._
-import at.logic.calculi.lk.base.{FSequent, types, Sequent, LKProof}
+import at.logic.language.schema._
+import at.logic.calculi.lk.base.{FSequent, Sequent, LKProof}
 import collection.mutable.{Map => MMap}
+import at.logic.calculi.slk._
+import scala.Tuple4
+import at.logic.language.schema.IntZero
+import scala.Tuple2
+import at.logic.language.lambda.symbols.StringSymbol
+import at.logic.language.lambda.types.{To, FunctionType, Tindex, Ti}
+import at.logic.calculi.lk._
 
 object SHLK {
 
@@ -46,9 +37,9 @@ object SHLK {
     }
     class SequentParser extends JavaTokenParsers with at.logic.language.lambda.types.Parsers {
       def name = """[\\]*[a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,_,0,1,2,3,4,5,6,7,8,9]*""".r
-      def term: Parser[HOLExpression] = ( non_formula | formula)
-      def formula: Parser[HOLFormula] = (atom | neg | big | and | or | indPred | imp | forall | exists | variable | constant) ^? {case trm: Formula => trm.asInstanceOf[HOLFormula]}
-      def intTerm: Parser[HOLExpression] = (index | schemaFormula)
+      def term: Parser[SchemaExpression] = ( non_formula | formula)
+      def formula: Parser[SchemaFormula] = (atom | neg | big | and | or | indPred | imp | forall | exists | variable | constant) ^? {case trm: SchemaFormula => trm }
+      def intTerm: Parser[SchemaExpression] = (index | schemaFormula)
       def index: Parser[IntegerTerm] = (sum | intConst | intVar | succ  )
       def intConst: Parser[IntegerTerm] = (intZero | intOne | intTwo | intThree)
       def intOne :  Parser[IntegerTerm] = "1".r ^^ { case x => {  Succ(IntZero())}}
@@ -64,16 +55,16 @@ object SHLK {
           case Succ(Succ(Succ(IntZero()))) => Succ(Succ(Succ(indV)))
         }}}
       def intVar: Parser[IntVar] = "[i,j,m,n,k,x]".r ^^ {
-        case x => { /*println("\n\nintVar");*/ IntVar(new VariableStringSymbol(x))}
+        case x => { /*println("\n\nintVar");*/ IntVar(x)}
       }
       def succ: Parser[IntegerTerm] = "s(" ~ intTerm ~ ")" ^^ {
         case "s(" ~ intTerm ~ ")" => Succ(intTerm.asInstanceOf[IntegerTerm])
       }
       def schemaFormula = formula
-      def indPred : Parser[HOLFormula] = """[A-Z]*[a-z]*[0-9]*""".r ~ "(" ~ index ~ "," ~ s_term ~ ")" ^^ {
+      def indPred : Parser[SchemaFormula] = """[A-Z]*[a-z]*[0-9]*""".r ~ "(" ~ index ~ "," ~ s_term ~ ")" ^^ {
         case x ~ "(" ~ l ~ "," ~ t ~ ")" => {
           println("\n\nt = "+t)
-          IndexedPredicate(new ConstantStringSymbol(x), l)
+          IndexedPredicate(x, l)
         }
       }
 //      def indPred : Parser[HOLFormula] = """[A-Z]*[a-z]*[0-9]*""".r ~ "(" ~ repsep(index,",") ~ ")" ^^ {
@@ -91,7 +82,7 @@ object SHLK {
           Tuple4(false, intVar1, ind1, ind2)
         }
       }
-      def big : Parser[HOLFormula] = rep1(prefix) ~ schemaFormula ^^ {
+      def big : Parser[SchemaFormula] = rep1(prefix) ~ schemaFormula ^^ {
         case l ~ schemaFormula  => {
           l.reverse.foldLeft(schemaFormula.asInstanceOf[SchemaFormula])((res, triple) => {
             if (triple._1)
@@ -101,54 +92,51 @@ object SHLK {
           })
         }
       }
-      def non_formula: Parser[HOLExpression] = (s_term | indexedVar | abs | variable | constant | var_func | const_func)
-      def s_term: Parser[HOLExpression] = "[f,g,h]".r ~ "(" ~ intTerm ~ "," ~ variable ~ ")" ^^ {
+      def non_formula: Parser[SchemaExpression] = (s_term | indexedVar | abs | variable | constant | var_func | const_func)
+      def s_term: Parser[SchemaExpression] = "[f,g,h]".r ~ "(" ~ intTerm ~ "," ~ variable ~ ")" ^^ {
         case name ~ "(" ~ i ~ "," ~ args ~ ")" => {
           println("\n\nsTerm\n")
           sTerm(name, i.asInstanceOf[IntegerTerm], args::Nil)
         }
       }
-      def indexedVar: Parser[HOLVar] = regex(new Regex("[u-z]")) ~ "(" ~ intTerm ~ ")" ^^ {
-        case x ~ "(" ~ index ~ ")" => hol.createVar(new VariableStringSymbol(x), ind -> i).asInstanceOf[HOLVar]
+      def indexedVar: Parser[SchemaVar] = regex(new Regex("[u-z]")) ~ "(" ~ intTerm ~ ")" ^^ {
+        case x ~ "(" ~ index ~ ")" => SchemaFactory.createVar(StringSymbol(x), Tindex -> Ti)
       }
-      def FOVariable: Parser[HOLVar] = regex(new Regex("[u-z]" + word))  ^^ {case x => hol.createVar(new VariableStringSymbol(x), i).asInstanceOf[HOLVar]}
-      def variable: Parser[HOLVar] = FOVariable//regex(new Regex("[u-z]" + word))  ^^ {case x => hol.createVar(new VariableStringSymbol(x), i->i).asInstanceOf[HOLVar]}
-      def constant: Parser[HOLConst] = regex(new Regex("[a-tA-Z0-9]" + word))  ^^ {case x => hol.createVar(new ConstantStringSymbol(x), ind->ind).asInstanceOf[HOLConst]}
-      def and: Parser[HOLFormula] = "(" ~ repsep(formula, "/\\") ~ ")" ^^ { case "(" ~ formulas ~ ")"  => { formulas.tail.foldLeft(formulas.head)((f,res) => And(f, res)) } }
-      def or: Parser[HOLFormula]  = "(" ~ repsep(formula, """\/""" ) ~ ")" ^^ { case "(" ~ formulas ~ ")"  => { formulas.tail.foldLeft(formulas.head)((f,res) => Or(f, res)) } }
-      def imp: Parser[HOLFormula] = "Imp" ~ formula ~ formula ^^ {case "Imp" ~ x ~ y => Imp(x,y)}
-      def abs: Parser[HOLExpression] = "Abs" ~ variable ~ term ^^ {case "Abs" ~ v ~ x => Abs(v,x).asInstanceOf[HOLExpression]}
-      def neg: Parser[HOLFormula] = "~" ~ formula ^^ {case "~" ~ x => Neg(x)}
-      def atom: Parser[HOLFormula] = (equality | var_atom | const_atom)
-      def forall: Parser[HOLFormula] = "Forall" ~ variable ~ formula ^^ {case "Forall" ~ v ~ x => AllVar(v,x)}
-      def exists: Parser[HOLFormula] = "Exists" ~ variable ~ formula ^^ {case "Exists" ~ v ~ x => ExVar(v,x)}
-      def var_atom: Parser[HOLFormula] = regex(new Regex("[u-z]" + word)) ~ "(" ~ repsep(term,",") ~ ")" ^^ {case x ~ "(" ~ params ~ ")" => {
-        //        println("\n\nvar_atom")
-        Atom(new VariableStringSymbol(x), params)
+      def FOVariable: Parser[SchemaVar] = regex(new Regex("[u-z]" + word))  ^^ {case x => SchemaFactory.createVar(StringSymbol(x), Ti)}
+      def variable: Parser[SchemaVar] = FOVariable//regex(new Regex("[u-z]" + word))  ^^ {case x => hol.createVar(new VariableStringSymbol(x), i->i).asInstanceOf[SchemaVar]}
+      def constant: Parser[SchemaConst] = regex(new Regex("[a-tA-Z0-9]" + word))  ^^ {case x => SchemaFactory.createConst(StringSymbol(x), Tindex -> Tindex)}
+      def and: Parser[SchemaFormula] = "(" ~ repsep(formula, "/\\") ~ ")" ^^ { case "(" ~ formulas ~ ")"  => { formulas.tail.foldLeft(formulas.head)((f,res) => And(f, res)) } }
+      def or: Parser[SchemaFormula]  = "(" ~ repsep(formula, """\/""" ) ~ ")" ^^ { case "(" ~ formulas ~ ")"  => { formulas.tail.foldLeft(formulas.head)((f,res) => Or(f, res)) } }
+      def imp: Parser[SchemaFormula] = "Imp" ~ formula ~ formula ^^ {case "Imp" ~ x ~ y => Imp(x,y)}
+      def abs: Parser[SchemaExpression] = "Abs" ~ variable ~ term ^^ {case "Abs" ~ v ~ x => SchemaAbs(v,x).asInstanceOf[SchemaExpression]}
+      def neg: Parser[SchemaFormula] = "~" ~ formula ^^ {case "~" ~ x => Neg(x)}
+      def atom: Parser[SchemaFormula] = (equality | var_atom | const_atom)
+      def forall: Parser[SchemaFormula] = "Forall" ~ variable ~ formula ^^ {case "Forall" ~ v ~ x => AllVar(v,x)}
+      def exists: Parser[SchemaFormula] = "Exists" ~ variable ~ formula ^^ {case "Exists" ~ v ~ x => ExVar(v,x)}
+      def var_atom: Parser[SchemaFormula] = regex(new Regex("[u-z]" + word)) ~ "(" ~ repsep(term,",") ~ ")" ^^ {case x ~ "(" ~ params ~ ")" => {
+        Atom(SchemaVar(x, FunctionType(To, params map (_.exptype) )), params)
       }}
 
-//      def const_atom: Parser[HOLFormula] = regex(new Regex("["+symbols+"a-tA-Z0-9]" + word)) ~ "(" ~ repsep(term,",") ~ ")" ^^ {case x ~ "(" ~ params ~ ")" => {
-      def const_atom: Parser[HOLFormula] = regex(new Regex("P")) ~ "(" ~ repsep(term,",") ~ ")" ^^ {case x ~ "(" ~ params ~ ")" => {
+      def const_atom: Parser[SchemaFormula] = regex(new Regex("P")) ~ "(" ~ repsep(term,",") ~ ")" ^^ {case x ~ "(" ~ params ~ ")" => {
 
         //        println("\n\nconst_atom")
-        Atom(new ConstantStringSymbol(x), params)
+         Atom(SchemaConst(x, FunctionType(To, params map (_.exptype) )), params)
       }}
-      def equality: Parser[HOLFormula] = /*eq_infix | */ eq_prefix // infix is problematic in higher order
-      //def eq_infix: Parser[HOLFormula] = term ~ "=" ~ term ^^ {case x ~ "=" ~ y => Equation(x,y)}
-      def eq_prefix: Parser[HOLFormula] = "=" ~ "(" ~ term ~ "," ~ term  ~ ")" ^^ {case "=" ~ "(" ~ x ~ "," ~ y  ~ ")" => Equation(x,y)}
-      def var_func: Parser[HOLExpression] = regex(new Regex("[u-z]" + word)) ~ "(" ~ repsep(term,",") ~ ")" ^^ {case x ~ "(" ~ params ~ ")"  => Function(new VariableStringSymbol(x), params, ind->ind)}
-      /*def var_func: Parser[HOLExpression] = (var_func1 | var_funcn)
-      def var_func1: Parser[HOLExpression] = regex(new Regex("[u-z]" + word)) ~ "(" ~ repsep(term,",") ~ ")"  ~ ":" ~ Type ^^ {case x ~ "(" ~ params ~ ")" ~ ":" ~ tp => Function(new VariableStringSymbol(x), params, tp)}
-      def var_funcn: Parser[HOLExpression] = regex(new Regex("[u-z]" + word)) ~ "^" ~ decimalNumber ~ "(" ~ repsep(term,",") ~ ")"  ~ ":" ~ Type ^^ {case x ~ "^" ~ n ~ "(" ~ params ~ ")" ~ ":" ~ tp => genF(n.toInt, HOLVar(new VariableStringSymbol(x)), params)}
-      */
-      def const_func: Parser[HOLExpression] = regex(new Regex("["+symbols+"a-tA-Z0-9]" + word)) ~ "(" ~ repsep(term,",") ~ ")"  ^^ {case x ~ "(" ~ params ~ ")"  => Function(new ConstantStringSymbol(x), params, ind->ind)}
+      def equality: Parser[SchemaFormula] = /*eq_infix | */ eq_prefix // infix is problematic in higher order
+      //def eq_infix: Parser[SchemaFormula] = term ~ "=" ~ term ^^ {case x ~ "=" ~ y => Equation(x,y)}
+      def eq_prefix: Parser[SchemaFormula] = "=" ~ "(" ~ term ~ "," ~ term  ~ ")" ^^ {case "=" ~ "(" ~ x ~ "," ~ y  ~ ")" => Equation(x,y)}
+      def var_func: Parser[SchemaExpression] = regex(new Regex("[u-z]" + word)) ~ "(" ~ repsep(term,",") ~ ")" ^^ {
+        case x ~ "(" ~ params ~ ")"  =>
+          //TODO: check if the return type should really be Tindex->Tindex, it is in the old code but that may not be general enough
+          Function(SchemaVar(x, FunctionType(Tindex -> Tindex, params.map(_.exptype))), params)
+      }
+      def const_func: Parser[SchemaExpression] = regex(new Regex("["+symbols+"a-tA-Z0-9]" + word)) ~ "(" ~ repsep(term,",") ~ ")"  ^^ {case x ~ "(" ~ params ~ ")"  =>
+        Function(SchemaConst(x, FunctionType(Tindex->Tindex, params map (_.exptype))), params)}
       protected def word: String = """[a-zA-Z0-9$_{}]*"""
       protected def symbol: Parser[String] = symbols.r
       def symbols: String = """[\053\055\052\057\0134\0136\074\076\075\0140\0176\077\0100\046\0174\041\043\047\073\0173\0175]+""" // +-*/\^<>=`~?@&|!#{}';
 
-      //      def sequent: Parser[Sequent] = formula ~ "|-" ~ formula ^^ { case lf ~ "|-" ~ rf => {
       def sequent: Parser[Sequent] = repsep(formula,",") ~ "|-" ~ repsep(formula,",") ^^ { case lfs ~ "|-" ~ rfs => {
-        //          println("\n\nSEQUENT")
           Axiom(lfs, rfs).root
         }
       }
@@ -166,7 +154,7 @@ object SHLK {
     var map  = MMap.empty[String, LKProof]
     var baseORstep: Int = 1
     SchemaProofDB.clear
-    var defMMap = MMap.empty[HOLConst, Tuple2[List[IntegerTerm] ,SchemaFormula]]
+    var defMMap = MMap.empty[SchemaConst, Tuple2[List[IntegerTerm] ,SchemaFormula]]
     var list = List[String]()
     var error_buffer = ""
 //    lazy val sp2 = new ParserTxt
@@ -229,7 +217,7 @@ object SHLK {
         case                       "proof" ~  str ~ str1 ~      seq    ~ "base" ~ "{" ~ line1 ~ "}" ~ "step" ~ "{" ~     line2        ~ "}" => {
 //          proofName = str
           bigMMap.put(str, Pair(mapBase, mapStep))
-          SchemaProofDB.put(new SchemaProof(str, IntVar(new VariableStringSymbol("k"))::Nil, seq.toFSequent, mapBase.get("root").get, mapStep.get("root").get))
+          SchemaProofDB.put(new SchemaProof(str, IntVar("k")::Nil, seq.toFSequent, mapBase.get("root").get, mapStep.get("root").get))
           mapBase = MMap.empty[String, LKProof]
           mapStep = MMap.empty[String, LKProof]
 //          println("\n\nParsing is SUCCESSFUL : "+str)
@@ -246,10 +234,10 @@ object SHLK {
       def proof: Parser[LKProof] = ax | orL | orR1 | orR | orR2 | negL | negR | cut | pLink | andL | andR| andL1 | andL2 | weakL | weakR | contrL | contrR | andEqR1 | andEqR2 | andEqR3 | orEqR1 | orEqR2 | orEqR3 | andEqL1 | andEqL2 | andEqL3 | orEqL1 | orEqL2 | orEqL3
       def label: String = """[0-9]*[root]*"""
 
-      def term: Parser[HOLExpression] = ( non_formula | formula)
-      def formula: Parser[HOLFormula] = (neg | big | and | or | indPred | imp | forall | exists | variable | constant) ^? {case trm: Formula => trm.asInstanceOf[HOLFormula]}
+      def term: Parser[SchemaExpression] = ( non_formula | formula)
+      def formula: Parser[SchemaFormula] = (neg | big | and | or | indPred | imp | forall | exists | variable | constant) ^? {case trm: SchemaFormula => trm}
 
-      def intTerm: Parser[HOLExpression] = (index | schemaFormula)
+      def intTerm: Parser[SchemaExpression] = (index | schemaFormula)
       def index: Parser[IntegerTerm] = (sum | intConst | intVar | succ  )
       def intConst: Parser[IntegerTerm] = (intZero | intOne | intTwo | intThree)
       def intOne :  Parser[IntegerTerm] = "1".r ^^ { case x => {  Succ(IntZero())}}
@@ -266,8 +254,8 @@ object SHLK {
           case Succ(Succ(Succ(IntZero()))) => Succ(Succ(Succ(indV)))
       }}}
 
-      def intVar: Parser[IntVar] = "[i,j,m,n,k,x]".r ^^ {
-        case x => { /*println("\n\nintVar");*/ IntVar(new VariableStringSymbol(x))}
+      def intVar: Parser[IntVar] = "[ijmnkx]".r ^^ {
+        case x => { /*println("\n\nintVar");*/ IntVar(x)}
       }
       def succ: Parser[IntegerTerm] = "s(" ~ intTerm ~ ")" ^^ {
         case "s(" ~ intTerm ~ ")" => Succ(intTerm.asInstanceOf[IntegerTerm])
@@ -275,7 +263,7 @@ object SHLK {
 
       def schemaFormula = formula
 
-      def indPred : Parser[HOLFormula] = """[A-Z]*[a-z]*[0-9]*""".r ~ "(" ~ repsep(index,",") ~ ")" ^^ {
+      def indPred : Parser[SchemaFormula] = """[A-Z]*[a-z]*[0-9]*""".r ~ "(" ~ repsep(index,",") ~ ")" ^^ {
         case x ~ "(" ~ l ~ ")" => {
           if (! mapPredicateToArity.isDefinedAt(x.toString) )
             mapPredicateToArity.put(x.toString, l.size)
@@ -286,12 +274,12 @@ object SHLK {
 //          println("\n\nIndexedPredicate");
 
 //          val map: MMap[Var, T])
-//          val subst: SchemaSubstitution1[HOLExpression] = new SchemaSubstitution1[HOLExpression]()
+//          val subst: SchemaSubstitution1[SchemaExpression] = new SchemaSubstitution1[SchemaExpression]()
 //          val new_ind = subst(ind)
 //          val new_map = (subst.map - subst.map.head._1.asInstanceOf[Var]) + Pair(subst.map.head._1.asInstanceOf[Var], Pred(new_ind.asInstanceOf[IntegerTerm]) )
 //          val new_subst = new SchemaSubstitution1(new_map)
 
-          IndexedPredicate(new ConstantStringSymbol(x), l)
+          IndexedPredicate(x, l)
         }
       }
 
@@ -319,7 +307,7 @@ object SHLK {
         }
       }
 
-      def big : Parser[HOLFormula] = rep1(prefix) ~ schemaFormula ^^ {
+      def big : Parser[SchemaFormula] = rep1(prefix) ~ schemaFormula ^^ {
         case l ~ schemaFormula  => {
           //          println("Works?")
           l.reverse.foldLeft(schemaFormula.asInstanceOf[SchemaFormula])((res, triple) => {
@@ -331,35 +319,37 @@ object SHLK {
         }
       }
 
-      def non_formula: Parser[HOLExpression] = (abs | variable | constant | var_func | const_func)
-      def variable: Parser[HOLVar] = regex(new Regex("[u-z]" + word))  ^^ {case x => hol.createVar(new VariableStringSymbol(x), ind->ind).asInstanceOf[HOLVar]}
-      def constant: Parser[HOLConst] = regex(new Regex("[a-tA-Z0-9]" + word))  ^^ {case x => hol.createVar(new ConstantStringSymbol(x), ind->ind).asInstanceOf[HOLConst]}
-      def and: Parser[HOLFormula] = "(" ~ repsep(formula, "/\\") ~ ")" ^^ { case "(" ~ formulas ~ ")"  => { formulas.tail.foldLeft(formulas.head)((f,res) => And(f, res)) } }
-      def or: Parser[HOLFormula]  = "(" ~ repsep(formula, """\/""" ) ~ ")" ^^ { case "(" ~ formulas ~ ")"  => { formulas.tail.foldLeft(formulas.head)((f,res) => Or(f, res)) } }
-      def imp: Parser[HOLFormula] = "Imp" ~ formula ~ formula ^^ {case "Imp" ~ x ~ y => Imp(x,y)}
-      def abs: Parser[HOLExpression] = "Abs" ~ variable ~ term ^^ {case "Abs" ~ v ~ x => Abs(v,x).asInstanceOf[HOLExpression]}
-      def neg: Parser[HOLFormula] = "~" ~ formula ^^ {case "~" ~ x => Neg(x)}
-      def atom: Parser[HOLFormula] = (equality | var_atom | const_atom)
-      def forall: Parser[HOLFormula] = "Forall" ~ variable ~ formula ^^ {case "Forall" ~ v ~ x => AllVar(v,x)}
-      def exists: Parser[HOLFormula] = "Exists" ~ variable ~ formula ^^ {case "Exists" ~ v ~ x => ExVar(v,x)}
-      def var_atom: Parser[HOLFormula] = regex(new Regex("[u-z]" + word)) ~ "(" ~ repsep(term,",") ~ ")" ^^ {case x ~ "(" ~ params ~ ")" => {
+      def non_formula: Parser[SchemaExpression] = (abs | variable | constant | var_func | const_func)
+      def variable: Parser[SchemaVar] = regex(new Regex("[u-z]" + word))  ^^ {case x => SchemaFactory.createVar(StringSymbol(x), Tindex->Tindex)}
+      def constant: Parser[SchemaConst] = regex(new Regex("[a-tA-Z0-9]" + word))  ^^ {case x => SchemaFactory.createConst(StringSymbol(x), Tindex->Tindex) }
+      def and: Parser[SchemaFormula] = "(" ~ repsep(formula, "/\\") ~ ")" ^^ { case "(" ~ formulas ~ ")"  => { formulas.tail.foldLeft(formulas.head)((f,res) => And(f, res)) } }
+      def or: Parser[SchemaFormula]  = "(" ~ repsep(formula, """\/""" ) ~ ")" ^^ { case "(" ~ formulas ~ ")"  => { formulas.tail.foldLeft(formulas.head)((f,res) => Or(f, res)) } }
+      def imp: Parser[SchemaFormula] = "Imp" ~ formula ~ formula ^^ {case "Imp" ~ x ~ y => Imp(x,y)}
+      def abs: Parser[SchemaExpression] = "Abs" ~ variable ~ term ^^ {case "Abs" ~ v ~ x => SchemaAbs(v,x).asInstanceOf[SchemaExpression]}
+      def neg: Parser[SchemaFormula] = "~" ~ formula ^^ {case "~" ~ x => Neg(x)}
+      def atom: Parser[SchemaFormula] = (equality | var_atom | const_atom)
+      def forall: Parser[SchemaFormula] = "Forall" ~ variable ~ formula ^^ {case "Forall" ~ v ~ x => AllVar(v,x)}
+      def exists: Parser[SchemaFormula] = "Exists" ~ variable ~ formula ^^ {case "Exists" ~ v ~ x => ExVar(v,x)}
+      def var_atom: Parser[SchemaFormula] = regex(new Regex("[u-z]" + word)) ~ "(" ~ repsep(term,",") ~ ")" ^^ {case x ~ "(" ~ params ~ ")" => {
 //        println("\n\nvar_atom")
-        Atom(new VariableStringSymbol(x), params)
+        Atom(SchemaVar(x, FunctionType(To, params map (_.exptype) )), params)
       }}
-      def const_atom: Parser[HOLFormula] = regex(new Regex("["+symbols+"a-tA-Z0-9]" + word)) ~ "(" ~ repsep(term,",") ~ ")" ^^ {case x ~ "(" ~ params ~ ")" => {
+      def const_atom: Parser[SchemaFormula] = regex(new Regex("["+symbols+"a-tA-Z0-9]" + word)) ~ "(" ~ repsep(term,",") ~ ")" ^^ {case x ~ "(" ~ params ~ ")" => {
 //        println("\n\nconst_atom")
-        Atom(new ConstantStringSymbol(x), params)
+        Atom(SchemaConst(x, FunctionType(To, params map (_.exptype) )), params)
       }}
-      def equality: Parser[HOLFormula] = /*eq_infix | */ eq_prefix // infix is problematic in higher order
-     //def eq_infix: Parser[HOLFormula] = term ~ "=" ~ term ^^ {case x ~ "=" ~ y => Equation(x,y)}
-      def eq_prefix: Parser[HOLFormula] = "=" ~ "(" ~ term ~ "," ~ term  ~ ")" ^^ {case "=" ~ "(" ~ x ~ "," ~ y  ~ ")" => Equation(x,y)}
-      def var_func: Parser[HOLExpression] = regex(new Regex("[u-z]" + word)) ~ "(" ~ repsep(term,",") ~ ")" ^^ {case x ~ "(" ~ params ~ ")"  => Function(new VariableStringSymbol(x), params, ind->ind)}
-     /*def var_func: Parser[HOLExpression] = (var_func1 | var_funcn)
-     def var_func1: Parser[HOLExpression] = regex(new Regex("[u-z]" + word)) ~ "(" ~ repsep(term,",") ~ ")"  ~ ":" ~ Type ^^ {case x ~ "(" ~ params ~ ")" ~ ":" ~ tp => Function(new VariableStringSymbol(x), params, tp)}
-     def var_funcn: Parser[HOLExpression] = regex(new Regex("[u-z]" + word)) ~ "^" ~ decimalNumber ~ "(" ~ repsep(term,",") ~ ")"  ~ ":" ~ Type ^^ {case x ~ "^" ~ n ~ "(" ~ params ~ ")" ~ ":" ~ tp => genF(n.toInt, HOLVar(new VariableStringSymbol(x)), params)}
+      def equality: Parser[SchemaFormula] = /*eq_infix | */ eq_prefix // infix is problematic in higher order
+     //def eq_infix: Parser[SchemaFormula] = term ~ "=" ~ term ^^ {case x ~ "=" ~ y => Equation(x,y)}
+      def eq_prefix: Parser[SchemaFormula] = "=" ~ "(" ~ term ~ "," ~ term  ~ ")" ^^ {case "=" ~ "(" ~ x ~ "," ~ y  ~ ")" => Equation(x,y)}
+      def var_func: Parser[SchemaExpression] = regex(new Regex("[u-z]" + word)) ~ "(" ~ repsep(term,",") ~ ")" ^^ {case x ~ "(" ~ params ~ ")"  =>
+        Function(SchemaVar(x, FunctionType(Tindex->Tindex, params map (_.exptype))), params)}
+     /*def var_func: Parser[SchemaExpression] = (var_func1 | var_funcn)
+     def var_func1: Parser[SchemaExpression] = regex(new Regex("[u-z]" + word)) ~ "(" ~ repsep(term,",") ~ ")"  ~ ":" ~ Type ^^ {case x ~ "(" ~ params ~ ")" ~ ":" ~ tp => Function(new VariableStringSymbol(x), params, tp)}
+     def var_funcn: Parser[SchemaExpression] = regex(new Regex("[u-z]" + word)) ~ "^" ~ decimalNumber ~ "(" ~ repsep(term,",") ~ ")"  ~ ":" ~ Type ^^ {case x ~ "^" ~ n ~ "(" ~ params ~ ")" ~ ":" ~ tp => genF(n.toInt, SchemaVar(new VariableStringSymbol(x)), params)}
      */
 
-      def const_func: Parser[HOLExpression] = regex(new Regex("["+symbols+"a-tA-Z0-9]" + word)) ~ "(" ~ repsep(term,",") ~ ")"  ^^ {case x ~ "(" ~ params ~ ")"  => Function(new ConstantStringSymbol(x), params, ind->ind)}
+      def const_func: Parser[SchemaExpression] = regex(new Regex("["+symbols+"a-tA-Z0-9]" + word)) ~ "(" ~ repsep(term,",") ~ ")"  ^^ {case x ~ "(" ~ params ~ ")"  =>
+        Function(SchemaConst(x, FunctionType(Tindex->Tindex, params map (_.exptype))), params)}
       protected def word: String = """[a-zA-Z0-9$_{}]*"""
       protected def symbol: Parser[String] = symbols.r
       def symbols: String = """[\053\055\052\057\0134\0136\074\076\075\0140\0176\077\0100\046\0174\041\043\047\073\0173\0175]+""" // +-*/\^<>=`~?@&|!#{}';
@@ -656,8 +646,8 @@ class SchemaSubstitution1[T <: HOLExpression](val map: MMap[Var, T])  {
     case Or(l @ left, r @ right) => Or(apply(l.asInstanceOf[T]).asInstanceOf[SchemaFormula], apply(r.asInstanceOf[T]).asInstanceOf[SchemaFormula]).asInstanceOf[T]
     case And(l @ left, r @ right) => And(apply(l.asInstanceOf[T]).asInstanceOf[SchemaFormula], apply(r.asInstanceOf[T]).asInstanceOf[SchemaFormula]).asInstanceOf[T]
     case Neg(l @ left) => Neg(apply(l.asInstanceOf[T]).asInstanceOf[SchemaFormula]).asInstanceOf[T]
-    case Imp(l, r) => Imp(apply(l.asInstanceOf[T]).asInstanceOf[HOLFormula], apply(r.asInstanceOf[T]).asInstanceOf[HOLFormula]).asInstanceOf[T]
-    case AllVar(v, f) => AllVar(v, apply(f.asInstanceOf[T]).asInstanceOf[HOLFormula]).asInstanceOf[T]
+    case Imp(l, r) => Imp(apply(l.asInstanceOf[T]).asInstanceOf[SchemaFormula], apply(r.asInstanceOf[T]).asInstanceOf[SchemaFormula]).asInstanceOf[T]
+    case AllVar(v, f) => AllVar(v, apply(f.asInstanceOf[T]).asInstanceOf[SchemaFormula]).asInstanceOf[T]
     case at @ Atom(name, args) => {
       Atom(name, args.map(x => apply(x.asInstanceOf[T]).asInstanceOf[HOLExpression])).asInstanceOf[T]
     }
@@ -673,7 +663,7 @@ class SchemaSubstitution1[T <: HOLExpression](val map: MMap[Var, T])  {
   }
 
   def apply(fseq: types.FSequent): types.FSequent = {
-    FSequent(fseq._1.map(f => apply(f.asInstanceOf[T]).asInstanceOf[HOLFormula]),fseq._2.map(f => apply(f.asInstanceOf[T]).asInstanceOf[HOLFormula]))
+    FSequent(fseq._1.map(f => apply(f.asInstanceOf[T]).asInstanceOf[SchemaFormula]),fseq._2.map(f => apply(f.asInstanceOf[T]).asInstanceOf[SchemaFormula]))
   }
 }
 */
@@ -704,23 +694,23 @@ class SchemaSubstitution1[T <: HOLExpression](val map: MMap[Var, T])  {
 //      def label: String = """[0-9]*"""
 //
 //      def term: Parser[HOLExpression] = (non_formula | formula)
-//      def formula: Parser[HOLFormula] = (neg | atom | and | or | imp | forall | exists | variable | constant) ^? {case trm: Formula => trm.asInstanceOf[HOLFormula]}
+//      def formula: Parser[SchemaFormula] = (neg | atom | and | or | imp | forall | exists | variable | constant) ^? {case trm: Formula => trm.asInstanceOf[SchemaFormula]}
 //      def non_formula: Parser[HOLExpression] = (abs | variable | constant | var_func | const_func)
 //      def variable: Parser[HOLVar] = regex(new Regex("[u-z]" + word)) ~ ":" ~ Type ^^ {case x ~ ":" ~ tp => hol.createVar(new VariableStringSymbol(x), tp).asInstanceOf[HOLVar]}
 //      def constant: Parser[HOLConst] = regex(new Regex("[a-tA-Z0-9]" + word)) ~ ":" ~ Type ^^ {case x ~ ":" ~ tp => hol.createVar(new ConstantStringSymbol(x), tp).asInstanceOf[HOLConst]}
-//      def and: Parser[HOLFormula] = "And" ~ formula ~ formula ^^ {case "And" ~ x ~ y => And(x,y)}
-//      def or: Parser[HOLFormula] = "Or" ~ formula ~ formula ^^ {case "Or" ~ x ~ y => Or(x,y)}
-//      def imp: Parser[HOLFormula] = "Imp" ~ formula ~ formula ^^ {case "Imp" ~ x ~ y => Imp(x,y)}
+//      def and: Parser[SchemaFormula] = "And" ~ formula ~ formula ^^ {case "And" ~ x ~ y => And(x,y)}
+//      def or: Parser[SchemaFormula] = "Or" ~ formula ~ formula ^^ {case "Or" ~ x ~ y => Or(x,y)}
+//      def imp: Parser[SchemaFormula] = "Imp" ~ formula ~ formula ^^ {case "Imp" ~ x ~ y => Imp(x,y)}
 //      def abs: Parser[HOLExpression] = "Abs" ~ variable ~ term ^^ {case "Abs" ~ v ~ x => Abs(v,x).asInstanceOf[HOLExpression]}
-//      def neg: Parser[HOLFormula] = "Neg" ~ formula ^^ {case "Neg" ~ x => Neg(x)}
-//      def atom: Parser[HOLFormula] = (equality | var_atom | const_atom)
-//      def forall: Parser[HOLFormula] = "Forall" ~ variable ~ formula ^^ {case "Forall" ~ v ~ x => AllVar(v,x)}
-//      def exists: Parser[HOLFormula] = "Exists" ~ variable ~ formula ^^ {case "Exists" ~ v ~ x => ExVar(v,x)}
-//      def var_atom: Parser[HOLFormula] = regex(new Regex("[u-z]" + word)) ~ "(" ~ repsep(term,",") ~ ")" ^^ {case x ~ "(" ~ params ~ ")" => Atom(new VariableStringSymbol(x), params)}
-//      def const_atom: Parser[HOLFormula] = regex(new Regex("["+symbols+"a-tA-Z0-9]" + word)) ~ "(" ~ repsep(term,",") ~ ")" ^^ {case x ~ "(" ~ params ~ ")" => Atom(new ConstantStringSymbol(x), params)}
-//      def equality: Parser[HOLFormula] = /*eq_infix | */ eq_prefix // infix is problematic in higher order
-//     //def eq_infix: Parser[HOLFormula] = term ~ "=" ~ term ^^ {case x ~ "=" ~ y => Equation(x,y)}
-//      def eq_prefix: Parser[HOLFormula] = "=" ~ "(" ~ term ~ "," ~ term  ~ ")" ^^ {case "=" ~ "(" ~ x ~ "," ~ y  ~ ")" => Equation(x,y)}
+//      def neg: Parser[SchemaFormula] = "Neg" ~ formula ^^ {case "Neg" ~ x => Neg(x)}
+//      def atom: Parser[SchemaFormula] = (equality | var_atom | const_atom)
+//      def forall: Parser[SchemaFormula] = "Forall" ~ variable ~ formula ^^ {case "Forall" ~ v ~ x => AllVar(v,x)}
+//      def exists: Parser[SchemaFormula] = "Exists" ~ variable ~ formula ^^ {case "Exists" ~ v ~ x => ExVar(v,x)}
+//      def var_atom: Parser[SchemaFormula] = regex(new Regex("[u-z]" + word)) ~ "(" ~ repsep(term,",") ~ ")" ^^ {case x ~ "(" ~ params ~ ")" => Atom(new VariableStringSymbol(x), params)}
+//      def const_atom: Parser[SchemaFormula] = regex(new Regex("["+symbols+"a-tA-Z0-9]" + word)) ~ "(" ~ repsep(term,",") ~ ")" ^^ {case x ~ "(" ~ params ~ ")" => Atom(new ConstantStringSymbol(x), params)}
+//      def equality: Parser[SchemaFormula] = /*eq_infix | */ eq_prefix // infix is problematic in higher order
+//     //def eq_infix: Parser[SchemaFormula] = term ~ "=" ~ term ^^ {case x ~ "=" ~ y => Equation(x,y)}
+//      def eq_prefix: Parser[SchemaFormula] = "=" ~ "(" ~ term ~ "," ~ term  ~ ")" ^^ {case "=" ~ "(" ~ x ~ "," ~ y  ~ ")" => Equation(x,y)}
 //      def var_func: Parser[HOLExpression] = regex(new Regex("[u-z]" + word)) ~ "(" ~ repsep(term,",") ~ ")"  ~ ":" ~ Type ^^ {case x ~ "(" ~ params ~ ")" ~ ":" ~ tp => Function(new VariableStringSymbol(x), params, tp)}
 //     /*def var_func: Parser[HOLExpression] = (var_func1 | var_funcn)
 //     def var_func1: Parser[HOLExpression] = regex(new Regex("[u-z]" + word)) ~ "(" ~ repsep(term,",") ~ ")"  ~ ":" ~ Type ^^ {case x ~ "(" ~ params ~ ")" ~ ":" ~ tp => Function(new VariableStringSymbol(x), params, tp)}

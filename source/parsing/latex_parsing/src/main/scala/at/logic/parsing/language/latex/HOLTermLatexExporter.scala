@@ -7,13 +7,11 @@
 
 package at.logic.parsing.language.latex
 
-import at.logic.language.lambda.symbols._
-import at.logic.language.hol.logicSymbols._
 import at.logic.language.hol._
 import at.logic.parsing.OutputExporter
-import at.logic.language.lambda.typedLambdaCalculus._
 import at.logic.language.lambda.types._
 import at.logic.language.schema.indexedOmegaVar
+import at.logic.language.lambda.{Abs, Var, LambdaExpression}
 
 trait HOLTermLatexExporter extends OutputExporter with at.logic.parsing.language.HOLTermExporter {
   // it is LambdaExpression and require because of the stupid design chose not to have a common element for HOL
@@ -32,8 +30,8 @@ trait HOLTermLatexExporter extends OutputExporter with at.logic.parsing.language
   }}
 
   protected def latexType(ta: TA): String = ta match {
-    case Ti() => "i"
-    case To() => "o"
+    case Ti => "i"
+    case To => "o"
     case ->(a,b) => "(" + latexType(a) + """ \rightarrow """ + latexType(b) + ")"
   }
 }

@@ -8,40 +8,31 @@
 package at.logic.algorithms.shlk
 
 import at.logic.language.schema._
-import at.logic.calculi.lk.base.Sequent
-import at.logic.calculi.lk.propositionalRules.{OrLeftRule, NegLeftRule, Axiom}
-import at.logic.calculi.lksk.Axiom
-import at.logic.parsing.readers.StringReader
+import at.logic.calculi.lk._
+import at.logic.language.lambda.symbols.StringSymbol
+import at.logic.language.lambda.types.To
+
+//import at.logic.parsing.readers.StringReader
 import org.specs2.mutable._
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
-import at.logic.language.hol._
-import at.logic.language.hol.Definitions._
-import at.logic.language.hol.ImplicitConverters._
-import at.logic.language.lambda.typedLambdaCalculus._
-import at.logic.language.hol.logicSymbols.ConstantStringSymbol
-import at.logic.language.lambda.symbols.VariableStringSymbol
-import at.logic.language.lambda.types.ImplicitConverters._
-import at.logic.language.lambda.types.Definitions._
-import at.logic.language.lambda.types._
-import at.logic.language.lambda.symbols.ImplicitConverters._
-import at.logic.parsing.readers.StringReader
 import scala.io._
 import java.io.File.separator
 import java.io.{FileInputStream, InputStreamReader}
 import org.specs2.execute.Success
+import at.logic.language.schema._
 
 @RunWith(classOf[JUnitRunner])
 class SimpleSLKParserTest extends SpecificationWithJUnit {
-  private class MyParser extends StringReader("")
+  //private class MyParser extends StringReader("")
     "SimpleSLKParser" should {
 
       sequential
         "parse correctly a SLK-proof" in {
-          val var3 = HOLVarFormula(new VariableStringSymbol("x3"))
-          val var4 = HOLVarFormula(new VariableStringSymbol("x4"))
-          val ax1  = at.logic.calculi.lk.propositionalRules.Axiom(var3::Nil, var3::Nil)
-          val ax2  = at.logic.calculi.lk.propositionalRules.Axiom(var4::Nil, var4::Nil)
+          val var3 = Atom(SchemaVar("x3",To), Nil)
+          val var4 = Atom(SchemaVar("x4",To), Nil)
+          val ax1  = Axiom(var3::Nil, var3::Nil)
+          val ax2  = Axiom(var4::Nil, var4::Nil)
           val negl = NegLeftRule(ax1, var3)
           val proof  = OrLeftRule(negl, ax2, var3, var4)
 
@@ -50,12 +41,12 @@ class SimpleSLKParserTest extends SpecificationWithJUnit {
 //                            "3 : ax(x4: o |- x4: o)" +
 //                            "4 : orL(2, 3, x3:o, x4:o)", "4").toString must beEqualTo (proof.toString)
 
-          val A0 = IndexedPredicate(new ConstantStringSymbol("A"), IntZero())
-          val i = IntVar(new VariableStringSymbol("i"))
-          val Ai2 = IndexedPredicate(new ConstantStringSymbol("A"), Succ(Succ(i)))
-          val Ai = IndexedPredicate(new ConstantStringSymbol("A"), Succ(i))
+          val A0 = IndexedPredicate("A", IntZero())
+          val i = IntVar("i")
+          val Ai2 = IndexedPredicate("A", Succ(Succ(i)))
+          val Ai = IndexedPredicate("A", Succ(i))
           val f1 = at.logic.language.schema.And(A0, BigAnd(i,Ai,IntZero(),Succ(i)))
-          val ax11 = at.logic.calculi.lk.propositionalRules.Axiom(A0::Nil, A0::Nil)
+          val ax11 = Axiom(A0::Nil, A0::Nil)
 //          println("\n\n"+ax11.root.toString)
 
 //          SHLK.parseProof( "1 : ax(A(i+2) |- And A(0) BigAnd(i,0,s(i),A(i)))" +

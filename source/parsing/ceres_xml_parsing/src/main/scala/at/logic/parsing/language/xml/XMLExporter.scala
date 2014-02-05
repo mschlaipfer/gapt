@@ -149,7 +149,7 @@ object XMLExporter {
     case _ => throw new ExportingException("Can't match term: " + term.toString)
   }
 
-  def exportLambdaSubstitution(subst: HOLExpression) =
+  def exportLambdaSubstitution(subst: HOLAbs) =
     <lambdasubstitution>
       { exportVariableList( subst.boundVariables ) }
       { exportFormula( subst.subTerms(1).asInstanceOf[HOLFormula] ) /*TODO: this line is hack, should be improved */ }

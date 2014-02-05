@@ -11,15 +11,11 @@ import at.logic.language.lambda.symbols._
 import at.logic.language.hol.logicSymbols._
 import at.logic.language.hol._
 import at.logic.language.lambda.types._
-import at.logic.language.lambda.typedLambdaCalculus._
 import at.logic.parsing.ExportingException
 import at.logic.calculi.lk.base._
-import at.logic.calculi.lksk.base._
-import at.logic.calculi.lk.lkExtractors._
-import at.logic.calculi.lk.propositionalRules._
-import at.logic.calculi.lk.quantificationRules._
 import at.logic.parsing.language.latex.HOLTermLatexExporter
-import at.logic.calculi.lk.base.types.FSequent
+import at.logic.language.lambda.LambdaExpression
+import at.logic.calculi.lksk.{LabelledFormulaOccurrence, LabelledSequent}
 
 
 trait SequentsListLatexExporter extends HOLTermLatexExporter {

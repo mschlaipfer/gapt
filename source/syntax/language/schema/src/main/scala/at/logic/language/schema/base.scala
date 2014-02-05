@@ -74,7 +74,7 @@ object SchemaFactory extends FactoryA {
     case _ => new SchemaApp(fun.asInstanceOf[SchemaExpression], arg.asInstanceOf[SchemaExpression])
   }
   
-  def createAbs( variable: Var, exp: LambdaExpression ): SchemaAbs = new SchemaAbs( variable.asInstanceOf[IntVar], exp.asInstanceOf[SchemaExpression] )
+  def createAbs( variable: Var, exp: LambdaExpression ): SchemaAbs = new SchemaAbs( variable.asInstanceOf[SchemaVar], exp.asInstanceOf[SchemaExpression] )
   
   def createConnective(sym: SymbolA, tp: TA = Ti) : SchemaConst = sym match {
     case BottomSymbol => BottomC
@@ -83,6 +83,7 @@ object SchemaFactory extends FactoryA {
     case AndSymbol => AndC
     case OrSymbol => OrC
     case ImpSymbol => ImpC
+    case EqSymbol => EqC(tp)
     case ForallSymbol => AllQ(tp)
     case ExistsSymbol => ExQ(tp)
     case _ => throw new Exception("Operator for " + sym.toString + " not defined for HOL.")

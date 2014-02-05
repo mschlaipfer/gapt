@@ -141,6 +141,33 @@ object fowVar {
   }
 }
 
+object Function {
+  def apply(head: SchemaVar, args: List[SchemaExpression]): SchemaExpression = apply_(head, args)
+  def apply(head: SchemaConst, args: List[SchemaExpression]): SchemaExpression = apply_(head, args)
+
+  private def apply_(head: SchemaExpression, args: List[SchemaExpression]): SchemaExpression = args match {
+    case Nil => head
+    case t :: tl => apply_(SchemaApp(head, t), tl)
+  }
+
+  def unapply( expression: SchemaExpression ) = expression match {
+    case SchemaApp(c: SchemaConst,_) if isLogicalSymbol(c) => None
+    case SchemaApp(SchemaApp(c: SchemaConst,_),_) if isLogicalSymbol(c) => None
+    case SchemaApp(_,_) if (expression.exptype != To) =>
+      val t = unapply_(expression)
+      Some( (t._1, t._2, expression.exptype) )
+    case _ => None
+  }
+  // Recursive unapply to get the head and args
+  private def unapply_(e: SchemaExpression) : (SchemaExpression, List[SchemaExpression]) = e match {
+    case v: SchemaVar => (v, Nil)
+    case c: SchemaConst => (c, Nil)
+    case SchemaApp(e1, e2) =>
+      val t = unapply_(e1)
+      (t._1, t._2 :+ e2)
+  }
+}
+
 /*************** OPERATORS *****************/
 
 case object BottomC extends SchemaConst(BottomSymbol, To) with SchemaFormula
@@ -149,6 +176,7 @@ case object NegC extends SchemaConst(NegSymbol, ->(To, To))
 case object AndC extends SchemaConst(AndSymbol, ->(To, ->(To, To)))
 case object OrC extends SchemaConst(OrSymbol, ->(To, ->(To, To)))
 case object ImpC extends SchemaConst(ImpSymbol, ->(To, ->(To, To)))
+class EqC(e:TA) extends SchemaConst(EqSymbol, e -> (e -> To))
 class ExQ(e:TA) extends SchemaConst(ExistsSymbol, ->(e,"o"))
 class AllQ(e:TA) extends SchemaConst(ForallSymbol, ->(e,"o"))
 
@@ -175,6 +203,10 @@ object And {
   def apply(left: SchemaFormula, right: SchemaFormula) = {
     val and = left.factory.createConnective(AndSymbol).asInstanceOf[SchemaConst]
     SchemaApp(SchemaApp(and, left), right).asInstanceOf[SchemaFormula]
+  }
+  def apply(fs: List[SchemaFormula]) : SchemaFormula = fs match {
+    case Nil => TopC
+    case f::fs => fs.foldLeft(f)( (d, f) => And(d, f) )
   }
   def unapply(expression: SchemaExpression) = expression match {
     case SchemaApp(SchemaApp(AndC,left),right) => Some( (left.asInstanceOf[SchemaFormula],right.asInstanceOf[SchemaFormula]) )
@@ -222,6 +254,15 @@ private object AllQ {
     case _ => None
   }
 }
+
+private object EqC {
+  def apply(ep: TA) = new EqC(ep)
+  def unapply(v: SchemaConst) = v match {
+    case vo: EqC => Some(vo.exptype)
+    case _ => None
+  }
+}
+
 
 private object Ex {
   def apply(sub: SchemaExpression) = {
@@ -362,6 +403,19 @@ object leq {
     case _ => None
   }
 }
+
+object Equation {
+  def apply(left: SchemaExpression, right: SchemaExpression) = {
+    require(left.exptype == right.exptype)
+    val eq = left.factory.createConnective(EqSymbol, left.exptype).asInstanceOf[SchemaConst]
+    SchemaApp(SchemaApp(eq, left),right).asInstanceOf[SchemaFormula]
+  }
+  def unapply(expression: HOLExpression) = expression match {
+    case SchemaApp(SchemaApp(EqC(_),left),right) => Some( left,right )
+    case _ => None
+  }
+}
+
 
 
 object aTerm {

@@ -71,6 +71,7 @@ trait HOLTermExporter {
       <secondordervariable symbol={a.toString}/>
     case HOLConst(a, Ti) =>
       <constant symbol={a.toString}/>
+    // TODO add holabs
     /*
     case AppN1(Var(ConstantStringSymbol(a),FunctionType(Ti(),_)),args) =>
       <function symbol={a}>

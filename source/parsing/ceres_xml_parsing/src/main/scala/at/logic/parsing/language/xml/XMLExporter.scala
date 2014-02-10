@@ -51,8 +51,8 @@ object XMLExporter {
       <rule symbol={ p.name } type={ ruleType }>
       { exportSequent( p.root ) }
       { exportRule( p.uProof ) }
-      { if (ruleType == "foralll2") exportLambdaSubstitution( ForallLeftRule.unapply(proof).get._5 ) }
-      { if (ruleType == "existsr2") exportLambdaSubstitution( ExistsRightRule.unapply(proof).get._5 ) }
+      { if (ruleType == "foralll2") exportLambdaSubstitution( ForallLeftRule.unapply(proof).get._5.asInstanceOf[HOLAbs] ) }
+      { if (ruleType == "existsr2") exportLambdaSubstitution( ExistsRightRule.unapply(proof).get._5.asInstanceOf[HOLAbs] ) }
       </rule>
     case p: BinaryLKProof =>
       <rule symbol={ p.name } type={ getRuleType( p ) }>
@@ -149,13 +149,22 @@ object XMLExporter {
     case _ => throw new ExportingException("Can't match term: " + term.toString)
   }
 
-  def exportLambdaSubstitution(subst: HOLAbs) =
-    <lambdasubstitution>
-      { exportVariableList( subst.boundVariables ) }
-      { exportFormula( subst.subTerms(1).asInstanceOf[HOLFormula] ) /*TODO: this line is hack, should be improved */ }
-    </lambdasubstitution>
+  private def decompose(a: HOLExpression, vars: List[HOLVar]) : (HOLExpression, List[HOLVar]) = a match {
+    case HOLAbs(v, f) => decompose( f, v :: vars )
+    case _ => (a, vars)
+  }
 
-  def exportVariableList( vl : Set[HOLVar]) =
+  private def decompose(a: HOLAbs) : (HOLExpression, List[HOLVar]) = decompose(a, Nil)
+ 
+  def exportLambdaSubstitution(subst: HOLAbs) = {
+    val (formula, vars) = decompose(subst)
+    <lambdasubstitution>
+      { exportVariableList( vars ) }
+      { exportFormula( formula.asInstanceOf[HOLFormula] ) }
+    </lambdasubstitution>
+  }
+
+  def exportVariableList( vl : List[HOLVar]) =
     <variablelist>
       { vl.map(x => <variable symbol={ x.name.toString } />) }
     </variablelist>

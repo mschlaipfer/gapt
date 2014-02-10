@@ -45,7 +45,7 @@ object HOLApp {
   }
 }
 
-class HOLAbs protected[hol] (variable: HOLVar, term: HOLExpression) extends Abs(variable, term) with HOLExpression
+class HOLAbs (variable: HOLVar, term: HOLExpression) extends Abs(variable, term) with HOLExpression
 object HOLAbs {
   def apply(variable: HOLVar, expression: HOLExpression) : HOLAbs = expression.factory.createAbs(variable, expression).asInstanceOf[HOLAbs]
   def unapply(exp: HOLExpression) = exp match {

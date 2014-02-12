@@ -1077,8 +1077,8 @@ object XMLParser {
           => Atom( (new NodeReader( ns.head ) with XMLSetTermParser).getSetTerm().asInstanceOf[HOLVar],
                    XMLUtils.nodesToAbstractTerms( ns.toList.tail ) )
         case <definedsetformula>{ ns @ _* }</definedsetformula>
-          => Atom( (new NodeReader( ns.head ) with XMLSetTermParser).getSetTerm().asInstanceOf[HOLConst],
-                   XMLUtils.nodesToAbstractTerms( ns.toList.tail ) )
+          => HOLApp( (new NodeReader( ns.head ) with XMLSetTermParser).getSetTerm().asInstanceOf[HOLExpression],
+                   XMLUtils.nodesToAbstractTerms( ns.toList.tail ) ).asInstanceOf[HOLFormula]
         case <conjunctiveformula>{ ns @ _* }</conjunctiveformula> 
           => createConjunctiveFormula(n.attribute("type").get.head.text,
                                          XMLUtils.nodesToFormulas(ns.toList))

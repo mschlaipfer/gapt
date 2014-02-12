@@ -6,23 +6,18 @@ import at.logic.calculi.lk.base.{FSequent, LKProof, Sequent}
 import at.logic.utils.logging.Logger
 import scala.collection.mutable.{Map,HashMap}
 import at.logic.calculi.lksk._
-import at.logic.calculi.lksk.base._
-import at.logic.calculi.lksk.base.TypeSynonyms._
-import at.logic.calculi.lk.propositionalRules.{Axiom => LKAxiom}
+import at.logic.calculi.lk.{Axiom => LKAxiom}
 import at.logic.calculi.occurrences._
-import at.logic.calculi.lk.quantificationRules._
-import at.logic.calculi.lk.propositionalRules.{ImpLeftRule, AndRightRule, OrRight1Rule, ImpRightRule, WeakeningLeftRule => LKWeakeningLeftRule, OrRight2Rule, ContractionRightRule, ContractionLeftRule, WeakeningRightRule => LKWeakeningRightRule, OrLeftRule, CutRule, AndLeft1Rule, AndLeft2Rule,NegRightRule,NegLeftRule}
-import at.logic.calculi.lk.definitionRules._
-import at.logic.calculi.lk.equationalRules._
+import at.logic.calculi.lk.{ImpLeftRule, AndRightRule, OrRight1Rule, ImpRightRule, WeakeningLeftRule => LKWeakeningLeftRule, OrRight2Rule, ContractionRightRule, ContractionLeftRule, WeakeningRightRule => LKWeakeningRightRule, OrLeftRule, CutRule, AndLeft1Rule, AndLeft2Rule,NegRightRule,NegLeftRule, ForallLeftRule, ForallRightRule, ExistsLeftRule, ExistsRightRule}
+import at.logic.calculi.lk.{DefinitionLeftRule, DefinitionRightRule, EquationLeft1Rule, EquationLeft2Rule, EquationRight1Rule, EquationRight2Rule}
 import at.logic.language.hol._
-import at.logic.language.lambda.types._
-import at.logic.language.lambda._
-import at.logic.language.lambda.substitutions._
 import at.logic.algorithms.lksk.applySubstitution
 import at.logic.algorithms.lk.getCutAncestors
-import at.logic.language.hol.logicSymbols.ConstantStringSymbol
-import at.logic.calculi.lk.base.types.FSequent
+import at.logic.calculi.lk.base.FSequent
 import at.logic.calculi.occurrences.factory
+import at.logic.calculi.lksk.TypeSynonyms.{EmptyLabel, Label}
+import at.logic.language.lambda.symbols.StringSymbol
+import at.logic.language.lambda.types.FunctionType
 
 
 object LKtoLKskc extends Logger {
@@ -84,11 +79,11 @@ object LKtoLKskc extends Logger {
         val newaux = r._2(a)
         val args = newaux.skolem_label.toList
         m.formula match {
-          case All(_, t) => t match { case ( (alpha -> To()) -> To()) =>
-            val f = getFreshSkolemFunctionSymbol
-            info( "Using Skolem function symbol '" + f + "' for formula " + m.formula.toStringSimple )
-            val s = Function( f, args, alpha )
-            val subst = Substitution[HOLExpression]( v, s )
+          case AllVar(HOLVar(_,alpha), _) =>
+            val f = HOLConst(getFreshSkolemFunctionSymbol, FunctionType.fromExpressions(alpha, args))
+            info( "Using Skolem function symbol '" + f + "' for formula " + m.formula )
+            val s = Function( f, args )
+            val subst = Substitution( v, s )
             val new_parent = applySubstitution( r._1, subst )
             val new_proof = ForallSkRightRule(new_parent._1, new_parent._2(newaux), m.formula, s)
             //assert( new_proof.root.isInstanceOf[LabelledSequent] )
@@ -98,7 +93,6 @@ object LKtoLKskc extends Logger {
             (new_proof, computeMap( p.root.antecedent ++
                                     p.root.succedent,
                                     proof, new_proof, composed_map ) )
-          }
         }
       }
       else
@@ -117,11 +111,11 @@ object LKtoLKskc extends Logger {
         val newaux = r._2(a)
         val args = newaux.skolem_label.toList
         m.formula match {
-          case Ex(_, t) => t match { case ( (alpha -> To()) -> To()) =>
-            val f = getFreshSkolemFunctionSymbol
-            info( "Using Skolem function symbol '" + f + "' for formula " + m.formula.toStringSimple )
-            val s = Function( f, args, alpha )
-            val subst = Substitution[HOLExpression]( v, s )
+          case ExVar(HOLVar(_,alpha), _) =>
+            val f = HOLConst(getFreshSkolemFunctionSymbol, FunctionType.fromExpressions(alpha, args))
+            info( "Using Skolem function symbol '" + f + "' for formula " + m.formula )
+            val s = Function( f, args )
+            val subst = Substitution( v, s )
             val new_parent = applySubstitution( r._1, subst )
             val new_proof = ExistsSkLeftRule(new_parent._1, new_parent._2(newaux), m.formula, s)
             //assert( new_proof.root.isInstanceOf[LabelledSequent] )
@@ -131,7 +125,7 @@ object LKtoLKskc extends Logger {
             (new_proof, computeMap( p.root.antecedent ++
                                     p.root.succedent,
                                     proof, new_proof, composed_map ) )
-          }
+
         }
       }
       else
@@ -401,6 +395,6 @@ object LKtoLKskc extends Logger {
   var skolem_cnt = -1
   def getFreshSkolemFunctionSymbol = {
     skolem_cnt += 1
-    ConstantStringSymbol( "s_{" + skolem_cnt + "}" )
+    StringSymbol( "s_{" + skolem_cnt + "}" )
   }
 }

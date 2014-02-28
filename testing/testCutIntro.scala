@@ -53,12 +53,14 @@ object testCutIntro {
 
     CutIntroDataLogger.trace( "---------- now starting TSTP-Prover9/cut-intro/chooseProver/NoForgetfulPara" )
     compressTSTP( "../testing/resultsCutIntro/tstp_non_trivial_termset.csv", 60, false, true, false )
-    CutIntroDataLogger.trace( "---------- now starting TSTP-Prover9/generalized cut-intro/chooseProver/NoForgetfulPara" )
+    CutIntroDataLogger.trace( "---------- now starting TSTP-Prover9/generalized cut-intro (one variable delta)/chooseProver/NoForgetfulPara" )
     compressTSTP( "../testing/resultsCutIntro/tstp_non_trivial_termset.csv", 60, true, true, false )
+/*
     CutIntroDataLogger.trace( "---------- now starting TSTP-Prover9/cut-intro/chooseProver/WithForgetfulPara" )
     compressTSTP( "../testing/resultsCutIntro/tstp_non_trivial_termset.csv", 60, false, true, true )
     CutIntroDataLogger.trace( "---------- now starting TSTP-Prover9/generalized cut-intro/chooseProver/WithForgetfulPara" )
     compressTSTP( "../testing/resultsCutIntro/tstp_non_trivial_termset.csv", 60, true, true, true )
+*/
 
     /*
     CutIntroDataLogger.trace( "---------- now starting SMT-LIB-QF_UF-veriT/cut-intro/DefaultProver" )
@@ -410,7 +412,8 @@ object testCutIntro {
    **/
   def compressExpansionProof( ep: (Seq[ExpansionTree],Seq[ExpansionTree]), prover: Prover, useGenCutIntro: Boolean, timeout: Int, useForgetfulPara: Boolean ) : ( String, String ) = {
     val r = if ( useGenCutIntro )
-      Generalized.CutIntroduction.applyStat( ep, new Generalized.Deltas.UnboundedVariableDelta(), prover, timeout, useForgetfulPara )
+      //// FIXME: only temporarily useGenCutIntro will have the effect of using Generalized.Deltas.OneVariableDelta()
+      Generalized.CutIntroduction.applyStat( ep, new Generalized.Deltas.OneVariableDelta(), prover, timeout, useForgetfulPara )
     else
       CutIntroduction.applyExp( ep, prover, timeout, useForgetfulPara )
 

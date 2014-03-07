@@ -1,29 +1,20 @@
 /*
  * LKExporterTest.scala
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
  */
 
 package at.logic.parsing.calculi.xml
 
-//import _root_.at.logic.language.fol.{Atom, FOLConst, FOLFormula}
 import org.specs2.mutable._
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 
-import scala.xml._
+import scala.xml.Utility.trim
 
 import at.logic.language.hol._
 import at.logic.calculi.lk._
 import at.logic.calculi.lk.base._
-import java.util.zip.GZIPInputStream
-import java.io.{FileReader, FileInputStream, InputStreamReader}
-import java.io.File.separator
 import at.logic.parsing.calculus.xml._
-import scala.xml.Utility.trim
 import at.logic.parsing.language.xml.HOLTermExporter
-import at.logic.calculi.occurrences.factory
 import at.logic.language.lambda.symbols.StringSymbol
 import at.logic.language.lambda.types.To
 

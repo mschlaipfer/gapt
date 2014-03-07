@@ -1,38 +1,22 @@
 package at.logic.algorithms.hlk
 
-import at.logic.calculi.lk.base.types.FSequent
-import at.logic.calculi.lk.macroRules._
-import at.logic.calculi.lk.base.{FSequent, Sequent, LKProof}
-import at.logic.calculi.lk.propositionalRules._
-import scala.util.parsing.combinator._
-import scala.util.matching.Regex
-import at.logic.parsing.language.HOLParser
-import at.logic.language.hol._
-import at.logic.language.hol.Definitions._
-import at.logic.language.hol.ImplicitConverters._
-import at.logic.language.lambda.types.TA
-import at.logic.language.lambda.typedLambdaCalculus._
-import at.logic.language.lambda.symbols.VariableStringSymbol
-import at.logic.language.lambda.types.Definitions._
-import at.logic.language.lambda.types._
-import logicSymbols.{ConstantSymbolA, ConstantStringSymbol}
-import java.io.InputStreamReader
-import at.logic.calculi.lk.quantificationRules._
-import at.logic.language.schema.{foVar, dbTRS, foTerm, indexedFOVar, sTerm, SchemaFormula, BigAnd, BigOr, IntVar, IntegerTerm, IndexedPredicate, Succ, IntZero, Neg => SNeg}
 import at.logic.algorithms.lk._
-import at.logic.language.hol.logicSymbols.ConstantStringSymbol
-import scala.Tuple4
-import at.logic.language.lambda.types.->
-import at.logic.language.lambda.symbols.VariableStringSymbol
-import at.logic.language.schema.IntZero
-import at.logic.calculi.lk.base.types.FSequent
-import at.logic.parsing.language.xml.ProofDatabase
+import at.logic.calculi.lk._
+import at.logic.calculi.lk.base.{FSequent, Sequent, LKProof}
+import at.logic.language.hol._
+import at.logic.language.lambda.types._
+import at.logic.language.schema.{foVar, dbTRS, foTerm, indexedFOVar, sTerm, SchemaFormula, BigAnd, BigOr, IntVar, IntegerTerm, IndexedPredicate, Succ, IntZero, Neg => SNeg, SchemaExpression}
+import at.logic.parsing.language.HOLParser
 import at.logic.parsing.language.prover9.Prover9TermParserA
+import at.logic.parsing.language.xml.ProofDatabase
+import java.io.InputStreamReader
+import scala.Tuple4
+import scala.collection.immutable.HashMap
+import scala.util.matching.Regex
 import scala.util.parsing.combinator.Parsers
-import scala.collection.immutable.{HashMap, Stack}
+import scala.util.parsing.combinator._
 
 object LKProofParser {
-  def debug(s:String) = { println(s) }
 
   type ProofMap = HashMap[String,LKProof]
   val emptyProofMap = HashMap.empty[String,LKProof]
@@ -59,12 +43,7 @@ object LKProofParser {
     }
 
     sp.parseAll[List[LabeledProof]](sp.hlk_file, txt) match {
-      case sp.Success(result, input) =>
-        println("YAY!!")
-        println(result)
-        //sp.getProofDB
-        val db = new ProofDatabase(Map.empty, result, Nil, Nil)
-        db
+      case sp.Success(result, input) => new ProofDatabase(Map.empty, result, Nil, Nil)
 
       case sp.NoSuccess(msg, input) =>
         throw new Exception("Parser failed at "+input.pos+ " with message: "+msg)
@@ -93,15 +72,9 @@ package incomplete {
 }
 
 abstract trait SimpleLKParser extends JavaTokenParsers with HLKFormulaParser {
-  import LKProofParser.debug
   import LKProofParser.LabeledProof
   import LKProofParser.ProofMap
   import LKProofParser.emptyProofMap
-
-  //override val whiteSpace = """\s+""".r
-
-
-  //maps to prevent passing around lots of parameters
 
 
   /* automatic generation of labels */
@@ -115,14 +88,6 @@ abstract trait SimpleLKParser extends JavaTokenParsers with HLKFormulaParser {
     newlabel
   }
 
-
-  /*
-  def getProofDB : ProofDatabase = {
-    debug("subproofs:")
-    subproofs map (x => debug(x._1 + " : " + x._2.root))
-    new ProofDatabase(Map.empty[HOLExpression,HOLExpression], proofs.toList, Nil, Nil)
-  }
-    */
 
   // hardcoded syntax conventions
   val proof_name : Parser[String] = """[\\]*[a-z]*[0-9]*""".r
@@ -168,7 +133,6 @@ abstract trait SimpleLKParser extends JavaTokenParsers with HLKFormulaParser {
 
 
   def complete_proof(endsequent:FSequent, subproofs : List[incomplete.Inference], global : ProofMap) : LKProof = {
-    println(subproofs.map(_.name).mkString(", "))
     complete_proof_(endsequent, subproofs, global)._1
   }
   def complete_proof_(endsequent:FSequent, subproofs : List[incomplete.Inference], global : ProofMap ) : (LKProof, List[(String,LKProof)]) = subproofs match {
@@ -183,12 +147,6 @@ abstract trait SimpleLKParser extends JavaTokenParsers with HLKFormulaParser {
 
   def lkProof: Parser[(String, FSequent, List[incomplete.Inference])] = ("proof" ~> name) ~ ("proves" ~> sequent)  ~ ("{" ~> line <~ "}")   ^^ {
     case  proofname ~  endsequent ~ line => {
-      /*
-      println(line)
-      proofs.put(proofname, stackOfProofs.head)
-      subproofs.put(proofname, stackOfProofs.head)
-      stackOfProofs.head
-      */
       (proofname, endsequent, line)
     }
   }
@@ -198,11 +156,6 @@ abstract trait SimpleLKParser extends JavaTokenParsers with HLKFormulaParser {
      weak | contr | strong_quantifier | weak_quantifier | impL | impR |
      autoprop) ~ opt("[" ~> label <~ "]") <~ ";" ^^ { _ match {
         case p ~ None =>
-          debug("generating label")
-          /*
-          stackOfProofs = stackOfProofs.push(p);
-          subproofs.put(label, p)
-          */
           val label = getLabel
           incomplete.Inference(p.name, (global,local) => {
             val (proof, list) = p.create(global, local)
@@ -210,11 +163,6 @@ abstract trait SimpleLKParser extends JavaTokenParsers with HLKFormulaParser {
           })
 
         case p ~ Some(label) =>
-          debug("using label "+label)
-          /*
-          stackOfProofs = stackOfProofs.push(p);
-          subproofs.put(label, p)
-          */
           incomplete.Inference(p.name, (global,local) => {
             val (proof, list) = p.create(global, local)
             (proof, (label,proof) :: list )
@@ -236,7 +184,6 @@ abstract trait SimpleLKParser extends JavaTokenParsers with HLKFormulaParser {
   /* ========== axiom rules ========================== */
 
   def ax: Parser[incomplete.Inference] = saxiom ~> "(" ~> sequent <~ ")" ^^ { sequent =>
-    debug("axiom!")
     incomplete.Inference("axiom", (global, local) => {
       val inf = Axiom(sequent.antecedent, sequent.succedent)
       (inf, local)
@@ -268,7 +215,6 @@ abstract trait SimpleLKParser extends JavaTokenParsers with HLKFormulaParser {
 
   def contr: Parser[incomplete.Inference] = scontr ~> (sleft | sright) ~ ("(" ~> formula) <~ ")" ^^ {
     case "left" ~f  => incomplete.Inference ("c:l", (global, local) => {
-      debug("contrL")
       require(local.length >= 1, "Problem in proof structure!")
       val (_,top)::rest = local
       val inf : LKProof = ContractionLeftRule(top, f)
@@ -276,7 +222,6 @@ abstract trait SimpleLKParser extends JavaTokenParsers with HLKFormulaParser {
     })
 
     case "right" ~ f  => incomplete.Inference ("c:r", (global, local) => {
-      debug("contrR")
       require(local.length >= 1, "Problem in proof structure!")
       val (_,top)::rest = local
       val inf : LKProof = ContractionRightRule(top, f)
@@ -288,7 +233,6 @@ abstract trait SimpleLKParser extends JavaTokenParsers with HLKFormulaParser {
 
   def weak: Parser[incomplete.Inference] = sweak ~> (sright|sleft) ~ ("(" ~> formula <~ ")") ^^ {
     case "left" ~ formula =>
-      debug("weak right "+formula)
       incomplete.Inference("w:l", (global, local) =>  {
         require(local.length >= 1, "Problem in proof structure!")
         val (_,top) :: rest = local
@@ -296,7 +240,6 @@ abstract trait SimpleLKParser extends JavaTokenParsers with HLKFormulaParser {
       })
 
     case "right" ~ formula  =>
-      debug("weak right "+formula)
       incomplete.Inference("w:r", (global, local) =>  {
         require(local.length >= 1, "Problem in proof structure!")
         val (_,top) :: rest = local
@@ -324,14 +267,6 @@ abstract trait SimpleLKParser extends JavaTokenParsers with HLKFormulaParser {
   }
 
   def unaryAndOr: Parser[incomplete.Inference] = ((sand ~ sleft ~ "([12])?".r) |  (sor ~ sright ~ "([12])?".r)  ) ~ ("by" ~> label).? ~ (":" ~> formula) ~ ("," ~> formula)  ^^ { r =>
-    /*
-    val (parent, rest) = r match {
-      case _ ~ _ ~ Some(label) ~ _ ~ _ =>
-        if ()
-        require(parent != null , "Referring to unknown label "+label)
-      case _ ~ _ ~ None ~ _ ~ _ =>
-        require(parent != null , "Referring to unknown label "+label)
-    } */
     val name : String = r match { case r ~ s ~ t ~ _ ~ _ ~ _ => List(r,s,t).mkString(" ")}
 
     incomplete.Inference(name, (global, local) => {
@@ -360,14 +295,12 @@ abstract trait SimpleLKParser extends JavaTokenParsers with HLKFormulaParser {
 
   def binaryOrAnd: Parser[incomplete.Inference] = ((sor ~ sleft) | (sand ~ sright)) ~ ("(" ~> formula) ~ ("," ~> formula) <~ ")" ^^ {
     case "or" ~ "left" ~ f1 ~ f2  => incomplete.Inference("or:l", (global, local) => {
-      debug("orL")
       require(local.length >= 2, "Problem in proof structure!")
       val (_,parent1)::(_,parent2)::rest = local
       val inf : LKProof = OrLeftRule(parent1, parent2, f1, f2)
       (inf,rest)
     })
     case "and" ~ "right" ~ f1 ~ f2 => incomplete.Inference("and:r",(global, local) => {
-      debug("andR")
       require(local.length >= 2, "Problem in proof structure!")
       val (_,parent1)::(_,parent2)::rest = local
       val inf : LKProof = AndRightRule(parent1, parent2, f1, f2)
@@ -450,14 +383,13 @@ abstract trait SimpleLKParser extends JavaTokenParsers with HLKFormulaParser {
 
 // trying to separate formula parsing from language parsing
 trait SchemaFormulaParser extends HLKFormulaParser with HOLParser {
-    import LKProofParser.debug
 
     def goal = term
 
     var predicate_arities = Map.empty[String, Int]
 
     def intConst : Parser[IntegerTerm] = "[0-9]+".r ^^ { x => intToTerm(x.toInt) }
-    def intVar: Parser[IntVar] = "[ijmnkx]".r ^^ { x => IntVar(new VariableStringSymbol(x)) }
+    def intVar: Parser[IntVar] = "[ijmnkx]".r ^^ { x => IntVar(x) }
 
     def term: Parser[HOLExpression] = ( non_formula | formula)
     def formula: Parser[HOLFormula] = (atom | neg | big | and | or | indPred | imp | forall | exists | variable | constant) ^? {case trm: Formula => trm.asInstanceOf[HOLFormula]}
@@ -497,17 +429,15 @@ trait SchemaFormulaParser extends HLKFormulaParser with HOLParser {
           predicate_arities
         }
         else if (predicate_arities.get(x.toString).get != l.size ) {
-          println("Input ERROR : Indexed Predicate '"+x.toString+"' should have arity "+predicate_arities.get(x.toString).get+ ", but not "+l.size+" !")
           throw new Exception("Input ERROR : Indexed Predicate '"+x.toString+"' should have arity "+predicate_arities.get(x.toString).get+ ", but not "+l.size+" !")
         }
 
-        IndexedPredicate(new ConstantStringSymbol(x), l)
+        IndexedPredicate(x, l)
       }
     }
 
     def big : Parser[HOLFormula] = rep1(prefix) ~ schemaFormula ^^ {
       case l ~ schemaFormula  => {
-        debug("Works?")
         l.reverse.foldLeft(schemaFormula.asInstanceOf[SchemaFormula])((res, triple) => {
           if (triple._1)
             BigAnd(triple._2, res, triple._3, triple._4)
@@ -519,47 +449,49 @@ trait SchemaFormulaParser extends HLKFormulaParser with HOLParser {
     def non_formula: Parser[HOLExpression] = (fo_term | s_term | indexedVar | abs | variable | constant | var_func | const_func)
     def s_term: Parser[HOLExpression] = "[g,h]".r ~ "(" ~ intTerm ~ "," ~ non_formula ~ ")" ^^ {
       case name ~ "(" ~ i ~ "," ~ args ~ ")" => {
-        sTerm(name, i, args::Nil)
+        sTerm(name, i.asInstanceOf[SchemaExpression], args.asInstanceOf[SchemaExpression]::Nil)
       }
     }
 
 
     private def fo_term: Parser[HOLExpression] = "[f]".r ~ "(" ~ non_formula ~ ")" ^^ {
       case name ~ "(" ~ arg ~ ")" => {
-        foTerm(name, arg::Nil)
+        foTerm(name, arg.asInstanceOf[SchemaExpression]::Nil)
       }
     }
     def indexedVar: Parser[HOLVar] = regex(new Regex("[z]")) ~ "(" ~ intTerm ~ ")" ^^ {
       case x ~ "(" ~ index ~ ")" => {
-        indexedFOVar(new VariableStringSymbol(x), index.asInstanceOf[IntegerTerm])
+        indexedFOVar(x, index.asInstanceOf[IntegerTerm])
       }
     }
 
     def variable: Parser[HOLVar] = (indexedVar | FOVariable)//regex(new Regex("[u-z]" + word))  ^^ {case x => hol.createVar(new VariableStringSymbol(x), i->i).asInstanceOf[HOLVar]}
     private def FOVariable: Parser[HOLVar] = regex(new Regex("[xya]" + word))  ^^ {case x => foVar(x)}
-    private def constant: Parser[HOLConst] = regex(new Regex("[a-tA-Z0-9]" + word))  ^^ {case x => hol.createVar(new ConstantStringSymbol(x), ind->ind).asInstanceOf[HOLConst]}
+    private def constant: Parser[HOLConst] = regex(new Regex("[a-tA-Z0-9]" + word))  ^^ {case x => HOLConst(x, Tindex->Tindex)}
     private def and: Parser[HOLFormula] = "(" ~ repsep(formula, "/\\") ~ ")" ^^ { case "(" ~ formulas ~ ")"  => { formulas.tail.foldLeft(formulas.head)((f,res) => And(f, res)) } }
     private def or: Parser[HOLFormula]  = "(" ~ repsep(formula, """\/""" ) ~ ")" ^^ { case "(" ~ formulas ~ ")"  => { formulas.tail.foldLeft(formulas.head)((f,res) => Or(f, res)) } }
     private def imp: Parser[HOLFormula] = "Imp" ~ formula ~ formula ^^ {case "Imp" ~ x ~ y => Imp(x,y)}
-    private def abs: Parser[HOLExpression] = "Abs" ~ variable ~ term ^^ {case "Abs" ~ v ~ x => Abs(v,x).asInstanceOf[HOLExpression]}
+    private def abs: Parser[HOLExpression] = "Abs" ~ variable ~ term ^^ {case "Abs" ~ v ~ x => HOLAbs(v,x)}
     private def neg: Parser[HOLFormula] = "~" ~ formula ^^ {case "~" ~ x => Neg(x)}
     private def atom: Parser[HOLFormula] = (equality | var_atom | const_atom)
     private def forall: Parser[HOLFormula] = "Forall" ~ variable ~ formula ^^ {case "Forall" ~ v ~ x => AllVar(v,x)}
     private def exists: Parser[HOLFormula] = "Exists" ~ variable ~ formula ^^ {case "Exists" ~ v ~ x => ExVar(v,x)}
     private def var_atom: Parser[HOLFormula] = regex(new Regex("[u-z]" + word)) ~ "(" ~ repsep(term,",") ~ ")" ^^ {case x ~ "(" ~ params ~ ")" => {
-      Atom(new VariableStringSymbol(x), params)
+      Atom(HOLVar(x, FunctionType(To, params.map(_.exptype))), params)
     }}
 
     //      def const_atom: Parser[HOLFormula] = regex(new Regex("["+symbols+"a-tA-Z0-9]" + word)) ~ "(" ~ repsep(term,",") ~ ")" ^^ {case x ~ "(" ~ params ~ ")" => {
     def const_atom: Parser[HOLFormula] = regex(new Regex("P")) ~ "(" ~ repsep(term,",") ~ ")" ^^ {case x ~ "(" ~ params ~ ")" => {
 
-      Atom(new ConstantStringSymbol(x), params)
+      Atom(HOLConst(x, FunctionType(To, params.map(_.exptype))), params)
     }}
     //def equality: Parser[HOLFormula] = eq_infix | eq_prefix // infix is problematic in higher order
     def equality: Parser[HOLFormula] = eq_prefix // infix is problematic in higher order
     def eq_prefix: Parser[HOLFormula] = "=" ~ "(" ~ term ~ "," ~ term  ~ ")" ^^ {case "=" ~ "(" ~ x ~ "," ~ y  ~ ")" => Equation(x,y)}
-    def var_func: Parser[HOLExpression] = regex(new Regex("[u-z]" + word)) ~ "(" ~ repsep(term,",") ~ ")" ^^ {case x ~ "(" ~ params ~ ")"  => Function(new VariableStringSymbol(x), params, ind->ind)}
-    def const_func: Parser[HOLExpression] = regex(new Regex("["+symbols+"a-tA-Z0-9]" + word)) ~ "(" ~ repsep(term,",") ~ ")"  ^^ {case x ~ "(" ~ params ~ ")"  => Function(new ConstantStringSymbol(x), params, ind->ind)}
+    def var_func: Parser[HOLExpression] = regex(new Regex("[u-z]" + word)) ~ "(" ~ repsep(term,",") ~ ")" ^^ {case x ~ "(" ~ params ~ ")"  => 
+      Function(HOLVar(x, FunctionType(Tindex, params.map(_.exptype))), params)}
+    def const_func: Parser[HOLExpression] = regex(new Regex("["+symbols+"a-tA-Z0-9]" + word)) ~ "(" ~ repsep(term,",") ~ ")"  ^^ {case x ~ "(" ~ params ~ ")"  => 
+      Function(HOLConst(x, FunctionType(Tindex, params.map(_.exptype))), params)}
 
     protected def word: String = """[a-zA-Z0-9$_{}]*"""
     protected def symbol: Parser[String] = symbols.r
@@ -568,11 +500,9 @@ trait SchemaFormulaParser extends HLKFormulaParser with HOLParser {
     // nested bigAnd bigOr....           ("""BigAnd""".r | """BigOr""".r)
     def prefix : Parser[Tuple4[Boolean, IntVar, IntegerTerm, IntegerTerm]] = """[BigAnd]*[BigOr]*""".r ~ "(" ~ intVar ~ "=" ~ index ~ ".." ~ index ~ ")" ^^ {
       case "BigAnd" ~ "(" ~ intVar1 ~ "=" ~ ind1 ~ ".." ~ ind2 ~ ")"  => {
-        debug("prefix")
         Tuple4(true, intVar1, ind1, ind2)
       }
       case "BigOr" ~ "(" ~ intVar1 ~ "=" ~ ind1 ~ ".." ~ ind2 ~ ")"  => {
-        debug("prefix")
         Tuple4(false, intVar1, ind1, ind2)
       }
     }

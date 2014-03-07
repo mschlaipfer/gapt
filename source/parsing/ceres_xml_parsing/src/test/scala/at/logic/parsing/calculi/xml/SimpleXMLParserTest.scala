@@ -15,10 +15,6 @@ import at.logic.language.hol._
 import at.logic.calculi.lk._
 import at.logic.calculi.lk.base._
 
-import java.io.{FileReader, FileInputStream, InputStreamReader}
-import java.io.File.separator
-import java.util.zip.GZIPInputStream
-
 @RunWith(classOf[JUnitRunner])
 class SimpleXMLParserTest extends SpecificationWithJUnit {
     "parse correctly a simple tree" in {

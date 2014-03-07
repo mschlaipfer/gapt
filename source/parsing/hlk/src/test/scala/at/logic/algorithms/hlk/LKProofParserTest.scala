@@ -18,10 +18,9 @@ class LKParserTest extends SpecificationWithJUnit {
     "parse correctly a FO LK-proof" in {
       val s = new InputStreamReader(new FileInputStream(path + "proof1.lk"))
       val db = LKProofParser.parseProof(s)
-      //val pmap = Map.empty[String,LKProof] ++ db.proofs
       db.proofs must not beEmpty
 
-      db.proofs map ( x => println("Proof "+x._1 + " of end-sequent "+x._2.root))
+      //db.proofs map ( x => println("Proof "+x._1 + " of end-sequent "+x._2.root))
       //println("\n\nend_seq = "+  pmap("\\psi").root  )
       Success()
     }
@@ -29,10 +28,9 @@ class LKParserTest extends SpecificationWithJUnit {
     "parse correctly another FO LK-proof" in {
       val s = new InputStreamReader(new FileInputStream(path + "ambiguous.lk"))
       val db = LKProofParser.parseProof(s)
-      //val pmap = Map.empty[String,LKProof] ++ db.proofs
       db.proofs must not beEmpty
 
-      db.proofs map ( x => println("Proof "+x._1 + " of end-sequent "+x._2.root))
+      //db.proofs map ( x => println("Proof "+x._1 + " of end-sequent "+x._2.root))
       //println("\n\nend_seq = "+  pmap("\\psi").root  )
       Success()
     }
@@ -42,7 +40,6 @@ class LKParserTest extends SpecificationWithJUnit {
       val s = new InputStreamReader(new FileInputStream(path + "tape-in2.lk"))
       val db = LKProofParser.parseProof(s)
       val pmap = Map.empty[String,LKProof] ++ db.proofs
-      //println("\n\nend_seq = "+  pmap("\\psi").root  )
       Success()
     }
 

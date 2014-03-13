@@ -517,6 +517,7 @@ object Main extends SimpleSwingApplication {
       contents += new Separator
       contents += new Separator
       contents += new Separator
+      /* FixedFOccs does not exist anymore. I don't know what should be the correct parameter for this function.
       contents += new MenuItem(Action("Mark Cut- & Ω-Ancestors") { markCutOmegaAncestors(FixedFOccs.foccs) }) {
         border = customBorder
         enabled = false
@@ -527,6 +528,7 @@ object Main extends SimpleSwingApplication {
         }
       }
     }
+    */
     contents += new Menu("View") {
       mnemonic = Key.V
       listenTo(ProofToolPublisher)
@@ -1066,10 +1068,11 @@ object Main extends SimpleSwingApplication {
 
     val s = StructCreators.extractStruct( body.getContent.getData.get._1, n)
     val cs : List[Sequent] = DeleteRedundantSequents( DeleteTautology( StandardClauseSet.transformStructToClauseSet(s) ))
-    val pair = renameCLsymbols( cs )
+    //val pair = renameCLsymbols( cs )
 
-    db.addSeqList(pair._1) //.map(x => x.toFSequent()))
-    db.addDefinitions(pair._2)
+    //db.addSeqList(pair._1)
+    db.addSeqList(cs.map(x => x.toFSequent()))
+    //db.addDefinitions(pair._2)
     body.contents = new Launcher(Some("Schematic Clause Set",pair._1),16)
     body.cursor = java.awt.Cursor.getDefaultCursor
   } catch {

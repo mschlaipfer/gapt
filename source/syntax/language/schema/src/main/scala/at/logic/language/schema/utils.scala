@@ -79,3 +79,12 @@ object unfoldSINDTerm {
   }
 }
 
+object toIntegerTerm {
+ def apply(i: Int): SchemaExpression = {
+    if (i == 0)
+      IntZero()
+    else
+      Succ(toIntegerTerm(i-1))
+  }
+}
+

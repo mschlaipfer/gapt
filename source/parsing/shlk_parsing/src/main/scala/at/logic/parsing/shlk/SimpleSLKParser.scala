@@ -1,4 +1,4 @@
-package at.logic.algorithms.shlk
+package at.logic.parsing.shlk_parsing
 
 import scala.util.parsing.combinator._
 import scala.util.matching.Regex

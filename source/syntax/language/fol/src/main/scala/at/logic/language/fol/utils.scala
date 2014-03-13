@@ -167,7 +167,7 @@ object Utils {
   def numeral( k: Int ) = iterateTerm( FOLConst( "0" ).asInstanceOf[FOLTerm], "s" , k )
 
 
-  // TODO: maybe these functions should go to listSupport in dssupport in the
+  // TODO: these functions should go to listSupport in dssupport in the
   // utils project.
 
   def removeDoubles[T](l : List[T]) : List[T] = {

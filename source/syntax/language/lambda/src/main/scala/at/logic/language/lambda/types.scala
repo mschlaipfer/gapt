@@ -42,14 +42,6 @@ object -> {
   }
 }
 
-/*
-object Definitions {
-  def i = Ti()
-  def o = To()
-  def ind = Tindex()
-}
-*/
-
 // convenience function to create function types
 // with argument types from and return type to
 object FunctionType {

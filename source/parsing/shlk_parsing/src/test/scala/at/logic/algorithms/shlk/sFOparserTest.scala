@@ -1,23 +1,20 @@
 /*
- * sQMONparserTest.scala
+ * sFOparserTest.scala
  *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
  */
 
-package at.logic.algorithms.shlk
+package at.logic.parsing.shlk_parsing
 
-import at.logic.language.schema._
 import at.logic.calculi.lk._
-import org.specs2.mutable._
-import org.junit.runner.RunWith
-import org.specs2.runner.JUnitRunner
 import at.logic.language.lambda.types._
-import scala.io._
+import at.logic.language.schema._
 import java.io.File.separator
 import java.io.{FileInputStream, InputStreamReader}
+import org.junit.runner.RunWith
 import org.specs2.execute.Success
-import at.logic.language.lambda.symbols.StringSymbol
+import org.specs2.mutable._
+import org.specs2.runner.JUnitRunner
+import scala.io._
 
 @RunWith(classOf[JUnitRunner])
 class sFOparserTest extends SpecificationWithJUnit {
@@ -49,23 +46,19 @@ class sFOparserTest extends SpecificationWithJUnit {
       def h = SchemaConst("h", ->(Tindex , ->(Ti, Ti)))
       def g = SchemaConst("g", ->(Tindex , ->(Ti, Ti)))
       val k = IntVar("k")
-      val x = foVar("x")//hol.createVar(new VariableStringSymbol("x"), Ti, None).asInstanceOf[SchemaVar]
+      val x = foVar("x")
       val base2 = x
       val step2 = foTerm("f",  sTerm(g, Succ(k), x::Nil)::Nil)
       val base1 = sTerm(g, IntZero(), x::Nil)
       val step1 = sTerm(g, Succ(k), x::Nil)
       dbTRS.clear
       dbTRS.add(g, Tuple2(base1, base2), Tuple2(step1, step2))
-      //TODO: applySchemaSubstitution2, whatever it exactly does, needs to be implemented
-      //val varphi = applySchemaSubstitution2("\\sigma",2)
-      // specs2 require a least one Result, see org.specs2.specification.Example
       Success()
 
     }
 
 
     "parse correctly the journal example" in {
-      //println(Console.RED+"\n---- applySchemaSubstitution ----\n"+Console.RESET)
 
       val var3 = Atom(SchemaVar("x3",To), Nil)
       val var4 = Atom(SchemaVar("x4",To), Nil)
@@ -96,8 +89,6 @@ class sFOparserTest extends SpecificationWithJUnit {
       val step1 = sTerm(g, Succ(k), x::Nil)
       dbTRS.clear
       dbTRS.add(g, Tuple2(base1, base2), Tuple2(step1, step2))
-      //TODO: applySchemaSubstitution2, whatever it exactly does, needs to be implemented
-      //val sigma = applySchemaSubstitution2("\\varphi",3)
 
       Success()
 

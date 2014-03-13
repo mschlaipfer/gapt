@@ -45,6 +45,10 @@ object IndexedPredicate {
     val pred = SchemaConst( name, FunctionType( To, indexTerms.head.exptype::Nil ) )
     SchemaApp(pred, indexTerms.head::Nil).asInstanceOf[SchemaFormula]
   }
+  def apply(sym: SymbolA, indexTerms: List[SchemaExpression]): SchemaFormula = {
+    val pred = SchemaConst( sym, FunctionType( To, indexTerms.head.exptype::Nil ) )
+    SchemaApp(pred, indexTerms.head::Nil).asInstanceOf[SchemaFormula]
+  }
   def apply(name: String, indexTerm: IntegerTerm): SchemaFormula = apply(name, indexTerm::Nil)
 
   def unapply( expression: SchemaExpression ) = expression match {
@@ -99,14 +103,29 @@ object indexedOmegaVar {
 
 class foVar(sym: SymbolA) extends SchemaVar(sym, Ti) {
   override def equals(a: Any): Boolean = a match {
-    case v:foVar if v.name.toString() == this.name.toString() => true
+    case v:foVar if v.name.toString == this.name.toString => true
     case _ => false
   }
 }
 object foVar {
   def apply(name: String) = new foVar(StringSymbol(name))
   def unapply(t: SchemaExpression) = t match {
-    case v: foVar => Some(v.name, Ti)
+    case v: foVar => Some(v.name)
+    case _ => None
+  }
+}
+
+//indexed second-order variable of type: ind->i
+class fo2Var(sym: SymbolA) extends SchemaVar(sym, ->(Tindex,Ti)) {
+  override def equals(a: Any): Boolean = a match {
+    case v:fo2Var if v.sym.toString == this.sym.toString => true
+    case _ => false
+  }
+}
+object fo2Var {
+  def apply(name: String) = new fo2Var(StringSymbol(name))
+  def unapply(s: SchemaExpression) = s match {
+    case v: fo2Var => Some(v.name)
     case _ => None
   }
 }

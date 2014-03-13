@@ -9,7 +9,6 @@ import at.logic.calculi.lk._
 import at.logic.calculi.slk._
 
 //test version
-// Why test version and why number 2??? There's no number 1.
 object applySchemaSubstitution2 {
   def handleSchemaEquivalenceRule ( new_parent: LKProof,
                                     subst: Substitution,
@@ -150,13 +149,6 @@ object applySchemaSubstitution2 {
       val subst = Substitution((k.asInstanceOf[SchemaVar], toIntegerTerm(number-1))::Nil)
       apply(SchemaProofDB.get(proof_name).rec, subst, number)
     }
-  }
-
-  def toIntegerTerm(i: Int): SchemaExpression = {
-    if (i == 0)
-      IntZero()
-    else
-      Succ(toIntegerTerm(i-1))
   }
 
   def apply( proof: LKProof, subst: Substitution , cnt: Int) : LKProof = {

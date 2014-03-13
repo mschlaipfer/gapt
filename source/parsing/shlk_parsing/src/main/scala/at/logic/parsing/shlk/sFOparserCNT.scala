@@ -1,4 +1,4 @@
-package at.logic.algorithms.shlk
+package at.logic.parsing.shlk_parsing
 
 import scala.util.parsing.combinator._
 import scala.util.matching.Regex
@@ -24,30 +24,6 @@ object sFOParserCNT {
   def parseProofs(input: InputStreamReader): List[(String, LKProof)] = {
     //    ("p",parseProof(input, "root"))::Nil
     val m = sFOParserCNT.parseProof(input)
-
-    //TODO: remove it. This is just for test marking in ProofTool
-    val map = m
-    val p1 = map.get("\\mu").get._2.get("root").get
-    val p2 = map.get("\\rho").get._2.get("root").get
-    val p3 = map.get("\\zeta").get._2.get("root").get
-    val p4 = map.get("\\omega").get._2.get("root").get
-    val p5 = map.get("\\xi").get._2.get("root").get
-    val p6 = map.get("\\varphi").get._2.get("root").get
-    val p7 = map.get("\\lambda").get._2.get("root").get
-    val p8 = map.get("\\chi").get._2.get("root").get
-
-    val cc2:FormulaOccurrence = p2.root.antecedent.tail.tail.head
-    val cc_zeta_1:FormulaOccurrence = p3.root.succedent.head
-    val cc_zeta_2:FormulaOccurrence = p3.root.antecedent.tail.tail.head
-    val cc4:FormulaOccurrence = p4.root.succedent.head
-    val cc_xi_1:FormulaOccurrence = p5.root.antecedent.last
-    val cc_xi_2:FormulaOccurrence = p5.root.succedent.head
-    val cc_xi_3:FormulaOccurrence = p5.root.antecedent.tail.head
-    val cc6 = p6.root.antecedent.tail.head :: p6.root.antecedent.head ::Nil
-    val cc7 = p7.root.succedent.last
-    val cc8 = p8.root.succedent.head
-    FixedFOccs.foccs = cc7::cc8::cc2::cc_xi_1::cc_xi_2::cc_xi_3::cc_zeta_1::cc_zeta_2::cc4::Nil
-
     m.foldLeft(List.empty[(String, LKProof)])((res, pair) => (pair._1, pair._2._1.get("root").get) :: (pair._1, pair._2._2.get("root").get) :: res)
   }
 
@@ -708,14 +684,6 @@ object sFOParserCNT {
     //  println("\nSchemaProofDB.size = "+SchemaProofDB.size+"\n")
     bigMMap
   }
-}
-
-
-//temporary formula occurrences.
-//TODO: Remove it after tests!
-object FixedFOccs {
-  var foccs: List[FormulaOccurrence] = Nil
-  var PLinksMap: MMap[FormulaOccurrence, FormulaOccurrence] = MMap.empty[FormulaOccurrence, FormulaOccurrence]
 }
 
 object getPLinks {

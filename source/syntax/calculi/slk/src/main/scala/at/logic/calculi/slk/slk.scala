@@ -1153,10 +1153,6 @@ object ForallHyperLeftRule {
     }
     else {
       val aux_fo = term1op.get
-//      val aux_form = computeAux(main, term)
-      //TODO: uncomment the assert. It is commented
-      //because there is unfound problem in renameIndexedVarInProjection in acnf.scala
-      //         assert( aux_form == aux_fo.formula, "The computed auxiliary formula " + aux_form.toString + " is not equal to the formula " + aux_fo.formula.toString + " at the given occurrence ("+aux_form.toPrettyString + " != " + aux_fo.formula.toPrettyString+")")
       (aux_fo, aux_fo.formula)
     }
   }

@@ -131,14 +131,6 @@ object applySchemaSubstitution {
     }
   }
 
-  // Redefinition from unfoldSIND... remove duplicate!!!
-  def toIntegerTerm(i: Int): SchemaExpression = {
-    if (i == 0)
-      IntZero()
-    else
-      Succ(toIntegerTerm(i-1))
-  }
-
   def apply( proof: LKProof, subst: Substitution , cnt: Int) : LKProof = {
 
     proof match {
@@ -547,7 +539,7 @@ object RemoveEqRulesFromGroundSchemaProof {
     }
 
     def groundSchemaF(f: SchemaFormula, init: Int): SchemaFormula = f match {
-      case IndexedPredicate(pointer, l) => IndexedPredicate(pointer.name, applySchemaSubstitution.toIntegerTerm(init+StepMinusOne.lengthVar(l.head.asInstanceOf[IntegerTerm])).asInstanceOf[IntegerTerm])
+      case IndexedPredicate(pointer, l) => IndexedPredicate(pointer.name, toIntegerTerm(init+StepMinusOne.lengthVar(l.head.asInstanceOf[IntegerTerm])).asInstanceOf[IntegerTerm])
       case And(l, r) => And(groundSchemaF(l, init), groundSchemaF(r, init))
       case Or(l, r) => Or(groundSchemaF(l, init), groundSchemaF(r, init))
       case Neg(l) => Neg(groundSchemaF(l, init))

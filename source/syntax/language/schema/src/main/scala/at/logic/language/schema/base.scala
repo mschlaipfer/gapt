@@ -24,6 +24,7 @@ object SchemaVar {
 class SchemaConst protected[schema] (sym: SymbolA, exptype: TA) extends HOLConst(sym, exptype) with SchemaExpression
 object SchemaConst {
   def apply(name: String, exptype: TA) : SchemaConst = SchemaFactory.createConst(StringSymbol(name), exptype)
+  def apply(sym: SymbolA, exptype: TA) : SchemaConst = SchemaFactory.createConst(sym, exptype)
   def apply(name: String, exptype: String) : SchemaConst = SchemaFactory.createConst(StringSymbol(name), Type(exptype))
   def unapply(exp: SchemaExpression) = exp match {
     case c: SchemaConst => Some( (c.name, c.exptype) )

@@ -1,6 +1,3 @@
-/** 
- * Description: 
-**/
 /**
  * Description:
 **/
@@ -33,12 +30,15 @@ import at.logic.algorithms.cutIntroduction._
 import at.logic.transformations.ReductiveCutElim
 
 import at.logic.parsing.veriT.VeriTParser
-import at.logic.calculi.expansionTrees.{toDeep => ETtoDeep, applyToExpansionSequent => ETapplyToExpansionSequent}
+import at.logic.calculi.expansionTrees.{toDeep => ETtoDeep}
 import at.logic.language.hol.{And => AndHOL, Imp => ImpHOL, Or => OrHOL}
 import at.logic.provers.prover9.{Prover9, Prover9Prover}
 import at.logic.provers.veriT.VeriTProver
 import at.logic.transformations.herbrandExtraction.extractExpansionTrees
 import at.logic.provers.minisat.MiniSATProver
+import at.logic.algorithms.hlk.HybridLatexParser
+import at.logic.algorithms.lk.AtomicExpansion
+import at.logic.algorithms.rewriting.DefinitionElimination
 
 @RunWith(classOf[JUnitRunner])
 class MiscTest extends SpecificationWithJUnit {
@@ -182,7 +182,7 @@ class MiscTest extends SpecificationWithJUnit {
 
         val p = VeriTParser.getExpansionProof(testfilename).get
 
-        val formulas = ETapplyToExpansionSequent(ETtoDeep.apply, p)
+        val formulas = ETtoDeep(p)
         val seq = FSequent(formulas._1, formulas._2)
 
         /*
@@ -199,6 +199,7 @@ class MiscTest extends SpecificationWithJUnit {
       if (!VeriTProver.isInstalled()) skipped("VeriT is not installed")
 
       for (testBaseName <- "ALG138+1.out" :: Nil) {
+        // TODO: add cade13example.out once tptpfolexporter issues are sorted out
 
         val testFilePath = "target" + separator + "test-classes" + separator + testBaseName
 
@@ -207,8 +208,7 @@ class MiscTest extends SpecificationWithJUnit {
 
         val expansionSequent = extractExpansionTrees(lkProof)
 
-        val formulas = ETapplyToExpansionSequent(ETtoDeep.apply, expansionSequent)
-        val seqToProve = FSequent(formulas._1, formulas._2)
+        val seqToProve = ETtoDeep(expansionSequent)
 
         /*
         println("file: " +testfilename)
@@ -217,6 +217,43 @@ class MiscTest extends SpecificationWithJUnit {
 
         VeriTProver.isValid(seqToProve) must beEqualTo (true)
       }
+    }
+
+    "Extract expansion tree from tape proof" in {
+      val testFilePath = "target" + separator + "test-classes" + separator + "tape3.llk"
+      val tokens = HybridLatexParser.parseFile(testFilePath)
+      val db = HybridLatexParser.createLKProof(tokens)
+      val proofs = db.proofs.filter(_._1 ==  "TAPEPROOF")
+      val (_,p)::_ = proofs
+      val elp = AtomicExpansion(DefinitionElimination(db.Definitions,p))
+      val reg = regularize(elp)
+      extractExpansionTrees(reg._1) must throwA[IllegalArgumentException] // currently contains problematic definitions
+    }
+
+    "Construct proof with expansion sequent extracted from proof 1/2" in {
+        val y = FOLVar(new VariableStringSymbol("y"))
+        val x = FOLVar(new VariableStringSymbol("x"))
+        val Py = Atom(new ConstantStringSymbol("P"), y :: Nil)
+        val Px = Atom(new ConstantStringSymbol("P"), x :: Nil)
+        val AllxPx = AllVar(x, Px)
+
+        // test with 1 weak & 1 strong
+        val p1 = Axiom(Py :: Nil, Py :: Nil)
+        val p2 = ForallLeftRule(p1, Py, AllxPx, y)
+        val p3 = ForallRightRule(p2, Py, AllxPx, y)
+
+        val etSeq = extractExpansionTrees(p3)
+
+        val proof = solve.expansionProofToLKProof(p3.root.toFSequent, etSeq)
+        proof.isDefined must beTrue
+      }
+
+    "Construct proof with expansion sequent extracted from proof 2/2" in {
+
+      val proof = LinearExampleProof(0, 4)
+
+      val proofPrime = solve.expansionProofToLKProof(proof.root.toFSequent, extractExpansionTrees(proof))
+      proofPrime.isDefined must beTrue
     }
   }
 }

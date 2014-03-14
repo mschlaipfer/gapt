@@ -17,14 +17,13 @@ import at.logic.algorithms.resolution._
 import at.logic.utils.executionModels.searchAlgorithms.SearchAlgorithms.DFS
 import at.logic.utils.executionModels.searchAlgorithms.SearchAlgorithms.setSearch
 import at.logic.utils.executionModels.searchAlgorithms.SetNode
-import at.logic.algorithms.lk.solvePropositional._
 import at.logic.calculi.lk.base._
 import at.logic.algorithms.cutIntroduction.{Grammar => BaseGrammar, ExtendedHerbrandSequent => BaseExtendedHerbrandSequent,
                                             CutIntroduction => BaseCutIntroduction, DeltaTable => BaseDeltaTable,
                                             DefaultProver, CutIntroUncompressibleException, CutIntroEHSUnprovableException,
                                             CutIntroException, TermsExtraction, FlatTermSet, DeltaTableException}
 
-object MinimizeSolution {
+object MinimizeSolution extends at.logic.utils.logging.Logger {
 
   def apply(ehs: ExtendedHerbrandSequent, prover: Prover) = {
     val minSol = improveSolution(ehs, prover).sortWith((r1,r2) => r1.numOfAtoms < r2.numOfAtoms).head

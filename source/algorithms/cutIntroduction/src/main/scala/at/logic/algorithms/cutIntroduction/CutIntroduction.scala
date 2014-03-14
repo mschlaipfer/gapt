@@ -24,7 +24,7 @@ import at.logic.algorithms.lk._
 import at.logic.algorithms.lk.statistics._
 import at.logic.algorithms.interpolation._
 import at.logic.algorithms.resolution._
-import at.logic.calculi.expansionTrees.{ExpansionTree, toSequent, quantRulesNumber => quantRulesNumberET}
+import at.logic.calculi.expansionTrees.{ExpansionTree, ExpansionSequent, toSequent, quantRulesNumber => quantRulesNumberET}
 import at.logic.transformations.herbrandExtraction.extractExpansionTrees
 import at.logic.utils.executionModels.timeout._
 
@@ -45,7 +45,7 @@ object CutIntroduction extends at.logic.utils.logging.Logger {
   /**
    * cut-introduction algorithm (stable version)
    **/
-  def apply(ep: (Seq[ExpansionTree], Seq[ExpansionTree]), prover: Prover) : LKProof = {
+  def apply(ep: ExpansionSequent, prover: Prover) : LKProof = {
     val endSequent = toSequent(ep)
     println("\nEnd sequent: " + endSequent)
     
@@ -110,7 +110,7 @@ object CutIntroduction extends at.logic.utils.logging.Logger {
    **/
   def applyEq( proof: LKProof, prover: Prover = new EquationalProver() ) : LKProof = applyEq( extractExpansionTrees( proof ), prover)
 
-  def applyEq(ep: (Seq[ExpansionTree], Seq[ExpansionTree]), prover: Prover) : LKProof = {
+  def applyEq(ep: ExpansionSequent, prover: Prover) : LKProof = {
     val endSequent = toSequent(ep)
     println("\nEnd sequent: " + endSequent)
 
@@ -183,7 +183,7 @@ object CutIntroduction extends at.logic.utils.logging.Logger {
    * and l is a logging string with quantitative data,
    * see testing/resultsCutIntro/stats.ods ('format' sheet) for details.
    **/
-  def applyExp( ep: (Seq[ExpansionTree], Seq[ExpansionTree]), prover: Prover = new DefaultProver(),
+  def applyExp( ep: ExpansionSequent, prover: Prover = new DefaultProver(),
                 timeout: Int = 3600 /* 1 hour */, useForgetfulPara: Boolean = false ) : ( Option[LKProof] , String, String ) = {
     var log = ""
     var status = "ok"
@@ -467,7 +467,7 @@ object CutIntroduction extends at.logic.utils.logging.Logger {
 
 class DefaultProver extends Prover {
   def getLKProof( seq : FSequent ) : Option[LKProof] =
-    new LKWOCleaningProver().getLKProof( seq )
+    new LKProver(cleanStructuralRules=false).getLKProof( seq )
 
   override def isValid( seq : FSequent ) : Boolean = 
     new MiniSATProver().isValid( seq )

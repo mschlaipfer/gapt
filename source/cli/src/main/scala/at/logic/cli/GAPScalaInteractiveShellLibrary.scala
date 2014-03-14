@@ -22,7 +22,7 @@ import at.logic.algorithms.unification.fol.FOLUnificationAlgorithm
 import at.logic.algorithms.unification.{MulACEquality, MulACUEquality}
 import at.logic.algorithms.cutIntroduction.Generalized.Deltas._
 
-import at.logic.calculi.expansionTrees.ExpansionTree
+import at.logic.calculi.expansionTrees.{ExpansionTree, ExpansionSequent}
 import at.logic.calculi.expansionTrees.multi.MultiExpansionTree
 import at.logic.calculi.lk.base._
 import at.logic.calculi.lk.base.types._
@@ -442,10 +442,11 @@ object printProofStats {
   }
 
   object exportLLK {
-    def apply(lkproof : LKProof) = HybridLatexExporter(lkproof)
+    def apply(lkproof : LKProof, enable_latex : Boolean) = HybridLatexExporter(lkproof,enable_latex)
+    def apply(lkproof : LKProof) = HybridLatexExporter(lkproof,true)
     def apply(lkproof : LKProof, filename:String) = {
       val file = new JBufferedWriter(new JFileWriter(filename))
-      file.write(HybridLatexExporter(lkproof))
+      file.write(HybridLatexExporter(lkproof, true))
       file.close
     }
   }
@@ -521,6 +522,7 @@ object printProofStats {
     }
   }
 
+
 /*************************** Cut introduction algorithm **********************************/
 
   import at.logic.algorithms.cutIntroduction._
@@ -537,7 +539,7 @@ object printProofStats {
       println( "Size of term set: " + ts.termset.size )
       ts
     }
-    def apply( ep: (Seq[ExpansionTree], Seq[ExpansionTree])) = {
+    def apply( ep: ExpansionSequent) = {
       val ts = new FlatTermSet(TermsExtraction(ep))
       println( "\nTerm set: {" + ts.termset + "}" )
       println( "Size of term set: " + ts.termset.size )
@@ -621,30 +623,30 @@ object printProofStats {
   object cutIntro {
     def apply( p: LKProof ) : LKProof = CutIntroduction( p )
     def apply( p: LKProof, prover: at.logic.provers.Prover ) : LKProof = CutIntroduction( p, prover )
-    def apply( ep: (Seq[ExpansionTree], Seq[ExpansionTree]) ) : LKProof = 
+    def apply( ep: ExpansionSequent) : LKProof =
       CutIntroduction( ep, new at.logic.algorithms.cutIntroduction.DefaultProver() )
-    def apply( ep: (Seq[ExpansionTree], Seq[ExpansionTree]), prover: at.logic.provers.Prover ) : LKProof =
+    def apply( ep: ExpansionSequent, prover: at.logic.provers.Prover ) : LKProof =
       CutIntroduction( ep, prover )
   }
 
   object cutIntroExp {
     def apply( p: LKProof ) : LKProof = apply( extractExpansionTrees( p ))
     def apply( p: LKProof, prover: at.logic.provers.Prover ) : LKProof = apply( extractExpansionTrees( p ), prover)
-    def apply( ep: (Seq[ExpansionTree], Seq[ExpansionTree]) ) : LKProof = CutIntroduction.applyExp( ep )._1.get
-    def apply( ep: (Seq[ExpansionTree], Seq[ExpansionTree]), prover: at.logic.provers.Prover ) : LKProof = 
+    def apply( ep: ExpansionSequent) : LKProof = CutIntroduction.applyExp( ep )._1.get
+    def apply( ep: ExpansionSequent, prover: at.logic.provers.Prover ) : LKProof =
       CutIntroduction.applyExp( ep, prover )._1.get
   }
 
   object cutIntroG {
     def apply( p: LKProof, numVars : Constraint[Int] ) = CutIntroductionG( p, numVars )
     def apply( p: LKProof, numVars : Constraint[Int], prover: at.logic.provers.Prover ) = CutIntroductionG( p, numVars, prover )
-    def apply( ep: (Seq[ExpansionTree], Seq[ExpansionTree]), numVars : Constraint[Int] )  = 
+    def apply( ep: ExpansionSequent, numVars : Constraint[Int] )  =
       CutIntroductionG( ep, numVars, new at.logic.algorithms.cutIntroduction.DefaultProver() )
-    def apply( ep: (Seq[ExpansionTree], Seq[ExpansionTree]), numVars : Constraint[Int], prover: at.logic.provers.Prover ) =
+    def apply( ep: ExpansionSequent, numVars : Constraint[Int], prover: at.logic.provers.Prover ) =
       CutIntroductionG( ep, numVars, prover )
-    def applyStat( ep: (Seq[ExpansionTree], Seq[ExpansionTree]), delta: DeltaVector ) =
+    def applyStat( ep: ExpansionSequent, delta: DeltaVector ) =
       CutIntroductionG.applyStat( ep, delta)._1.get
-    def applyStat( ep: (Seq[ExpansionTree], Seq[ExpansionTree]), delta: DeltaVector, prover: at.logic.provers.Prover ) =
+    def applyStat( ep: ExpansionSequent, delta: DeltaVector, prover: at.logic.provers.Prover ) =
       CutIntroductionG.applyStat( ep, delta, prover )._1.get
   }
 
@@ -773,16 +775,30 @@ object printProofStats {
 
   // called "proveProp" and not autoProp to be more consistent with many other commands which are (or start with) a verb
   object proveProp {
-    def apply( seq: FSequent ) : Option[LKProof] = solvePropositional(seq)
+    def apply( seq: FSequent ) : Option[LKProof] = solve.solvePropositional(seq)
     def apply( f: HOLFormula ) : Option[LKProof] = apply( FSequent( Nil, f::Nil ))
   }
 
   object format {
     def apply(p: ResolutionProof[Clause]) = asHumanReadableString(p)
 
-      def asHumanReadableString(p: ResolutionProof[Clause]) = Formatter.asHumanReadableString(p)
-      def asGraphVizString(p:ResolutionProof[Clause]) = Formatter.asGraphViz(p)
-      def asTex(p:ResolutionProof[Clause]) = Formatter.asTex(p)
+    def asHumanReadableString(p: ResolutionProof[Clause]) = Formatter.asHumanReadableString(p)
+    def asGraphVizString(p:ResolutionProof[Clause]) = Formatter.asGraphViz(p)
+    def asTex(p:ResolutionProof[Clause]) = Formatter.asTex(p)
+
+    def llk(f:HOLFormula, latex : Boolean = false) = HybridLatexExporter.getFormulaString(f, true, latex)
+    def tllk(f:HOLFormula, latex : Boolean = false) = {
+      val (ctypes,nctypes) = HybridLatexExporter.getTypes(f, HybridLatexExporter.emptyTypeMap).partition(_.isInstanceOf[ConstantSymbolA])
+      val (vtypes, _) = nctypes.partition(_.isInstanceOf[VariableSymbolA])
+
+      val fs = HybridLatexExporter.getFormulaString(f, true, latex)
+
+      val cs = ctypes.foldLeft("")((str,p) => str + "const "+ p._1 +" : " + HybridLatexExporter.getTypeString(p._2)+";")
+      val vs = vtypes.foldLeft("")((str,p) => str + "var "+ p._1 +" : " + HybridLatexExporter.getTypeString(p._2)+";")
+      cs+vs+fs
+    }
+
+
   }
 
   object rename {
@@ -821,6 +837,15 @@ object printProofStats {
 
       (p,qhol,qf,struct,cm)
     }
+
+    val rrename = NameReplacement.emptySymbolMap ++ List(("s25",(2,"s_{25}")), ("s9",(2,"s_{9}")),
+                       ("q1",(0,"q_{1}")), ("q2",(0,"q_{2}")),
+                       ("s10",(1,"s_{10}")), ("s26",(1,"s_{26}")))
+
+
+    def convert(rp : RobinsonResolutionProof, es : FSequent) = NameReplacement(rp,rrename)
+
+
   }
 
   object proofs {
@@ -840,6 +865,45 @@ object printProofStats {
         proof
     }
   }
+
+  object lkproof {
+    def cutrules(p:LKProof): Set[LKProof] = p.nodes.flatMap(_ match {
+      case c@CutRule(_,_,_,_,_) =>
+        List(c.asInstanceOf[LKProof])
+      case _ =>
+        Nil
+    }
+    )
+
+    def cutoccurrences(p:LKProof) = p.nodes.flatMap(_ match {
+      case CutRule(_,_,_,a1,a2) =>
+        List(a1,a2)
+      case _ =>
+        Nil
+    }
+    )
+
+    def cutformulas(p: LKProof) = cutoccurrences(p).map(_.formula)
+
+    def axiomrules(p:LKProof) : Set[LKProof] = p.nodes.flatMap(_ match {
+      case a@Axiom(_) =>
+        List(a.asInstanceOf[LKProof])
+      case _ =>
+        Nil
+    }
+    )
+
+    def axiomoccurrences(p:LKProof) = p.nodes.flatMap(_ match {
+      case Axiom(fs) =>
+        fs.occurrences
+      case _ =>
+        Nil
+    }
+    )
+
+    def axiomformulas(p: LKProof) = axiomoccurrences(p).map(_.formula)
+  }
+
 
   object huet {
     import at.logic.parsing.readers.StringReader
@@ -894,7 +958,7 @@ object printProofStats {
   }
 
   object extractExpansionTrees {
-    def apply(proof: LKProof): Tuple2[Seq[ExpansionTree],Seq[ExpansionTree]] = at.logic.transformations.herbrandExtraction.extractExpansionTrees(proof)
+    def apply(proof: LKProof): ExpansionSequent = at.logic.transformations.herbrandExtraction.extractExpansionTrees(proof)
   }
 
   object compressExpansionTree {
@@ -1186,6 +1250,9 @@ object printProofStats {
     def apply(term: HOLFormula) : FOLFormula =
       reduceHolToFol( term  )
 
+    def apply(f:FSequent) : FSequent =
+      FSequent(f.antecedent.map(hol2fol.apply),f.succedent.map(hol2fol.apply))
+
   }
 
   object hol2folpure extends convertHolToFol
@@ -1365,7 +1432,7 @@ object printProofStats {
           |   loadProver9Proof: String => (RobinsonResolutionProof, FSequent) - load a proof in the ivy proof checker format and extract its endsequent
           |   loadProver9LKProof: String => LKProof - load a proof in the ivy proof checker format and convert it to a LK Proof
           |   loadHLK : String => LKProof - load a proof in the HLK 2 format from given filename
-          |   loadVeriTProof : String => (Seq[ExpansionTree], Seq[ExpansionTree]) - loads a veriT proof in the form of an expansion proof.
+          |   loadVeriTProof : String => ExpansionSequent - loads a veriT proof in the form of an expansion proof.
           |   exportXML: List[Proof], List[String], String => Unit
           |   exportTPTP: List[Proof], List[String], String => Unit
           |
@@ -1385,7 +1452,7 @@ object printProofStats {
           |   skolemize: LKProof => LKProof - skolemize the input proof
           |   extractInterpolant: ( LKProof, Set[FormulaOccurrence], Set[FormulaOccurrence] ) => HOLFormula - extract propositional Craig interpolant
           |   extractHerbrandSequent: LKProof => Sequent - extract the Herbrand sequent from a proof without quantified cuts.
-          |   extractExpansionTrees: LKProof => (Seq[ExpansionTree],Seq[ExpansionTree) - extract the expansion trees of all formulas in the end sequent from a skolemized proof.
+          |   extractExpansionTrees: LKProof => ExpansionSequent - extract the expansion trees of all formulas in the end sequent from a skolemized proof.
           |   compressExpansionTree: ExpansionTree => MultiExpansionTree - compress the quantifiers in the tree using vectors for the terms.
           |
           | Cut-Elimination by Resolution:

@@ -359,7 +359,7 @@ object skolemize extends Logger {
       if (!cut_ancs.contains( m ) )
       {
         val sym_stream = symbol_map( m )
-        val sym = HOLConst(sym_stream.head, FunctionType.fromExpressions(v.exptype, inst_map( m )))
+        val sym = HOLConst(sym_stream.head, FunctionType(v.exptype, inst_map( m ).map(_.exptype)))
         //println("skolem symbol: " + sym)
         val skolem_term = Function( sym, inst_map( m ) )
         val sub = Substitution( v, skolem_term )
@@ -428,7 +428,7 @@ object skolemize extends Logger {
     case ExVar(x, f) =>
       if (pol == 1) {
         trace( "skolemizing AllQ")
-        val sym = HOLConst(symbols.head, FunctionType.fromExpressions(x.exptype, terms))
+        val sym = HOLConst(symbols.head, FunctionType(x.exptype, terms.map(_.exptype)))
         val sf = Function( sym, terms)
 
         val sub = Substitution(x, sf)

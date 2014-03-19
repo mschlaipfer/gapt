@@ -290,10 +290,10 @@ object unfoldSchemaClause {
       case co:sClauseComposition => {
         val k = IntVar("k")
         val map =
-          if (subst.map.get(k).get.asInstanceOf[IntegerTerm] == IntZero())
-            subst.map
+          if (subst.schemamap.get(k).get.asInstanceOf[IntegerTerm] == IntZero())
+            subst.schemamap
           else {
-            (subst.map - k) + Pair(k, Pred(subst.map.get(k).get.asInstanceOf[IntegerTerm]))
+            (subst.schemamap - k) + Pair(k, Pred(subst.schemamap.get(k).get.asInstanceOf[IntegerTerm]))
           }
         val new_subst = SchemaSubstitution(map)
         val l = apply(applySubToSclauseOrSclauseTerm(subst, co.sclause1).asInstanceOf[sClause], trsSclause, trsSterms, new_subst)

@@ -522,23 +522,23 @@ trait Struct
                   //TODO: take into account the omega-ancestors
                   return StructCreators.extract(base, getCutAncestors(base))
                 }
-                println("clsym = ("+clsym.name+","+l+")")
+                //println("clsym = ("+clsym.name+","+l+")")
                 val step = SchemaProofDB.get(clsym.name).rec
                 //TODO: take into account the omega-ancestors
                 val struct = StructCreators.extract(step, getCutAncestors(step))
-                println("struct : "+struct)
+                //println("struct : "+struct)
                 val new_map = Map.empty[SchemaVar, IntegerTerm] + Pair(IntVar("k"), Pred(l.asInstanceOf[IntegerTerm]))
                 val new_subst = SchemaSubstitution(new_map)
                 val gr_struct = groundStruct(struct, new_subst.asInstanceOf[HOLSubstitution])
-                println("ground struct : "+gr_struct)
+                //println("ground struct : "+gr_struct)
                 return unfoldGroundStruct(gr_struct)
               }
               case _ => {
-                if(f.asInstanceOf[HOLConst].name.toString().contains("cl^"))
-                  println("proof_name = "+f.asInstanceOf[HOLConst].name.asInstanceOf[ClauseSetSymbol].name)
+                //if(f.asInstanceOf[HOLConst].name.toString().contains("cl^"))
+                  //println("proof_name = "+f.asInstanceOf[HOLConst].name.asInstanceOf[ClauseSetSymbol].name)
               }
             }
-            case _ => println("complex f-la")
+            case _ => ()//println("complex f-la")
           }
           A(fo.factory.createFormulaOccurrence(fo.formula, Nil))
         }

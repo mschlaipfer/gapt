@@ -1,6 +1,3 @@
-/** 
- * Description: 
-**/
 
 package at.logic.transformations.ceres.clauseSets
 
@@ -8,8 +5,9 @@ import at.logic.algorithms.lk.{getAncestors, getCutAncestors}
 import at.logic.calculi.lk.base.Sequent
 import at.logic.calculi.occurrences._
 import at.logic.calculi.slk.SchemaProofDB
-import at.logic.language.hol.{Substitution => HOLSubstitution, _}
+import at.logic.language.hol.{Substitution => HOLSubstitution, Atom => HOLAtom, _}
 import at.logic.language.schema.{Substitution => SchemaSubstitution, _}
+import at.logic.language.lambda.types._
 import at.logic.parsing.shlk_parsing.sFOParser
 import at.logic.transformations.ceres.projections.{DeleteTautology, DeleteRedundantSequents}
 import at.logic.transformations.ceres.struct._
@@ -24,23 +22,26 @@ import scala.xml._
 @RunWith(classOf[JUnitRunner])
 class ClauseSetsTest extends SpecificationWithJUnit {
 
-  // commented out --- we need to construct formula occurrences, but they
-  //   are abstract and the factory is private to LK
   sequential
   "ClauseSets" should {
     "- transform a Struct into a standard clause set" in {
-//      val a = HOLVarFormula( "a" )
-//      val b = HOLVarFormula( "b" )
-//      val c = HOLVarFormula( "c" )
-//      val d = HOLVarFormula( "d" )
-//
-//      val struct = Times(Plus(A(a), A(b)), Plus(A(c), A(d)))
-//      val cs = StandardClauseSet.transformStructToClauseSet( struct ).getSequent
-//      cs must verify( clauses => clauses.forall( seq => seq.multisetEquals( Sequent( Nil, a::c::Nil ) ) ||
-//                                 seq.multisetEquals( Sequent( Nil, a::d::Nil ) ) ||
-//                                 seq.multisetEquals( Sequent( Nil, b::c::Nil ) ) ||
-//                                 seq.multisetEquals( Sequent( Nil, b::d::Nil ) ) ) )
-      ok
+
+      val a = HOLAtom(HOLVar( "a", To ))
+      val b = HOLAtom(HOLVar( "b", To ))
+      val c = HOLAtom(HOLVar( "c", To ))
+      val d = HOLAtom(HOLVar( "d", To ))
+      val fa = defaultFormulaOccurrenceFactory.createFormulaOccurrence(a, Nil)
+      val fb = defaultFormulaOccurrenceFactory.createFormulaOccurrence(b, Nil)
+      val fc = defaultFormulaOccurrenceFactory.createFormulaOccurrence(c, Nil)
+      val fd = defaultFormulaOccurrenceFactory.createFormulaOccurrence(d, Nil)
+
+      val struct = Times(Plus(A(fa), A(fb)), Plus(A(fc), A(fd)))
+      val cs = StandardClauseSet.transformStructToClauseSet( struct )
+      val res = cs.forall( seq => seq.multisetEquals( Sequent( Nil, fa::fc::Nil ) ) ||
+                                 seq.multisetEquals( Sequent( Nil, fa::fd::Nil ) ) ||
+                                 seq.multisetEquals( Sequent( Nil, fb::fc::Nil ) ) ||
+                                 seq.multisetEquals( Sequent( Nil, fb::fd::Nil ) ) )
+      res must beTrue
     }
 
     "test the schematic struct in journal_example.slk" in {

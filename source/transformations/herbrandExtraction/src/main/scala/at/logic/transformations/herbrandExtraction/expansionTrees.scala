@@ -1,17 +1,12 @@
 package at.logic.transformations.herbrandExtraction
 
 import at.logic.calculi.lk.base._
-import at.logic.calculi.lk.propositionalRules._
-import at.logic.calculi.lk.quantificationRules._
-import at.logic.calculi.lk.equationalRules._
+import at.logic.calculi.lk._
 import at.logic.language.hol._
 import at.logic.utils.ds.algebraic.trees._
 import at.logic.calculi.expansionTrees.{ExpansionTree, WeakQuantifier => WQTree, StrongQuantifier => SQTree, And => AndTree, Or => OrTree, Imp => ImpTree,
 Not => NotTree, Atom => AtomTree}
-import at.logic.calculi.lk.lkExtractors._
 import at.logic.calculi.occurrences._
-import at.logic.language.lambda.substitutions.Substitution
-import at.logic.language.lambda.typedLambdaCalculus.Var
 
 object extractExpansionTrees {
 

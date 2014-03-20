@@ -527,8 +527,8 @@ object Main extends SimpleSwingApplication {
           case UnLoaded => this.enabled = false
         }
       }
+      */
     }
-    */
     contents += new Menu("View") {
       mnemonic = Key.V
       listenTo(ProofToolPublisher)

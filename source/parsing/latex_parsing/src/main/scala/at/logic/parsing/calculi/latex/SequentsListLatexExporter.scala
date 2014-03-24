@@ -1,8 +1,6 @@
 /*
  * SequentsListPDFExporter.scala
  *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
  */
 
 package at.logic.parsing.calculi.latex
@@ -14,7 +12,6 @@ import at.logic.language.lambda.types._
 import at.logic.parsing.ExportingException
 import at.logic.calculi.lk.base._
 import at.logic.parsing.language.latex.HOLTermLatexExporter
-import at.logic.language.lambda.LambdaExpression
 import at.logic.calculi.lksk.{LabelledFormulaOccurrence, LabelledSequent}
 
 
@@ -76,12 +73,12 @@ trait SequentsListLatexExporter extends HOLTermLatexExporter {
   }
 
   private def printOnMatch(a: Any) = a match {
-    case le: LambdaExpression => exportTerm1(le)
+    case le: HOLExpression => exportTerm1(le)
     case ta: TA => getOutput.write("$" + latexType(ta) + "$")
     case _ => getOutput.write(a.toString)
   }
   
-  private def exportTerm1(f: LambdaExpression) = {
+  private def exportTerm1(f: HOLExpression) = {
     getOutput.write("$")
     exportTerm(f)
     getOutput.write("$")
@@ -153,13 +150,13 @@ trait LabelledSequentsListLatexExporter extends HOLTermLatexExporter {
   }
 
   private def printOnMatch(a: Any) = a match {
-    case le: LambdaExpression => exportTerm1(le)
+    case le: HOLExpression => exportTerm1(le)
     case fo: LabelledFormulaOccurrence => exportLabelledFormulaOccurrence(fo)
     case ta: TA => getOutput.write("$" + latexType(ta) + "$")
     case _ => getOutput.write(a.toString)
   }
   
-  private def exportTerm1(f: LambdaExpression) = {
+  private def exportTerm1(f: HOLExpression) = {
     getOutput.write("$")
     exportTerm(f)
     getOutput.write("$")
@@ -175,12 +172,4 @@ trait LabelledSequentsListLatexExporter extends HOLTermLatexExporter {
     } )
     getOutput.write("""}$""")
   }
-  /*private def replaceTerm(f: LambdaExpression, defs: Map[Int, Tuple2[Abs,Var]]): LambdaExpression = f match {
-    case v: Var => v
-    case App(a,b) => App(replaceTerm(a, defs), replaceTerm(b, defs))
-    case a @ Abs(x,b) => defs.get(extractAbs(a.asInstanceOf[Abs])) match {
-      case Some(v) => v._2
-      case _ => Abs(x, replaceTerm(b, defs))
-    }
-  }*/
 }

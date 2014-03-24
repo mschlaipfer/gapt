@@ -7,41 +7,47 @@ package at.logic.gui.prooftool.gui
  * Time: 12:08:33 PM
  */
 
-import scala.swing._
-import BorderPanel._
-import event.Key
-import swing.Dialog.Message
-import swing.Swing.EmptyIcon
-import java.io.{BufferedWriter => JBufferedWriter, FileWriter => JFileWriter, ByteArrayInputStream, InputStreamReader, File}
-import javax.swing.filechooser.FileFilter
-import javax.swing.SwingUtilities
 import at.logic.algorithms.lk._
 import at.logic.algorithms.lksk.eliminateDefinitions
-import at.logic.calculi.lk.base.types.FSequent
-import at.logic.calculi.lk.base.{Sequent, LKProof}
-import at.logic.calculi.treeProofs.TreeProof
+import at.logic.calculi.expansionTrees.{WeakQuantifier, And => AndET, Atom => AtomET}
+import at.logic.calculi.lk.base.{Sequent, LKProof, FSequent}
+import at.logic.calculi.lk._
+import at.logic.calculi.occurrences.FormulaOccurrence
+import at.logic.calculi.proofs.Proof
+import at.logic.calculi.proofs.TreeProof
+import at.logic.calculi.slk.SchemaProofDB
 import at.logic.gui.prooftool.parser._
-import at.logic.language.schema.IntVar
-import at.logic.language.lambda.symbols.VariableStringSymbol
+import at.logic.language.hol._
+import at.logic.language.lambda.types._
+import at.logic.language.schema.{IntVar, Substitution => SchemaSubstitution}
 import at.logic.parsing.calculi.latex.SequentsListLatexExporter
 import at.logic.parsing.language.arithmetic.HOLTermArithmeticalExporter
 import at.logic.parsing.language.xml.XMLExporter
 import at.logic.parsing.writers.FileWriter
 import at.logic.transformations.ReductiveCutElim
-import at.logic.transformations.skolemization.lksk.LKtoLKskc
-import at.logic.transformations.ceres.clauseSets.{renameCLsymbols, StandardClauseSet}
-import at.logic.transformations.ceres.struct.{structToExpressionTree, StructCreators}
-import at.logic.transformations.ceres.projections.{Projections, DeleteTautology, DeleteRedundantSequents}
-import at.logic.transformations.ceres.{UnfoldProjectionTerm, ProjectionTermCreators}
-import at.logic.algorithms.shlk.{FixedFOccs, applySchemaSubstitution2, applySchemaSubstitution}
-import at.logic.utils.ds.trees.Tree
-import at.logic.transformations.herbrandExtraction.{ExtractHerbrandSequent, extractExpansionTrees}
-import at.logic.transformations.skolemization.skolemize
-import at.logic.transformations.ceres.clauseSchema.{resolutionProofSchemaDB, InstantiateResSchema}
 import at.logic.transformations.ceres.ACNF.ACNF
-import at.logic.calculi.slk.SchemaProofDB
-import at.logic.calculi.proofs.Proof
-import at.logic.calculi.occurrences.FormulaOccurrence
+import at.logic.transformations.ceres.clauseSchema.{resolutionProofSchemaDB, InstantiateResSchema}
+import at.logic.transformations.ceres.clauseSets.{StandardClauseSet, renameCLsymbols}
+import at.logic.transformations.ceres.projections.{Projections, DeleteTautology, DeleteRedundantSequents}
+import at.logic.transformations.ceres.struct.{structToExpressionTree, StructCreators}
+import at.logic.transformations.ceres.{UnfoldProjectionTerm, ProjectionTermCreators}
+import at.logic.transformations.herbrandExtraction.extractExpansionTrees
+import at.logic.transformations.skolemization.lksk.LKtoLKskc
+import at.logic.transformations.skolemization.skolemize
+import at.logic.utils.ds.trees.Tree
+
+import java.awt.event.{KeyEvent, ActionEvent => JActionEvent}
+import java.io.{BufferedWriter => JBufferedWriter, FileWriter => JFileWriter, ByteArrayInputStream, InputStreamReader, File, FileOutputStream}
+import javax.swing.SwingUtilities
+import javax.swing.filechooser.FileFilter
+import javax.swing.KeyStroke
+import scala.swing.BorderPanel._
+import scala.swing.Dialog.Message
+import scala.swing.Swing.EmptyIcon
+import scala.swing._
+import scala.swing.event.Key
+import com.itextpdf.text.{Document, Rectangle => PdfRectangle}
+import com.itextpdf.text.pdf.PdfWriter
 
 object Main extends SimpleSwingApplication {
   val body = new MyScrollPane
@@ -116,9 +122,6 @@ object Main extends SimpleSwingApplication {
   def fExportPdf() { chooser.showSaveDialog(mBar) match {
     case FileChooser.Result.Approve => try {
       body.cursor = new java.awt.Cursor(java.awt.Cursor.WAIT_CURSOR)
-      import java.io.FileOutputStream
-      import com.itextpdf.text.{Document, Rectangle => PdfRectangle}
-      import com.itextpdf.text.pdf.PdfWriter
 
       val component = body.getContent.contents.head
       val width = component.size.width
@@ -346,8 +349,6 @@ object Main extends SimpleSwingApplication {
   }
 
   val mBar: MenuBar = new MenuBar() {
-    import javax.swing.KeyStroke
-    import java.awt.event.{KeyEvent, ActionEvent => JActionEvent}
 
     focusable = true
     val customBorder = Swing.EmptyBorder(5,3,5,3)
@@ -636,7 +637,6 @@ object Main extends SimpleSwingApplication {
       contents += new Separator
       contents += new MenuItem(Action("Apply Gentzen's Method") { gentzen(body.getContent.getData.get._2.asInstanceOf[LKProof]) }) { border = customBorder }
       contents += new Separator
-      contents += new MenuItem(Action("Extract Herbrand Sequent") { herbrandSequent() }) { border = customBorder }
       contents += new MenuItem(Action("Extract Expansion Tree") { expansionTree() }) { border = customBorder }
       contents += new Separator
       contents += new MenuItem(Action("Eliminate Definitions") { eliminateDefsLK() }) { border = customBorder }
@@ -691,20 +691,15 @@ object Main extends SimpleSwingApplication {
     contents += new Menu("Tests") {
       mnemonic = Key.T
       contents += new MenuItem(Action("Non-Prenex Proof 1") {
-        import at.logic.language.lambda.types.Definitions._
-        import at.logic.language.lambda.symbols.ImplicitConverters._
-        import at.logic.language.hol._
-        import at.logic.calculi.lk.propositionalRules._
-        import at.logic.calculi.lk.quantificationRules._
-        val p = HOLVar("p", i -> o)
-        val a = HOLVar("a", i)
-        val b = HOLVar("b", i)
-        val q = HOLVar("q", i -> o)
-        val x = HOLVar("x", i)
-        val px = HOLAppFormula(p, x) // p(x)
-        val pa = HOLAppFormula(p, a) // p(a)
-        val pb = HOLAppFormula(p, b) // p(b)
-        val qa = HOLAppFormula(q, a) // q(a)
+        val p = HOLVar("p", Ti -> To)
+        val a = HOLVar("a", Ti)
+        val b = HOLVar("b", Ti)
+        val q = HOLVar("q", Ti -> To)
+        val x = HOLVar("x", Ti)
+        val px = Atom(p, x::Nil) // p(x)
+        val pa = Atom(p, a::Nil) // p(a)
+        val pb = Atom(p, b::Nil) // p(b)
+        val qa = Atom(q, a::Nil) // q(a)
         val substa = a // x -> a
         val substb = b // x -> b
         val all_px = AllVar(x, px) // forall x. p(x)
@@ -721,21 +716,16 @@ object Main extends SimpleSwingApplication {
         ProofToolPublisher.publish(EnableMenus)
       }) { border = customBorder }
       contents += new MenuItem(Action("Non-Prenex Proof 2") {
-        import at.logic.language.lambda.types.Definitions._
-        import at.logic.language.lambda.symbols.ImplicitConverters._
-        import at.logic.language.hol._
-        import at.logic.calculi.lk.propositionalRules._
-        import at.logic.calculi.lk.quantificationRules._
-        val p = HOLVar("p", i -> o)
-        val a = HOLVar("a", i)
-        val b = HOLVar("b", i)
-        val q = HOLVar("q", i -> o)
-        val x = HOLVar("x", i)
-        val y = HOLVar("y", i)
-        val px = HOLAppFormula(p, x) // p(x)
-        val pa = HOLAppFormula(p, a) // p(a)
-        val pb = HOLAppFormula(p, b) // p(b)
-        val qy = HOLAppFormula(q, y) // q(a)
+        val p = HOLVar("p", Ti -> To)
+        val a = HOLVar("a", Ti)
+        val b = HOLVar("b", Ti)
+        val q = HOLVar("q", Ti -> To)
+        val x = HOLVar("x", Ti)
+        val y = HOLVar("y", Ti)
+        val px = Atom(p, x::Nil) // p(x)
+        val pa = Atom(p, a::Nil) // p(a)
+        val pb = Atom(p, b::Nil) // p(b)
+        val qy = Atom(q, y::Nil) // q(a)
         val substa = a // x -> a
         val substb = b // x -> b
         val ex_px = ExVar(x, px) // exists x. p(x)
@@ -753,22 +743,17 @@ object Main extends SimpleSwingApplication {
         ProofToolPublisher.publish(EnableMenus)
       }) { border = customBorder }
       contents += new MenuItem(Action("Nested Proof 1") {
-        import at.logic.language.lambda.types.Definitions._
-        import at.logic.language.lambda.symbols.ImplicitConverters._
-        import at.logic.language.hol._
-        import at.logic.calculi.lk.propositionalRules._
-        import at.logic.calculi.lk.quantificationRules._
-        val p = HOLVar("p", i -> o)
-        val a = HOLVar("a", i)
-        val b = HOLVar("b", i)
-        val q = HOLVar("q", i -> o)
-        val x = HOLVar("x", i)
-        val y = HOLVar("y", i)
-        val px = HOLAppFormula(p, x) // p(x)
-        val pa = HOLAppFormula(p, a) // p(a)
-        val pb = HOLAppFormula(p, b) // p(b)
-        val qa = HOLAppFormula(q, a) // q(a)
-        val qy = HOLAppFormula(q, y) // q(a)
+        val p = HOLVar("p", Ti -> To)
+        val a = HOLVar("a", Ti)
+        val b = HOLVar("b", Ti)
+        val q = HOLVar("q", Ti -> To)
+        val x = HOLVar("x", Ti)
+        val y = HOLVar("y", Ti)
+        val px = Atom(p, x::Nil) // p(x)
+        val pa = Atom(p, a::Nil) // p(a)
+        val pb = Atom(p, b::Nil) // p(b)
+        val qa = Atom(q, a::Nil) // q(a)
+        val qy = Atom(q, y::Nil) // q(a)
         val substa = a // x -> a
         val substb = b // x -> b
         val all_px = AllVar(x, px) // forall x. p(x)
@@ -786,28 +771,24 @@ object Main extends SimpleSwingApplication {
         ProofToolPublisher.publish(EnableMenus)
       }) { border = customBorder }
       contents += new MenuItem(Action("Nested Expansion Tree") {
-        import at.logic.language.lambda.types.Definitions._
-        import at.logic.language.lambda.symbols.ImplicitConverters._
-        import at.logic.language.hol._
-        import at.logic.calculi.expansionTrees.{WeakQuantifier, And => AndET, Atom => AtomET}
-        val p = HOLVar("p", i -> o)
-        val a = HOLVar("a", i)
-        val b = HOLVar("b", i)
-        val a1 = HOLVar("a_1", i)
-        val b1 = HOLVar("b_1", i)
-        val a2 = HOLVar("a_2", i)
-        val b2 = HOLVar("b_2", i)
-        val q = HOLVar("q", i -> o)
-        val x = HOLVar("x", i)
-        val y = HOLVar("y", i)
-        val px = HOLAppFormula(p, x) // p(x)
-        val pa1 = HOLAppFormula(p, a1) // p(a1)
-        val pb1 = HOLAppFormula(p, b1) // p(b1)
-        val pa2 = HOLAppFormula(p, a2) // p(a2)
-        val pb2 = HOLAppFormula(p, b2) // p(b2)
-        val qb = HOLAppFormula(q, b) // q(b)
-        val qa = HOLAppFormula(q, a) // q(a)
-        val qy = HOLAppFormula(q, y) // q(a)
+        val p = HOLVar("p", Ti -> To)
+        val a = HOLVar("a", Ti)
+        val b = HOLVar("b", Ti)
+        val a1 = HOLVar("a_1", Ti)
+        val b1 = HOLVar("b_1", Ti)
+        val a2 = HOLVar("a_2", Ti)
+        val b2 = HOLVar("b_2", Ti)
+        val q = HOLVar("q", Ti -> To)
+        val x = HOLVar("x", Ti)
+        val y = HOLVar("y", Ti)
+        val px  = Atom(p, x::Nil) // p(x)
+        val pa1 = Atom(p, a1::Nil) // p(a1)
+        val pb1 = Atom(p, b1::Nil) // p(b1)
+        val pa2 = Atom(p, a2::Nil) // p(a2)
+        val pb2 = Atom(p, b2::Nil) // p(b2)
+        val qb  = Atom(q, b::Nil) // q(b)
+        val qa  = Atom(q, a::Nil) // q(a)
+        val qy  = Atom(q, y::Nil) // q(a)
         val all_px = AllVar(x, px) // forall x. p(x)
         val all_px_and_qy = And(all_px,qy) // forall x. p(x) /\ q(y)
         val all_all_px_and_qy = AllVar(y,all_px_and_qy) // forall y. (forall x. p(x) /\ q(y))
@@ -833,18 +814,14 @@ object Main extends SimpleSwingApplication {
         ProofToolPublisher.publish(EnableMenus)
       }) { border = customBorder }
       contents += new MenuItem(Action("Nested Expansion Tree 1") {
-        import at.logic.language.lambda.types.Definitions._
-        import at.logic.language.lambda.symbols.ImplicitConverters._
-        import at.logic.language.hol._
-        import at.logic.calculi.expansionTrees.{WeakQuantifier, And => AndET, Atom => AtomET}
-        val p = HOLVar("P", i -> o)
-        val a = HOLVar("a", i)
-        val b = HOLVar("b", i)
-        val f = HOLVar("f", i -> i)
-        val g = HOLVar("g", i -> i)
-        val q = HOLVar("Q", i -> (i -> o))
-        val x = HOLVar("x", i)
-        val y = HOLVar("y", i)
+        val p = HOLVar("P", Ti -> To)
+        val a = HOLVar("a", Ti)
+        val b = HOLVar("b", Ti)
+        val f = HOLVar("f", Ti -> Ti)
+        val g = HOLVar("g", Ti -> Ti)
+        val q = HOLVar("Q", Ti -> (Ti -> To))
+        val x = HOLVar("x", Ti)
+        val y = HOLVar("y", Ti)
         val px = Atom(p, x::Nil) // p(x)
         val pa = Atom(p, a::Nil) // p(a)
         val pb = Atom(p, b::Nil) // p(b)
@@ -881,21 +858,17 @@ object Main extends SimpleSwingApplication {
         ProofToolPublisher.publish(EnableMenus)
       }) { border = customBorder }
       contents += new MenuItem(Action("Tape Expansion Tree") { // A hack just to get a picture for the paper.
-        import at.logic.language.lambda.types.Definitions._
-        import at.logic.language.lambda.symbols.ImplicitConverters._
-        import at.logic.language.hol._
-        import at.logic.calculi.expansionTrees.{WeakQuantifier, And => AndET, Atom => AtomET}
-        val eq = HOLVar("=", i -> (i -> o))
+        val eq = HOLVar("=", Ti -> (Ti -> To))
         // val leq = HOLVar("<=", i -> (i -> o))
         // val max = HOLVar("max", i -> (i -> i))
-        val zero = HOLVar("0", i)
-        val O = HOLVar("O", i)
-        val I = HOLVar("I", i)
-        val f = HOLVar("f", i -> i)
-        val s = HOLVar("s", i -> i)
-        val x = HOLVar("x", i)
-        val y = HOLVar("y", i)
-        val j = HOLVar("j", i)
+        val zero = HOLVar("0", Ti)
+        val O = HOLVar("O", Ti)
+        val I = HOLVar("I", Ti)
+        val f = HOLVar("f", Ti -> Ti)
+        val s = HOLVar("s", Ti -> Ti)
+        val x = HOLVar("x", Ti)
+        val y = HOLVar("y", Ti)
+        val j = HOLVar("j", Ti)
 
 	val sx = Function(s, x::Nil) // s(x)
 	val sy = Function(s, y::Nil) // s(y)
@@ -978,16 +951,6 @@ object Main extends SimpleSwingApplication {
     }
   }
 
-  def herbrandSequent() { try {
-    body.cursor = new java.awt.Cursor(java.awt.Cursor.WAIT_CURSOR)
-    val hs = ExtractHerbrandSequent(body.getContent.getData.get._2.asInstanceOf[LKProof])
-    body.contents = new Launcher(Some("Herbrand Sequent",hs),14)
-    body.cursor = java.awt.Cursor.getDefaultCursor
-  } catch {
-    case e: Throwable =>
-      errorMessage("Cannot extract Herbrand Sequent!\n\n" + getExceptionString(e))
-  }}
-
   def expansionTree() { try {
     body.cursor = new java.awt.Cursor(java.awt.Cursor.WAIT_CURSOR)
     val et = extractExpansionTrees(body.getContent.getData.get._2.asInstanceOf[LKProof])
@@ -1064,16 +1027,15 @@ object Main extends SimpleSwingApplication {
 
   def computeSchematicClauseSet() { try {
     body.cursor = new java.awt.Cursor(java.awt.Cursor.WAIT_CURSOR)
-    val n = IntVar(new VariableStringSymbol("n"))
+    val n = IntVar("n")
 
     val s = StructCreators.extractStruct( body.getContent.getData.get._1, n)
     val cs : List[Sequent] = DeleteRedundantSequents( DeleteTautology( StandardClauseSet.transformStructToClauseSet(s) ))
-    //val pair = renameCLsymbols( cs )
+    val pair = renameCLsymbols( cs )
 
-    //db.addSeqList(pair._1)
-    db.addSeqList(cs.map(x => x.toFSequent()))
-    //db.addDefinitions(pair._2)
-    body.contents = new Launcher(Some("Schematic Clause Set",pair._1),16)
+    db.addSeqList(pair._1) //.map(x => x.toFSequent()))
+    db.addDefinitions(pair._2)
+    body.contents = new Launcher(Some(("Schematic Clause Set",pair._1)),16)
     body.cursor = java.awt.Cursor.getDefaultCursor
   } catch {
       case e: Throwable =>
@@ -1082,7 +1044,7 @@ object Main extends SimpleSwingApplication {
 
   def computeSchematicStruct() { try {
     body.cursor = new java.awt.Cursor(java.awt.Cursor.WAIT_CURSOR)
-    val n = IntVar(new VariableStringSymbol("n"))
+    val n = IntVar("n")
     val s = StructCreators.extractRelevantStruct( body.getContent.getData.get._1, n)
     val structs_base = s._2.map(pair => (pair._1, db.TermType.ClauseTerm, structToExpressionTree.prunedTree(pair._2)) )
     val structs_step = s._1.map(pair => (pair._1, db.TermType.ClauseTerm, structToExpressionTree.prunedTree(pair._2)) )
@@ -1109,7 +1071,7 @@ object Main extends SimpleSwingApplication {
   def computeClListOnlyQuantifiedCuts() { try {
     body.cursor = new java.awt.Cursor(java.awt.Cursor.WAIT_CURSOR)
     val proof_sk = eliminateDefinitions(LKtoLKskc( body.getContent.getData.get._2.asInstanceOf[LKProof] ))
-    val s = StructCreators.extract( proof_sk, f => f.containsQuantifier )
+    val s = StructCreators.extract( proof_sk, f => containsQuantifier(f) )
     val csPre : List[Sequent] = DeleteRedundantSequents( DeleteTautology( StandardClauseSet.transformStructToClauseSet(s) ))
     db.addSeqList(csPre.map(x => x.toFSequent()))
     body.contents = new Launcher(Some("cllist",csPre),16)
@@ -1135,7 +1097,7 @@ object Main extends SimpleSwingApplication {
   def computeStructOnlyQuantifiedCuts() { try {
     body.cursor = new java.awt.Cursor(java.awt.Cursor.WAIT_CURSOR)
     val proof_sk = eliminateDefinitions( LKtoLKskc( body.getContent.getData.get._2.asInstanceOf[LKProof] ) )
-    val s = structToExpressionTree.prunedTree( StructCreators.extract( proof_sk, f => f.containsQuantifier ) )
+    val s = structToExpressionTree.prunedTree( StructCreators.extract( proof_sk, f => containsQuantifier(f) ) )
     db.addTermTree( s )
     body.contents = new Launcher(Some("Struct",s),12)
     body.cursor = java.awt.Cursor.getDefaultCursor
@@ -1264,14 +1226,18 @@ object Main extends SimpleSwingApplication {
       body.cursor = new java.awt.Cursor(java.awt.Cursor.WAIT_CURSOR)
       val number = if (input.size > 10) input.dropRight(10).toInt else input.toInt
       body.getContent.getData.get match {
-        case (name: String, p: LKProof) =>
+        case (name: String, p: LKProof) => errorMessage("Cannot compute instance")
+        /* FIXME: I think this should unfold the proof?? I don't know which
+         * method is the correct one here... it was applySchemaSubstitution and
+         * applySchemaSubstitution2.
           val proof = try { // This is a hack! In the future these two functions should be merged.
-            applySchemaSubstitution(name, number)
+            SchemaSubstitution((name, number)::Nil)
           } catch {
-            case e: UnfoldException => applySchemaSubstitution2(name, number)
+            case e: UnfoldException => SchemaSubstitution((name, number)::Nil)
           }
           db.addProofs((name + "↓" + number, proof)::Nil)
           body.contents = new Launcher(Some(name + "↓" + number, proof), 12)
+        */
         case (name: String, pt: Tree[_]) if db.getTermTrees.find(p => name == p._1 && p._2 == db.TermType.ProjectionTerm) != None =>
           val (term,list) = UnfoldProjectionTerm(name,number)
           val gterm_name = name.replace("_step","").replace("_base","")  + "↓" + number

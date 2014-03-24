@@ -7,18 +7,18 @@ package at.logic.gui.prooftool.gui
  * Time: 5:43:38 PM
  */
 
-import scala.swing._
-import event.{MouseWheelMoved, MouseReleased, MouseDragged}
+import at.logic.calculi.expansionTrees.ExpansionTree
+import at.logic.calculi.lk.base.FSequent
+import at.logic.calculi.proofs.{Proof, TreeProof}
+import at.logic.gui.prooftool.parser.{UnLoaded, Loaded, ProofToolPublisher, StructPublisher}
+import at.logic.language.hol.HOLFormula
+import at.logic.utils.ds.trees.Tree
+
 import java.awt.Font._
 import java.awt.event.{MouseEvent, MouseMotionListener}
 import javax.swing.border.TitledBorder
-import at.logic.gui.prooftool.parser.{UnLoaded, Loaded, ProofToolPublisher, StructPublisher}
-import at.logic.utils.ds.trees.Tree
-import at.logic.calculi.treeProofs.TreeProof
-import at.logic.calculi.lk.base.types.FSequent
-import at.logic.calculi.expansionTrees.ExpansionTree
-import at.logic.language.hol.HOLFormula
-import at.logic.calculi.proofs.Proof
+import scala.swing._
+import event.{MouseWheelMoved, MouseReleased, MouseDragged}
 
 class Launcher(private val option: Option[(String, AnyRef)], private val fSize: Int) extends GridBagPanel with MouseMotionListener {
   option match {

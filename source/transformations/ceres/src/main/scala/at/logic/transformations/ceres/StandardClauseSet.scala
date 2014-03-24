@@ -77,3 +77,56 @@ object StandardClauseSet {
   }
 }
 
+object renameCLsymbols {
+  def createMap(cs: List[Sequent]): Map[HOLExpression, HOLExpression] = {
+    var i: Int = 1
+    var map = Map.empty[HOLExpression, HOLExpression]
+    cs.foreach(seq => {
+      (seq.antecedent ++ seq.succedent).foreach(fo => {
+        fo.formula match {
+          case IndexedPredicate(constant, indices) if (constant.name.isInstanceOf[ClauseSetSymbol]) => {
+            if (!map.contains(constant)) {
+              map = map + Pair(constant, HOLConst("cl_"+i.toString, Tindex->To) )
+              i = i + 1
+            }
+          }
+          case _ => {}
+        }
+      })
+    })
+    return map
+  }
+  
+  def apply(cs: List[Sequent]): (List[FSequent], Map[HOLExpression, HOLExpression]) = {
+    val map = createMap(cs)
+    val list = cs.map(seq => {
+      val ant = seq.antecedent.map(fo => {
+        fo.formula match {
+          case IndexedPredicate(constant, indices) if (constant.name.isInstanceOf[ClauseSetSymbol]) => {
+            if (map.contains(constant)) {
+              HOLApp(map(constant), indices.head)
+            }
+            else
+              throw new Exception("\nError in renameCLsymbols.apply !\n")
+          }
+          case _ => fo.formula
+        }
+      })
+      val succ = seq.succedent.map(fo => {
+        fo.formula match {
+          case IndexedPredicate(constant, indices) if (constant.name.isInstanceOf[ClauseSetSymbol]) => {
+            if (map.contains(constant)) {
+              HOLApp(map(constant), indices.head)
+            }
+            else
+              throw new Exception("\nError in renameCLsymbols.apply !\n")
+          }
+          case _ => fo.formula
+        }
+      })
+      FSequent(ant.asInstanceOf[List[HOLFormula]], succ.asInstanceOf[List[HOLFormula]])
+    })
+    (list,map)
+  }
+}
+

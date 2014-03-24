@@ -11,14 +11,14 @@ import scala.swing._
 import BorderPanel._
 import event._
 import java.awt.Font._
-import at.logic.calculi.treeProofs._
+import at.logic.calculi.proofs._
 import java.awt.event.{MouseMotionListener, MouseEvent}
 import at.logic.calculi.slk.SchemaProofLinkRule
 import at.logic.calculi.lk.base.Sequent
 import at.logic.calculi.occurrences.FormulaOccurrence
 import java.awt.RenderingHints
 import at.logic.gui.prooftool.parser._
-import at.logic.calculi.lk.propositionalRules._
+import at.logic.calculi.lk._
 
 class DrawProof(val proof: TreeProof[_], private val fSize: Int, private var colored_occurrences : Set[FormulaOccurrence],
                 private var colored_omega_occurrences : Set[FormulaOccurrence],

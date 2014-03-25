@@ -1,8 +1,8 @@
-# Command: dot packages.gv -Tpng > packages.png
+# Command: dot packages.gv -Tpdf > packages.pdf
 
 digraph G {
   node [shape=note];
-  lambda [label=< lambda<br/><font point-size="10pt">- typedLambdaCalculus.scala<br/>- substitutions.scala<br/>- BetaReduction.scala<br/>- replacements.scala (commented out)<br/>- longNormalForm.scala<br/>- utils.scala</font> >]
+  lambda [label=< lambda<br/><font point-size="10pt">- typedLambdaCalculus.scala<br/>- substitutions.scala<br/>- BetaReduction.scala<br/>- longNormalForm.scala<br/>- utils.scala</font> >]
   symbols [label=< symbols<br/><font point-size="10pt">- symbols.scala</font> >]
   types [label=< types<br/><font point-size="10pt">- types.scala</font> >]
   hol [label=< hol<br/><font point-size="10pt">- hol.scala<br/>- substitution.scala<br/>- betaReduction.scala<br/>- utils.scala<br/>- base.scala</font> >]

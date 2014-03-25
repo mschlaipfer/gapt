@@ -1,6 +1,3 @@
-/**
- * Description:
-**/
 package at.logic.integration_tests
 
 import at.logic.calculi.resolution.{Clause, ResolutionProof}
@@ -57,6 +54,7 @@ class TapeTest extends SpecificationWithJUnit {
       saveXML( Pair("cs", cs)::Pair("dcs", dcs)::Pair("css", (css.toList))::Nil, "target" + separator + "test-classes" + separator + "tape-cs.xml" )
       */
     }
+    
     "parse, skolemize and extract the profile of the tape proof" in {
       checkForProverOrSkip
 
@@ -100,8 +98,10 @@ class TapeTest extends SpecificationWithJUnit {
         Pair("cs", cs)::Pair("prf",prf)::Pair("cs_prf_intersection", prf_cs_intersect)::Nil, path )
       (new java.io.File( path ) ).exists() must beEqualTo( true )
     }
+   
     "apply prover9 to the tape proof clause set" in {
       checkForProverOrSkip
+      skipped("Infinite loop??")
 
       val proofdb = (new XMLReader(new InputStreamReader(new GZIPInputStream(new FileInputStream("target" + separator + "test-classes" + separator + "tape-in.xml.gz")))) with XMLProofDatabaseParser).getProofDatabase()
       proofdb.proofs.size must beEqualTo(1)
@@ -117,6 +117,7 @@ class TapeTest extends SpecificationWithJUnit {
         case Some(a) if a.asInstanceOf[ResolutionProof[Clause]].root syntacticMultisetEquals (FSequent(List(),List())) => ok
         case _ => ko
       }
+
       getRefutation(cs.map(_.toFSequent)) must beTrue
     }
   }

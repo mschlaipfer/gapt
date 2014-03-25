@@ -36,8 +36,7 @@ object Match {
   def apply( s: HOLExpression, t: HOLExpression ) : Option[Substitution] =
     (s, t) match {
       case ( HOLApp(s_1, s_2), HOLApp(t_1, t_2) ) => merge( apply(s_1, t_1), apply(s_2, t_2) )
-      // FIXME: we should be able to get a HOLVar object from the case, so that casting is not necessary...
-      case ( HOLVar(_,_), _ ) if !getVars(t).contains(s.asInstanceOf[HOLVar]) => Some(Substitution( s.asInstanceOf[HOLVar], t  ) )
+      case ( v: HOLVar, _ ) if !getVars(t).contains(v) => Some(Substitution( v, t  ) )
       case ( v1 @ HOLVar(_,_), v2 @ HOLVar(_,_) ) if v1 == v2 => Some(Substitution())
       case ( v1 @ HOLVar(_,_), v2 @ HOLVar(_,_) ) if v1 != v2 =>  {
         None
@@ -65,8 +64,7 @@ object Match {
 
   def getVars( t: HOLExpression ) : Set[HOLVar] = t match {
     case HOLApp(t_1, t_2) => getVars( t_1 ) ++ getVars( t_2 )
-    // FIXME: we should be able to get a HOLVar object from the case, so that casting is not necessary...
-    case HOLVar(_,_) => (Set[HOLVar]()) + t.asInstanceOf[HOLVar]
+    case v : HOLVar => (Set[HOLVar]()) + v
     case HOLAbs(_, sub) => getVars( sub )
     case _ => Set[HOLVar]()
   }

@@ -66,8 +66,7 @@ class MiniSAT {
 
   private def updateAtoms( clauses : Set[FClause] ) =
   {
-    // FIXME: cast :-(
-    val atoms = clauses.flatMap( c => c.neg.asInstanceOf[Seq[HOLFormula]] ++ c.pos.asInstanceOf[Seq[HOLFormula]] );
+    val atoms = clauses.flatMap( c => c.neg ++ c.pos );
     atom_map = atoms.zip(1 to atoms.size).toMap
   }
   
@@ -90,10 +89,8 @@ class MiniSAT {
       sb.append(" ");
     } )
     
-    
-    // FIXME: cast :-(
-    atoms_to_str( clause.pos.asInstanceOf[Seq[HOLFormula]], true )
-    atoms_to_str( clause.neg.asInstanceOf[Seq[HOLFormula]], false )
+    atoms_to_str( clause.pos, true )
+    atoms_to_str( clause.neg, false )
 
     sb.toString()
   }

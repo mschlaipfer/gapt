@@ -92,6 +92,6 @@ object reduceHolToFol {
     reduceHolToFol( term, emptymap, counter )
   }
 
-  def apply(formula: HOLFormula) : FOLFormula = apply(formula).asInstanceOf[FOLFormula]
+  def apply(formula: HOLFormula) : FOLFormula = apply(formula.asInstanceOf[HOLExpression]).asInstanceOf[FOLFormula]
 }
 

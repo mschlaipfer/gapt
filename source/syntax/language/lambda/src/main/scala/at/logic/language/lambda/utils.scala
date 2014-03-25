@@ -26,9 +26,9 @@ object freeVariables {
 // variables/constants in the blackList, returns this variable if this variable 
 // is not in the blackList
 object rename {
-  def apply(v: Var, blackList: List[Var]) : Var = new Var(getRenaming(v.sym, blackList.map(v => v.sym)), v.exptype)
+  def apply(v: Var, blackList: List[Var]) : Var = Var(getRenaming(v.sym, blackList.map(v => v.sym)), v.exptype)
 
-  def apply(c: Const, blackList: List[Const]) : Const = new Const(getRenaming(c.sym, blackList.map(c => c.sym)), c.exptype)
+  def apply(c: Const, blackList: List[Const]) : Const = Const(getRenaming(c.sym, blackList.map(c => c.sym)), c.exptype)
 }
 
 

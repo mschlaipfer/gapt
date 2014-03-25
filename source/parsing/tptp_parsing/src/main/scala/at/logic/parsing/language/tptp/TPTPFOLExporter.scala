@@ -5,6 +5,7 @@
 
 package at.logic.parsing.language.tptp
 
+import at.logic.algorithms.fol.hol2fol._
 import at.logic.language.fol._
 import at.logic.language.lambda.symbols.SymbolA
 import at.logic.calculi.lk.base.FSequent
@@ -25,7 +26,7 @@ object TPTPFOLExporter {
   // TODO: would like to have FOLSequent here --- instead, we cast
   // we export it as a disjunction
   def export( s: FSequent ) = {
-    val f = s.toFormula.asInstanceOf[FOLFormula]
+    val f = reduceHolToFol(s.toFormula)
     val map = getFreeVarRenaming( f )
     tptp( f )( map )
   }

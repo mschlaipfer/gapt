@@ -1,53 +1,46 @@
-/** 
- * Description: 
-**/
 
 package at.logic.integration_tests
 
-import at.logic.parsing.language.tptp.TPTPFOLExporter
-import at.logic.language.lambda.types._
-import at.logic.language.lambda.symbols._
-import at.logic.language.fol._
-import at.logic.language.hol.logicSymbols._
-import at.logic.transformations.ceres.struct.StructCreators
-import at.logic.transformations.ceres.clauseSets.StandardClauseSet
-import at.logic.parsing.language.xml.XMLParser._
-import at.logic.parsing.readers.XMLReaders._
-import at.logic.algorithms.lk.simplification._
-import at.logic.algorithms.lk.statistics._
+import at.logic.algorithms.cutIntroduction._
 import at.logic.algorithms.lk._
-import at.logic.parsing.calculus.xml.saveXML
+import at.logic.algorithms.lk.statistics._
 import at.logic.calculi.lk._
 import at.logic.calculi.lk.base._
-import at.logic.calculi.lk.propositionalRules._
-import at.logic.calculi.lk.quantificationRules._
-import at.logic.calculi.lk.macroRules._
-import at.logic.algorithms.lk.simplification._
-import at.logic.algorithms.lk._
-import java.util.zip.GZIPInputStream
-import java.io.{FileReader, FileInputStream, InputStreamReader}
-import java.io.File.separator
-import at.logic.transformations.skolemization.skolemize
-import at.logic.transformations.ceres.projections.Projections
-import at.logic.transformations.ceres.clauseSets.profile._
+import at.logic.calculi.lk._
 import at.logic.calculi.occurrences._
+import at.logic.language.fol._
+import at.logic.language.hol.logicSymbols._
+import at.logic.language.lambda.symbols._
+import at.logic.language.lambda.types._
+import at.logic.parsing.calculus.xml.saveXML
+import at.logic.parsing.language.tptp.TPTPFOLExporter
+import at.logic.parsing.language.xml.XMLParser._
+import at.logic.parsing.readers.XMLReaders._
+import at.logic.transformations.ReductiveCutElim
+import at.logic.transformations.ceres.clauseSets.StandardClauseSet
+import at.logic.transformations.ceres.clauseSets.profile._
+import at.logic.transformations.ceres.projections.Projections
+import at.logic.transformations.ceres.struct.StructCreators
+import at.logic.transformations.skolemization.skolemize
+
+import java.io.File.separator
+import java.io.{FileReader, FileInputStream, InputStreamReader}
+import java.util.zip.GZIPInputStream
 import org.junit.runner.RunWith
+import org.specs2.execute.Success
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.runner.JUnitRunner
-import org.specs2.execute.Success
-import at.logic.algorithms.cutIntroduction._
-import at.logic.transformations.ReductiveCutElim
 
 @RunWith(classOf[JUnitRunner])
 class MiscTest extends SpecificationWithJUnit {
 
   // returns LKProof with end-sequent  P(s^k(0)), \ALL x . P(x) -> P(s(x)) :- P(s^n(0))
   private def LinearExampleProof( k : Int, n : Int ) : LKProof = {
-    val s = new ConstantStringSymbol("s")
-    val c = new ConstantStringSymbol("0")
-    val p = new ConstantStringSymbol("P")
+    val s = "s"
+    val c = "0"
+    val p = "P"
 
-    val x = FOLVar( VariableStringSymbol("x") )
+    val x = FOLVar("x")
     val ass = AllVar( x, Imp( Atom( p, x::Nil ), Atom( p, Function( s, x::Nil )::Nil ) ) )
     if ( k == n ) // leaf proof
     {

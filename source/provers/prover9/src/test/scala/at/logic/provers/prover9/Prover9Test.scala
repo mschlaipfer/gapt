@@ -4,8 +4,6 @@
 
 package at.logic.provers.prover9
 
-<<<<<<< .working
-=======
 import at.logic.language.lambda.symbols._
 import _root_.at.logic.calculi.resolution.base.ResolutionProof
 import _root_.at.logic.calculi.resolution.base.Clause
@@ -15,7 +13,6 @@ import _root_.at.logic.parsing.readers.StringReader
 import _root_.at.logic.provers.atp.commands.base.{SetStreamCommand, PrependCommand}
 import _root_.at.logic.provers.atp.commands.sequents.SetTargetClause
 import _root_.at.logic.provers.atp.Prover
->>>>>>> .merge-right.r1940
 import at.logic.calculi.lk.base.FSequent
 import at.logic.calculi.occurrences.factory
 import at.logic.calculi.resolution.Clause

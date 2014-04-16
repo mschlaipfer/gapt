@@ -6,7 +6,6 @@
 
 package at.logic.provers.prover9
 
-<<<<<<< .working
 import at.logic.algorithms.resolution.InstantiateElimination
 import at.logic.algorithms.rewriting.NameReplacement
 import at.logic.calculi.lk.base.FSequent
@@ -20,7 +19,6 @@ import at.logic.parsing.ivy.IvyParser
 import at.logic.parsing.ivy.IvyParser.{IvyStyleVariables, PrologStyleVariables, LadrStyleVariables}
 import at.logic.parsing.ivy.conversion.IvyToRobinson
 import at.logic.parsing.language.prover9._
-=======
 import at.logic.provers.Prover
 import at.logic.algorithms.resolution.{RobinsonToLK, fixSymmetry, CNFn}
 import at.logic.calculi.resolution.base._
@@ -30,7 +28,6 @@ import at.logic.language.lambda.substitutions._
 import at.logic.language.hol.logicSymbols.{ConstantStringSymbol, ConstantSymbolA}
 import at.logic.language.lambda.symbols.SymbolA
 import at.logic.language.fol._
->>>>>>> .merge-right.r1940
 import at.logic.parsing.language.tptp.TPTPFOLExporter
 import at.logic.provers.prover9.commands.InferenceExtractor
 import java.io.File
@@ -202,12 +199,9 @@ object Prover9 extends at.logic.utils.logging.Logger {
         case _ => m
     })
 
-<<<<<<< .working
-=======
     trace( "translation map: " )
     trace( symbol_map.toString )
 
->>>>>>> .merge-right.r1940
     trace( "running prover9" )
     val ret = runP9( input_file, output_file )
     trace( "prover9 finished" )
@@ -383,11 +377,8 @@ object Prover9 extends at.logic.utils.logging.Logger {
     val ivy_file = File.createTempFile( "gapt-prover9", ".ivy", null )
     p9_to_ivy(pt_file.getCanonicalPath, ivy_file.getCanonicalPath)
 
-<<<<<<< .working
-=======
     def debugline(s:String) = { debug(s); true}
 
->>>>>>> .merge-right.r1940
     val iproof = IvyParser(ivy_file.getCanonicalPath, IvyStyleVariables)
     val rproof = IvyToRobinson(iproof)
 

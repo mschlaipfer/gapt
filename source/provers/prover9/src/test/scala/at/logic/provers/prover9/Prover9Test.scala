@@ -4,21 +4,13 @@
 
 package at.logic.provers.prover9
 
-import at.logic.language.lambda.symbols._
-import _root_.at.logic.calculi.resolution.base.ResolutionProof
-import _root_.at.logic.calculi.resolution.base.Clause
-import _root_.at.logic.parsing.calculi.simple.SimpleResolutionParserFOL
-import _root_.at.logic.parsing.language.simple.SimpleFOLParser
-import _root_.at.logic.parsing.readers.StringReader
-import _root_.at.logic.provers.atp.commands.base.{SetStreamCommand, PrependCommand}
-import _root_.at.logic.provers.atp.commands.sequents.SetTargetClause
-import _root_.at.logic.provers.atp.Prover
 import at.logic.calculi.lk.base.FSequent
 import at.logic.calculi.occurrences.factory
 import at.logic.calculi.resolution.Clause
 import at.logic.calculi.resolution.ResolutionProof
 import at.logic.calculi.resolution.robinson.{Formatter, RobinsonResolutionProof}
 import at.logic.language.fol._
+import at.logic.language.lambda.symbols._
 import at.logic.parsing.calculi.simple.SimpleResolutionParserFOL
 import at.logic.parsing.language.simple.SimpleFOLParser
 import at.logic.parsing.language.tptp.TPTPFOLExporter
@@ -274,7 +266,7 @@ class Prover9Test extends SpecificationWithJUnit {
 
       val p = new Prover9Prover()
 
-      val s = FSequent(Nil,List(AllVar(FOLVar(new VariableStringSymbol("x")), parse("=(x,x)"))))
+      val s = FSequent(Nil,List(AllVar(FOLVar("x"), parse("=(x,x)"))))
 
 
   /* FIXME: commented out since tptp export of quantifiers is still failing.

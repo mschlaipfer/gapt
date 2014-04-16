@@ -15,10 +15,6 @@ import at.logic.calculi.lk.{CutRule, Axiom}
 import at.logic.calculi.resolution.Clause
 import at.logic.calculi.resolution.robinson.{InitialClause, RobinsonResolutionProof}
 import at.logic.language.fol._
-//import at.logic.language.hol.logicSymbols.{ConstantStringSymbol, ConstantSymbolA}
-//import at.logic.language.lambda.substitutions._
-//import at.logic.language.lambda.symbols.SymbolA
-//import at.logic.language.lambda.typedLambdaCalculus._
 import at.logic.parsing.ivy.IvyParser
 import at.logic.parsing.ivy.IvyParser.{IvyStyleVariables, PrologStyleVariables, LadrStyleVariables}
 import at.logic.parsing.ivy.conversion.IvyToRobinson
@@ -26,7 +22,6 @@ import at.logic.parsing.language.prover9._
 import at.logic.parsing.language.tptp.TPTPFOLExporter
 import at.logic.provers.Prover
 import at.logic.provers.prover9.commands.InferenceExtractor
-//import java.io.File
 import java.io._
 import scala.collection.immutable.HashMap
 import scala.io.Source
@@ -433,16 +428,17 @@ class Prover9Prover extends Prover with at.logic.utils.logging.Logger {
   def ground( seq : FSequent ) : (FSequent, Map[FOLVar, FOLConst]) = {
     // FIXME: cast of formula of sequent!
     val free = seq.antecedent.flatMap( 
-      f => getFreeVariablesFOL(f.asInstanceOf[FOLFormula]) ).toSet ++ 
-      seq.succedent.flatMap( f => getFreeVariablesFOL(f.asInstanceOf[FOLFormula]) ).toSet
+      f => freeVariables(f.asInstanceOf[FOLFormula]) ).toSet ++ 
+      seq.succedent.flatMap( f => freeVariables(f.asInstanceOf[FOLFormula]) ).toSet
     // FIXME: make a better association between the consts and the vars.
     //val map = free.zip( free.map( v => new FOLConst( new CopySymbol( v.name ) ) ) ).toMap
-    val map = free.zip( free.map( v => new FOLConst( new ConstantStringSymbol( v.name.toString ) ) ) ).toMap
+    val map = free.zip( free.map( v => new FOLConst(v.sym) ) ).toMap
     trace( "grounding map in prover9: ")
     trace( map.toString )
     // FIXME: cast of formula of sequent!
-    val ret = FSequent( seq.antecedent.map( f => FOLSubstitution( f.asInstanceOf[FOLFormula], map ) ),
-      seq.succedent.map( f=> FOLSubstitution( f.asInstanceOf[FOLFormula], map ) ) )
+    val subst = Substitution(map)
+    val ret = FSequent( seq.antecedent.map( f => subst(f.asInstanceOf[FOLFormula]) ),
+      seq.succedent.map( f => subst(f.asInstanceOf[FOLFormula]) ) )
     (ret, map)
   }
 

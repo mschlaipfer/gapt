@@ -12,7 +12,7 @@ import at.logic.algorithms.resolution.CNFp
 import java.io._
 import java.lang.StringBuilder
 
-import at.logic.calculi.lk.base.types.FSequent
+import at.logic.calculi.lk.base.FSequent
 
 import at.logic.provers.Prover
 

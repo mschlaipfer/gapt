@@ -344,16 +344,16 @@ object ContractionRightRule {
   }
   
   /** <pre>Eliminates a duplicate occurrence of a formula term1
-    * from the antecedent of a sequent. The two occurrences are automatically
+    * from the succedent of a sequent. The two occurrences are automatically
     * chosen; if term1 occurs less than twice, an exception is thrown.
     * If term1 occurs more than twice, multiple applications of this
     * function are needed to remove all duplicate occurrences.
     * 
     * The rule: 
     *  (rest of s1)
-    * sL, term1, term1 |- sR
-    * ----------------------- (ContractionLeft)
-    * sL, term1 |- sR
+    * sL |- sR, term1, term1
+    * ----------------------- (ContractionRight)
+    * sL |- sR, term1
     * </pre>
     * 
     * @param s1 The top proof with (sL |- sR, term1, term1) as the bottommost sequent.
@@ -361,11 +361,11 @@ object ContractionRightRule {
     * @return An LK Proof ending with the new inference.
     */ 
     def apply(s1: LKProof, term1: HOLFormula): UnaryTree[Sequent] with UnaryLKProof with AuxiliaryFormulas with PrincipalFormulas  = {
-      (s1.root.antecedent.filter(x => x.formula == term1)).toList match {
+      (s1.root.succedent.filter(x => x.formula == term1)).toList match {
         case (x::y::_) => apply(s1, x, y)
         case _ => //throw new LKRuleCreationException("No matching formula occurrences found in " + s1.root.antecedent.map(_.formula) +
           //" for application of the rule c:l with the given formula: " + term1)
-          throw new LKUnaryRuleCreationException("c:l", s1, term1::Nil)
+          throw new LKUnaryRuleCreationException("c:r", s1, term1::Nil)
       }
     }
 

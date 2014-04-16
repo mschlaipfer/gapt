@@ -34,7 +34,7 @@ object HOLConst {
 
 class HOLApp protected[hol] (function: HOLExpression, arg: HOLExpression) extends App(function, arg) with HOLExpression
 object HOLApp {
-  def apply(function: HOLExpression, argument: HOLExpression) : HOLApp = argument.factory.createApp(function, argument).asInstanceOf[HOLApp] 
+  def apply(function: HOLExpression, argument: HOLExpression) : HOLApp = function.factory.createApp(function, argument).asInstanceOf[HOLApp] 
   def apply(function: HOLExpression, arguments: List[HOLExpression]) : HOLExpression = arguments match {
     case Nil => function
     case h :: tl => apply(HOLApp(function, h), tl)

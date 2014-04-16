@@ -50,7 +50,7 @@ object FOLConst {
 
 class FOLApp protected[fol] (function: FOLExpression, arg: FOLExpression) extends HOLApp(function, arg) with FOLExpression
 object FOLApp {
-  def apply(f: FOLExpression, arg: FOLExpression) : FOLApp = arg.factory.createApp(f, arg).asInstanceOf[FOLApp] 
+  def apply(f: FOLExpression, arg: FOLExpression) : FOLApp = f.factory.createApp(f, arg).asInstanceOf[FOLApp] 
   def unapply(e: FOLExpression) = e match {
     case a: FOLApp => Some( (a.function.asInstanceOf[FOLExpression], a.arg.asInstanceOf[FOLExpression]) )
     case _ => None

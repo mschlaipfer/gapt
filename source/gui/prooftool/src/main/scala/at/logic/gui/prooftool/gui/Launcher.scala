@@ -17,17 +17,14 @@ import at.logic.utils.ds.trees.Tree
 import java.awt.Font._
 import java.awt.event.{MouseEvent, MouseMotionListener}
 import javax.swing.border.TitledBorder
-<<<<<<< .working
 import scala.swing._
 import event.{MouseWheelMoved, MouseReleased, MouseDragged}
-=======
 import at.logic.gui.prooftool.parser.{UnLoaded, Loaded, ProofToolPublisher, StructPublisher}
 import at.logic.utils.ds.trees.Tree
 import at.logic.calculi.treeProofs.TreeProof
 import at.logic.calculi.expansionTrees.ExpansionSequent
 import at.logic.language.hol.HOLFormula
 import at.logic.calculi.proofs.Proof
->>>>>>> .merge-right.r1940
 import at.logic.transformations.ceres.struct.{structToExpressionTree, Struct}
 
 class Launcher(private val option: Option[(String, AnyRef)], private val fSize: Int) extends GridBagPanel with MouseMotionListener {

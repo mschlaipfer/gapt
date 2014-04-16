@@ -1,13 +1,13 @@
-/** 
- * Description: 
-**/
 
 package at.logic.integration_tests
 
 import at.logic.algorithms.fol.hol2fol._
 import at.logic.algorithms.lk._
 import at.logic.algorithms.lk.statistics._
+import at.logic.algorithms.lk.simplification._
+import at.logic.algorithms.lk.eliminateDefinitions
 import at.logic.algorithms.subsumption._
+import at.logic.calculi.expansionTrees.{toDeep, ExpansionSequent}
 import at.logic.calculi.lk._
 import at.logic.calculi.lk.base._
 import at.logic.language.fol.FOLFormula
@@ -21,44 +21,25 @@ import at.logic.parsing.language.arithmetic.HOLTermArithmeticalExporter
 import at.logic.parsing.language.tptp.TPTPFOLExporter
 import at.logic.parsing.language.xml.XMLParser._
 import at.logic.parsing.readers.XMLReaders._
-<<<<<<< .working
-=======
-import at.logic.algorithms.lk.simplification._
-import at.logic.algorithms.lk.statistics._
-import at.logic.algorithms.lk.eliminateDefinitions
 import at.logic.parsing.calculus.xml.saveXML
-import at.logic.parsing.calculi.latex.SequentsListLatexExporter
->>>>>>> .merge-right.r1940
 import at.logic.parsing.writers.FileWriter
-<<<<<<< .working
+import at.logic.parsing.calculi.latex.SequentsListLatexExporter
 import at.logic.provers.prover9._
-import at.logic.transformations.ceres.clauseSets.StandardClauseSet
-=======
-import at.logic.parsing.language.arithmetic.HOLTermArithmeticalExporter
-import java.io.{IOException, FileReader, FileInputStream, InputStreamReader}
-import at.logic.transformations.herbrandExtraction.extractExpansionTrees
 import at.logic.provers.veriT.VeriTProver
-import at.logic.calculi.expansionTrees.{toDeep, ExpansionSequent}
+import at.logic.transformations.ceres.clauseSets.StandardClauseSet
+import at.logic.transformations.ceres.clauseSets.profile._
+import at.logic.transformations.ceres.projections.Projections
+import at.logic.transformations.ceres.struct.{StructCreators, structToExpressionTree}
+import at.logic.transformations.herbrandExtraction.extractExpansionTrees
+import at.logic.transformations.skolemization.lksk.LKtoLKskc
+import at.logic.transformations.skolemization.skolemize
+
 
 /* comment out until atp works again
 import at.logic.provers.atp.Prover
 import at.logic.provers.atp.commands._
 import at.logic.provers.atp.refinements.UnitRefinement
 */
-import at.logic.language.lambda.symbols._
-import at.logic.language.lambda.types._
-import at.logic.language.hol._
-import at.logic.language.hol.logicSymbols._
-import at.logic.language.fol.FOLFormula
-
-import at.logic.calculi.lk._
-import at.logic.calculi.lk.base._
->>>>>>> .merge-right.r1940
-import at.logic.transformations.ceres.clauseSets.profile._
-import at.logic.transformations.ceres.projections.Projections
-import at.logic.transformations.ceres.struct.{StructCreators, structToExpressionTree}
-import at.logic.transformations.skolemization.lksk.LKtoLKskc
-import at.logic.transformations.skolemization.skolemize
 
 import java.io.File.separator
 import java.io.{IOException, FileReader, FileInputStream, InputStreamReader}

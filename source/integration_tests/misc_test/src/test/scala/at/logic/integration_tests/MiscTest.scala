@@ -1,85 +1,50 @@
-<<<<<<< .working
-=======
-/**
- * Description:
-**/
->>>>>>> .merge-right.r1940
 
 package at.logic.integration_tests
 
-<<<<<<< .working
+import at.logic.calculi.lk._
+import at.logic.calculi.lk.base._
+import at.logic.calculi.lk.propositionalRules._
+import at.logic.calculi.lk.quantificationRules._
+import at.logic.calculi.occurrences._
+import at.logic.calculi.expansionTrees.{toDeep => ETtoDeep}
 import at.logic.algorithms.cutIntroduction._
 import at.logic.algorithms.lk._
 import at.logic.algorithms.lk.statistics._
-import at.logic.calculi.lk._
-import at.logic.calculi.lk.base._
-import at.logic.calculi.lk._
-import at.logic.calculi.occurrences._
-=======
-import at.logic.language.lambda.symbols._
->>>>>>> .merge-right.r1940
+import at.logic.algorithms.lk.simplification._
+import at.logic.algorithms.lk.AtomicExpansion
+import at.logic.algorithms.rewriting.DefinitionElimination
+import at.logic.algorithms.hlk.HybridLatexParser
 import at.logic.language.fol._
 import at.logic.language.hol.logicSymbols._
-<<<<<<< .working
+import at.logic.language.hol.{And => AndHOL, Imp => ImpHOL, Or => OrHOL}
 import at.logic.language.lambda.symbols._
 import at.logic.language.lambda.types._
 import at.logic.parsing.calculus.xml.saveXML
 import at.logic.parsing.language.tptp.TPTPFOLExporter
-=======
-import at.logic.transformations.ceres.clauseSets.StandardClauseSet
->>>>>>> .merge-right.r1940
 import at.logic.parsing.language.xml.XMLParser._
 import at.logic.parsing.readers.XMLReaders._
-<<<<<<< .working
+import at.logic.parsing.veriT.VeriTParser
 import at.logic.transformations.ReductiveCutElim
 import at.logic.transformations.ceres.clauseSets.StandardClauseSet
 import at.logic.transformations.ceres.clauseSets.profile._
 import at.logic.transformations.ceres.projections.Projections
 import at.logic.transformations.ceres.struct.StructCreators
 import at.logic.transformations.skolemization.skolemize
+import at.logic.transformations.herbrandExtraction.extractExpansionTrees
+import at.logic.provers.prover9.{Prover9, Prover9Prover}
+import at.logic.provers.veriT.VeriTProver
+import at.logic.provers.minisat.MiniSATProver
+import at.logic.utils.constraint.{Constraint, NoConstraint, ExactBound, UpperBound}
 
+import java.util.zip.GZIPInputStream
 import java.io.File.separator
 import java.io.{FileReader, FileInputStream, InputStreamReader}
-=======
-import at.logic.parsing.calculus.xml.saveXML
-import at.logic.calculi.lk.base._
-import at.logic.calculi.lk.propositionalRules._
-import at.logic.calculi.lk.quantificationRules._
-import at.logic.algorithms.lk.simplification._
-import at.logic.algorithms.lk._
->>>>>>> .merge-right.r1940
-<<<<<<< .working
-import java.util.zip.GZIPInputStream
-=======
-import java.io.{FileInputStream, InputStreamReader}
-import java.io.File.separator
-import at.logic.transformations.skolemization.skolemize
-import at.logic.transformations.ceres.projections.Projections
-import at.logic.transformations.ceres.clauseSets.profile._
 import at.logic.calculi.occurrences._
->>>>>>> .merge-right.r1940
 import org.junit.runner.RunWith
 import org.specs2.execute.Success
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.runner.JUnitRunner
-<<<<<<< .working
-=======
 import org.specs2.execute.Success
-import at.logic.algorithms.cutIntroduction._
-import at.logic.utils.constraint.{Constraint, NoConstraint, ExactBound, UpperBound}
-import at.logic.transformations.ReductiveCutElim
->>>>>>> .merge-right.r1940
-
-import at.logic.parsing.veriT.VeriTParser
-import at.logic.calculi.expansionTrees.{toDeep => ETtoDeep}
-import at.logic.language.hol.{And => AndHOL, Imp => ImpHOL, Or => OrHOL}
-import at.logic.provers.prover9.{Prover9, Prover9Prover}
-import at.logic.provers.veriT.VeriTProver
-import at.logic.transformations.herbrandExtraction.extractExpansionTrees
-import at.logic.provers.minisat.MiniSATProver
-import at.logic.algorithms.hlk.HybridLatexParser
-import at.logic.algorithms.lk.AtomicExpansion
-import at.logic.algorithms.rewriting.DefinitionElimination
 
 @RunWith(classOf[JUnitRunner])
 class MiscTest extends SpecificationWithJUnit {

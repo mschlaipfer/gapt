@@ -214,13 +214,7 @@ object applySubstitution {
     }
   }
 
-<<<<<<< .working
   def apply( proof: LKProof, subst: Substitution ) : (LKProof, Map[FormulaOccurrence, FormulaOccurrence]) =
-=======
-
-
-  def apply( proof: LKProof, subst: Substitution[HOLExpression] ) : (LKProof, Map[FormulaOccurrence, FormulaOccurrence]) =
->>>>>>> .merge-right.r1940
     proof match {
       case Axiom(_) => handleRule( proof, Nil, subst )
       case UnaryLKProof(_, p, _, _, _) => handleRule( proof, apply( p, subst )::Nil, subst )

@@ -7,34 +7,9 @@ import at.logic.calculi.lk.base._
 import at.logic.calculi.slk._
 import at.logic.calculi.lksk.{ForallSkLeftRule, ExistsSkRightRule, ExistsSkLeftRule, ForallSkRightRule, UnaryLKskProof}
 import at.logic.calculi.occurrences._
-<<<<<<< .working
 import scala.collection.immutable.HashSet
 import ProofTransformationUtils.computeMap
 
-=======
-import at.logic.calculi.lk.propositionalRules._
->>>>>>> .merge-right.r1940
-<<<<<<< .working
-=======
-import at.logic.calculi.lk.equationalRules._
-import at.logic.calculi.lk.quantificationRules._
-import at.logic.calculi.lk.definitionRules._
-import at.logic.calculi.lk.base._
-import at.logic.calculi.lk.base.types._
-import at.logic.calculi.lk.lkExtractors.{UnaryLKProof, BinaryLKProof}
-import at.logic.calculi.lksk.lkskExtractors.{UnaryLKskProof}
-import at.logic.calculi.slk._
-
-import at.logic.language.hol._
-import at.logic.language.lambda.typedLambdaCalculus._
-import at.logic.language.lambda.substitutions
-
-import substitutions.Substitution
-
-import scala.collection.mutable
-import scala.collection.immutable.HashSet
-
->>>>>>> .merge-right.r1940
 object ProofTransformationUtils {
   // FIXME: adapted from LKtoLKskc!
   def computeMap[T<:FormulaOccurrence]( occs: Seq[T], old_proof: LKProof,

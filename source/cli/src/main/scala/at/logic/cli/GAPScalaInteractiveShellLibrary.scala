@@ -3,90 +3,82 @@
  *
  */
 
-package at.logic.cli.GAPScalaInteractiveShellLibrary
+package at.logic.cli
 
-import at.logic.algorithms.cutIntroduction._
 import at.logic.algorithms.fol.hol2fol._
-import at.logic.algorithms.expansionTrees.compressQuantifiers
 import at.logic.algorithms.hlk.{LKProofParser, SchemaFormulaParser}
 import at.logic.algorithms.interpolation._
-import at.logic.algorithms.lk.{deleteTautologies => deleteTaut, _} 
-import at.logic.algorithms.lk.statistics._
+import at.logic.algorithms.lk._
+import at.logic.algorithms.lk.simplification._
+import at.logic.algorithms.matching.fol.FOLMatchingAlgorithm
 import at.logic.algorithms.resolution._
 import at.logic.algorithms.rewriting.NameReplacement
 import at.logic.algorithms.shlk._
 import at.logic.algorithms.subsumption._
+import at.logic.algorithms.unification.hol._
 import at.logic.algorithms.unification.fol.FOLUnificationAlgorithm
-<<<<<<< .working
-=======
 import at.logic.algorithms.unification.{MulACEquality, MulACUEquality}
-import at.logic.algorithms.cutIntroduction.Deltas._
 
->>>>>>> .merge-right.r1940
-import at.logic.calculi.expansionTrees.{ExpansionTree, ExpansionSequent}
+import at.logic.calculi.expansionTrees.ExpansionTree
 import at.logic.calculi.expansionTrees.multi.MultiExpansionTree
-import at.logic.calculi.lk._
 import at.logic.calculi.lk.base._
-import at.logic.calculi.lksk.LabelledSequent
+import at.logic.calculi.lk.base.types._
+import at.logic.calculi.lk.quantificationRules._
+import at.logic.calculi.lk.equationalRules._
+import at.logic.calculi.lk.definitionRules._
+import at.logic.calculi.lk.propositionalRules._
+import at.logic.calculi.lksk.base._
 import at.logic.calculi.occurrences.{FormulaOccurrence, defaultFormulaOccurrenceFactory}
-import at.logic.calculi.resolution._
+import at.logic.calculi.resolution.base._
 import at.logic.calculi.resolution.robinson._
-import at.logic.calculi.slk.SchemaProofDB
-import at.logic.gui.prooftool.gui.Main
-import at.logic.language.fol.{Atom => FOLAtom, And => FOLAnd, Or => FOLOr, Imp => FOLImp, Neg => FOLNeg, AllVar => FOLAllVar, ExVar => FOLExVar, Substitution => FOLSubstitution, freeVariables => FOLfreeVariables, _}
-import at.logic.language.hol.{Substitution => HOLSubstitution, BetaReduction => HOLBetaReduction, _}
+
+import at.logic.language.fol
+import at.logic.language.fol.{FOLFormula, FOLExpression, FOLTerm, FOLVar}
+import at.logic.language.hol._
+import at.logic.language.hol.Definitions._
 import at.logic.language.hol.logicSymbols._
+import at.logic.language.lambda.substitutions.Substitution
 import at.logic.language.lambda.symbols._
+import at.logic.language.lambda.typedLambdaCalculus.{Var, LambdaExpression}
 import at.logic.language.lambda.types._
+import at.logic.language.lambda.types.Definitions._
+import at.logic.language.schema._
+import at.logic.language.schema.IndexedPredicate._
+import at.logic.language.schema.indexedFOVar._
+
 import at.logic.parsing.calculi.latex._
 import at.logic.parsing.calculi.simple.SimpleResolutionParserFOL
 import at.logic.parsing.calculus.xml._
+import at.logic.parsing.ivy.{IvyParser, IvyResolutionProof}
 import at.logic.parsing.ivy.conversion.IvyToRobinson
-import at.logic.parsing.ivy.{InitialClause => IvyInitialClause, Instantiate => IvyInstantiate, Propositional => IvyPropositional, Resolution => IvyResolution, IvyParser, IvyResolutionProof}
+import at.logic.parsing.ivy
 import at.logic.parsing.language.arithmetic.HOLTermArithmeticalExporter
 import at.logic.parsing.language.prover9.{Prover9TermParserLadrStyle, Prover9TermParser}
-import at.logic.parsing.language.simple._
-import at.logic.parsing.language.tptp.TPTPFOLExporter.tptp_problem
+import at.logic.parsing.language.simple.SimpleFOLParser
+import at.logic.parsing.language.simple.SimpleHOLParser
 import at.logic.parsing.language.xml.XMLParser._
 import at.logic.parsing.lisp.SExpressionParser
 import at.logic.parsing.readers.StringReader
 import at.logic.parsing.readers.XMLReaders._
-import at.logic.parsing.shlk_parsing.sFOParser
-import at.logic.parsing.veriT._
 import at.logic.parsing.writers.FileWriter
-import at.logic.provers.atp.Prover
-import at.logic.provers.atp.commands.base._
-import at.logic.provers.atp.commands.logical.DeterministicAndCommand
+
+import at.logic.provers.atp.commands.base.SetStreamCommand
 import at.logic.provers.atp.commands.refinements.base.SequentsMacroCommand
 import at.logic.provers.atp.commands.refinements.simple.SimpleRefinementGetCommand
-import at.logic.provers.atp.commands.robinson._
-import at.logic.provers.atp.commands.sequents._
-import at.logic.provers.atp.commands.ui._
-import at.logic.provers.minisat.MiniSAT
-import at.logic.provers.prover9.Prover9
+import at.logic.provers.atp.commands.sequents.SetTargetClause
+import at.logic.provers.atp.Prover
 import at.logic.provers.prover9.commands.Prover9InitCommand
-import at.logic.transformations.ceres.ACNF._
-import at.logic.transformations.ceres.clauseSchema._
-import at.logic.transformations.ceres.clauseSets.StandardClauseSet._
-import at.logic.transformations.ceres.projections.Projections
-import at.logic.transformations.ceres.struct._
-import at.logic.transformations.herbrandExtraction.{extractExpansionTrees => extractET}
-import at.logic.transformations.skolemization.lksk.LKtoLKskc
+import at.logic.provers.prover9.Prover9
+
 import at.logic.transformations.skolemization.skolemize
-import at.logic.utils.executionModels.ndStream.{NDStream, Configuration}
+import at.logic.transformations.ceres.clauseSchema._
 
-import java.io.IOException
 import java.io.{File, FileReader, FileInputStream, InputStreamReader, FileWriter => JFileWriter, BufferedWriter=>JBufferedWriter}
+import java.io.IOException
 import java.util.zip.GZIPInputStream
-<<<<<<< .working
-=======
-import at.logic.utils.constraint.Constraint
 
->>>>>>> .merge-right.r1940
 import scala.collection.mutable.{Map => MMap}
 
-<<<<<<< .working
-=======
 package GAPScalaInteractiveShellLibrary {
 
 import at.logic.algorithms.lk.statistics._
@@ -97,19 +89,8 @@ import at.logic.transformations.ceres.ACNF.renameIndexedVarInProjection
 import at.logic.algorithms.unification.EequalityA
 import at.logic.language.fol.FOLConst
 import at.logic.calculi.lk.quantificationRules.ForallLeftRule
-import at.logic.parsing.language.hlk.{HLKHOLParser, DeclarationParser}
-import at.logic.algorithms.hlk.{ExtendedProofDatabase, HybridLatexExporter, HybridLatexParser}
-import at.logic.algorithms.rewriting.DefinitionElimination
-import at.logic.parsing.language.xml.ProofDatabase
-import at.logic.transformations.ceres.clauseSets.{SimplifyStruct, StandardClauseSet}
-import scala.collection.mutable
-import at.logic.calculi.lksk.{ExistsSkRightRule, ForallSkLeftRule, ExistsSkLeftRule, ForallSkRightRule}
-import at.logic.transformations.skolemization.lksk.LKtoLKskc
-import at.logic.algorithms.fol.recreateWithFactory
-import at.logic.transformations.ceres.projections.Projections
-import at.logic.algorithms.matching.hol.NaiveIncompleteMatchingAlgorithm
 
->>>>>>> .merge-right.r1940
+
 object printProofStats {
     def apply(p: LKProof) = {
       val stats = getStatistics( p )
@@ -145,19 +126,11 @@ object printProofStats {
   }
 
   object structToClausesList {
-<<<<<<< .working
-    def apply(s: Struct) = transformStructToClauseSet(s)
-=======
-    def apply(s: Struct) = StandardClauseSet.transformStructToClauseSet(s)
->>>>>>> .merge-right.r1940
+    def apply(s: Struct) = at.logic.transformations.ceres.clauseSets.StandardClauseSet.transformStructToClauseSet(s)
   }
 
   object structToLabelledClausesList {
-<<<<<<< .working
-    def apply(s: Struct) = transformStructToLabelledClauseSet(s)
-=======
-    def apply(s: Struct) = StandardClauseSet.transformStructToLabelledClauseSet(s)
->>>>>>> .merge-right.r1940
+    def apply(s: Struct) = at.logic.transformations.ceres.clauseSets.StandardClauseSet.transformStructToClauseSet(s)
   }
 
   object refuteClauseList {
@@ -165,12 +138,8 @@ object printProofStats {
   }
 
   object computeProjections {
-<<<<<<< .working
     def apply(p: LKProof) : Set[LKProof] = Projections(p)
-=======
-    def apply(p: LKProof) : Set[LKProof] = Projections(p)
-    def apply(p: LKProof, pred : HOLFormula => Boolean) : Set[LKProof] = Projections(p, pred)
->>>>>>> .merge-right.r1940
+    def apply(p: LKProof, pred : HOLFormula => Boolean) : Set[LKProof] = Projections(p, pred) // introduced in lambda calc merge
   }
 
   object computeGroundProjections {
@@ -192,11 +161,7 @@ object printProofStats {
       }
     catch
     {
-<<<<<<< .working
-      case _ : Throwable =>
-=======
       case _ : Exception =>
->>>>>>> .merge-right.r1940
         (new XMLReader(new InputStreamReader(new FileInputStream(file))) with XMLProofDatabaseParser).getProofDatabase().proofs
     }
   }
@@ -208,11 +173,7 @@ object printProofStats {
       }
     catch
     {
-<<<<<<< .working
-      case _ : Throwable =>
-=======
       case _ : Exception =>
->>>>>>> .merge-right.r1940
         (new XMLReader(new InputStreamReader(new FileInputStream(file))) with XMLProofDatabaseParser).getProofDatabase()
     }
   }
@@ -333,18 +294,6 @@ object printProofStats {
       fs.antecedent.exists(x => containsStrongQuantifiers(x.asInstanceOf[FOLFormula],false)) ||
       fs.succedent.exists(x => containsStrongQuantifiers(x.asInstanceOf[FOLFormula],true))
 
-<<<<<<< .working
-      def containsStrongQuantifiers(f:FOLFormula, pol : Boolean) : Boolean = f match {
-        case FOLAtom(_,_) => false
-        case FOLAnd(s,t) => containsStrongQuantifiers(s, pol)  || containsStrongQuantifiers(t,pol)
-        case FOLOr(s,t)  => containsStrongQuantifiers(s, pol)  || containsStrongQuantifiers(t,pol)
-        case FOLImp(s,t) => containsStrongQuantifiers(s, !pol) || containsStrongQuantifiers(t,pol)
-        case FOLNeg(s)   => containsStrongQuantifiers(s, !pol)
-        case FOLAllVar(x,s) => if (pol == true) true else containsStrongQuantifiers(s, pol)
-        case FOLExVar(x,s)  => if (pol == false) true else containsStrongQuantifiers(s, pol)
-        case _ => throw new Exception("Unhandled case!")
-      }
-=======
     def containsStrongQuantifiers(f:FOLFormula, pol : Boolean) : Boolean = f match {
       case fol.Atom(_,_) => false
       case fol.And(s,t) => containsStrongQuantifiers(s, pol)  || containsStrongQuantifiers(t,pol)
@@ -355,7 +304,6 @@ object printProofStats {
       case fol.ExVar(x,s)  => if (pol == false) true else containsStrongQuantifiers(s, pol)
       case _ => throw new Exception("Unhandled case!")
     }
->>>>>>> .merge-right.r1940
 
   }
 
@@ -426,13 +374,10 @@ object printProofStats {
     //def apply(ls: List[Sequent]) = sequentNormalize(ls map (_.toFSequent))
     def apply(ls: List[FSequent]) = sequentNormalize(ls)
   }
-<<<<<<< .working
   */
-=======
 
   object applyFactoring extends factoring
 
->>>>>>> .merge-right.r1940
   object writeLabelledSequentListLatex {
     def apply(ls: List[LabelledSequent], outputFile: String) = {
       // maps original types and definitions of abstractions
@@ -457,11 +402,7 @@ object printProofStats {
           ("Definitions", imap.toList.map(x => (x._1, FOLConst(x._2))))::sectionsPre
         }
       catch {
-<<<<<<< .working
-        case _ : Throwable => sectionsPre
-=======
         case _ : Exception => sectionsPre
->>>>>>> .merge-right.r1940
       }
       (new FileWriter(outputFile) with SequentsListLatexExporter with HOLTermArithmeticalExporter).exportSequentList(ls map (_.toFSequent),sections).close
     }
@@ -497,9 +438,7 @@ object printProofStats {
     }
   }
 
-<<<<<<< .working
   /*
-=======
   object exportLLK {
     def apply(lkproof : LKProof, enable_latex : Boolean) = HybridLatexExporter(lkproof,enable_latex)
     def apply(lkproof : LKProof) = HybridLatexExporter(lkproof,true)
@@ -510,7 +449,6 @@ object printProofStats {
     }
   }
 
->>>>>>> .merge-right.r1940
   object createEquality {
     def apply(fs : List[String], cs : List[String]) =
       new MulACUEquality(fs map (new ConstantStringSymbol(_)), cs map (new ConstantStringSymbol(_)))
@@ -593,8 +531,6 @@ object printProofStats {
 
 /*************************** Cut introduction algorithm **********************************/
 
-<<<<<<< .working
-=======
   import at.logic.algorithms.cutIntroduction.{Grammar,
                                               ComputeGrammars,
                                               ExtendedHerbrandSequent,
@@ -604,7 +540,7 @@ object printProofStats {
                                               MinimizeSolution}
   import at.logic.algorithms.cutIntroduction.DeltaVector
   import at.logic.algorithms.cutIntroduction.Deltas._
->>>>>>> .merge-right.r1940
+
   object extractTerms {
     def apply( p: LKProof ) = {
       val ts = new FlatTermSet(TermsExtraction(p))
@@ -612,11 +548,7 @@ object printProofStats {
       println( "Size of term set: " + ts.termset.size )
       ts
     }
-<<<<<<< .working
-    def apply( ep: (Seq[ExpansionTree], Seq[ExpansionTree])) = {
-=======
     def apply( ep: ExpansionSequent) = {
->>>>>>> .merge-right.r1940
       val ts = new FlatTermSet(TermsExtraction(ep))
       println( "\nTerm set: {" + ts.termset + "}" )
       println( "Size of term set: " + ts.termset.size )
@@ -977,9 +909,6 @@ object printProofStats {
     }
   }
 
-<<<<<<< .working
-  /* FIXME: Huet's algorithm is not yet adapted to the new lambda calculus
-=======
   object lkproof {
     def cutrules(p:LKProof): Set[LKProof] = p.nodes.flatMap(_ match {
       case c@CutRule(_,_,_,_,_) =>
@@ -1019,7 +948,7 @@ object printProofStats {
   }
 
 
->>>>>>> .merge-right.r1940
+  /* FIXME: Huet's algorithm is not yet adapted to the new lambda calculus
   object huet {
 
     class MyParser(input: String) extends StringReader(input) with SimpleHOLParser
@@ -1066,11 +995,7 @@ object printProofStats {
   }
 
   object extractExpansionTrees {
-<<<<<<< .working
-    def apply(proof: LKProof): Tuple2[Seq[ExpansionTree],Seq[ExpansionTree]] = extractET(proof)
-=======
     def apply(proof: LKProof): ExpansionSequent = at.logic.transformations.herbrandExtraction.extractExpansionTrees(proof)
->>>>>>> .merge-right.r1940
   }
 
   object compressExpansionTree {
@@ -1178,8 +1103,6 @@ object printProofStats {
     def apply(name: String, i:Int): LKProof = {
       applySchemaSubstitution2(name, i, List())
     }
-<<<<<<< .working
-=======
 
     def apply(i: Int): Unit = {
       val s = new InputStreamReader(new FileInputStream("/home/cvetan/gapt-trunk/source/integration_tests/simple_schema_test/src/test/resources/sINDauto.lks"))
@@ -1203,7 +1126,6 @@ object printProofStats {
         //Main.display("sigma", sigma);
         //while(true){}
     }
->>>>>>> .merge-right.r1940
   }
 
   object hol2fol {
@@ -1343,14 +1265,7 @@ object printProofStats {
   }
 
   object equation_example {
-<<<<<<< .working
     def apply : (LKProof, FOLSubstitution) = {
-=======
-    def apply() : (LKProof, Substitution[HOLExpression]) = {
-      import at.logic.calculi.lk.propositionalRules._
-      import at.logic.calculi.lk.equationalRules._
-      import at.logic.calculi.lk.quantificationRules._
->>>>>>> .merge-right.r1940
       val List(uv,fuu,fuv,ab,fab) = List("u = v", "f(u)=f(u)", "f(u)=f(v)", "a=b", "f(a)=f(b)") map (Prover9TermParserLadrStyle.parseFormula)
       val List(uy,xy,ay) = List("(all y (u = y -> f(u) = f(y)))",
         "(all x all y (x = y -> f(x) = f(y)))",

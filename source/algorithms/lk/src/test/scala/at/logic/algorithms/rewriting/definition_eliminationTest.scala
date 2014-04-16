@@ -4,25 +4,19 @@ import org.junit.runner.RunWith
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.runner.JUnitRunner
 import at.logic.language.fol._
-import at.logic.language.hol.logicSymbols.ConstantStringSymbol
-import at.logic.language.lambda.symbols.VariableStringSymbol
-import at.logic.calculi.lk.propositionalRules.{AndLeft2Rule, InitialRuleType, AndRightRule, Axiom}
-import at.logic.calculi.lk.quantificationRules.{ExistsRightRule, ForallRightRule, ForallLeftRule}
-import at.logic.calculi.lk.definitionRules.{DefinitionLeftRule, DefinitionRightRule}
+import at.logic.language.lambda.symbols.{StringSymbol}
+import at.logic.calculi.lk._
 import at.logic.language.hol.HOLExpression
-import at.logic.calculi.lk.base.{FSequent, Sequent, LKProof}
-import at.logic.calculi.lk.lkExtractors.{BinaryLKProof, UnaryLKProof}
+import at.logic.calculi.lk.base.{beSyntacticFSequentEqual, FSequent, Sequent, LKProof}
 import at.logic.calculi.proofs.NullaryProof
-import at.logic.calculi.lk.equationalRules.EquationLeft1Rule
-import at.logic.calculi.lk.lkSpecs._
 
 @RunWith(classOf[JUnitRunner])
 class definition_eliminationTest extends SpecificationWithJUnit {
   object proof1 {
-    val List(alphasym, betasym, xsym, ysym) = List("\\alpha","\\beta","x","y") map VariableStringSymbol
-    val List(p,q,a,b,tsym) = List("P","Q","A","B","t") map ConstantStringSymbol
-    val List(t) = List(tsym) map ((x:ConstantStringSymbol) => FOLConst(x))
-    val List(alpha,beta,x,y) = List(alphasym, betasym, xsym, ysym).map( (x : VariableStringSymbol) => FOLVar(x))
+    val List(alphasym, betasym, xsym, ysym) = List("\\alpha","\\beta","x","y")
+    val List(p,q,a,b,tsym) = List("P","Q","A","B","t")
+    val List(t) = List(tsym) map (FOLConst.apply)
+    val List(alpha,beta,x,y) = List(alphasym, betasym, xsym, ysym).map(FOLVar.apply)
     val qa = Atom(q, alpha::Nil)
     val qx = Atom(q, x::Nil)
     val pab = Atom(p, List(alpha,beta))

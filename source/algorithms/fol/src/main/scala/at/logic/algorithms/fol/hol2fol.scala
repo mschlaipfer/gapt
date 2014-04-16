@@ -78,7 +78,7 @@ class reduceHolToFol {
   def apply_(term: HOLExpression): FOLExpression = {
     term match {
       case e : FOLExpression => e // if it's already FOL - great, we are done.
-      case z:indexedFOVar => FOLVar(z.name.toString ++ intTermLength(z.index.asInstanceOf[IntegerTerm]).toString))
+      case z:indexedFOVar => FOLVar(z.name.toString ++ intTermLength(z.index.asInstanceOf[IntegerTerm]).toString)
       case fov: foVar => FOLVar(fov.name)
       case foc: foConst => FOLConst(foc.name)
       case HOLVar(n, _) => FOLVar(n)

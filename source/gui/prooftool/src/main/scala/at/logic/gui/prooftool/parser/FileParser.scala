@@ -15,16 +15,9 @@ import at.logic.parsing.readers.XMLReaders._
 import at.logic.parsing.language.xml.ProofDatabase
 import at.logic.parsing.calculi.xml.SimpleXMLProofParser
 import at.logic.parsing.ParsingException
-<<<<<<< .working
 import at.logic.calculi.proofs.TreeProof
 import at.logic.calculi.lk.base.{LKProof, FSequent}
-import at.logic.parsing.shlk_parsing.{sFOParser,sFOParserCNT}
-=======
-import at.logic.calculi.treeProofs.TreeProof
-import at.logic.calculi.lk.base.types.FSequent
-import at.logic.calculi.lk.base.LKProof
-import at.logic.algorithms.shlk.{SCHOLParser, sFOParser, sFOParserCNT}
->>>>>>> .merge-right.r1940
+import at.logic.parsing.shlk_parsing.{SCHOLParser, sFOParser,sFOParserCNT}
 import at.logic.utils.ds.trees.{LeafTree, BinaryTree, Tree}
 import at.logic.language.hol.HOLExpression
 import at.logic.gui.prooftool.gui.{DrawSequent, Main}

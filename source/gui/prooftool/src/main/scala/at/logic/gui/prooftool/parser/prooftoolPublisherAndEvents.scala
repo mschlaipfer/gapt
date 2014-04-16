@@ -27,9 +27,6 @@ case object HideTree extends Event
 case object HideStructuralRules extends Event
 case class ShowAllRules(proof: TreeProof[_]) extends Event
 case class HideProof(proof: TreeProof[_]) extends Event
-<<<<<<< .working
-case class ShowProof(proof: TreeProof[_]) extends Event
-=======
 case class ShowProof(proof: TreeProof[_]) extends Event
 
 case class ChangeSequentColor(seqList: Sequent, color: Color, reset: Boolean) extends Event

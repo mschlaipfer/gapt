@@ -17,14 +17,14 @@ object extractExpansionTrees {
     case Axiom(r) => {
       // guess the axiom: must be an atom and appear left as well as right
       // can't use set intersection, but lists are small enough to do it manually
-      val axiomCandidates = (r.antecedent.filter(elem => r.succedent.exists(elem2 => elem syntaxEquals elem2))).filter(_.formula.isAtom)
+      val axiomCandidates = (r.antecedent.filter(elem => r.succedent.exists(elem2 => elem syntaxEquals elem2))).filter( ( o => isAtom( o.formula )))
 
       if (axiomCandidates.size > 1) {
         println("Warning: Multiple candidates for axiom formula in expansion tree extraction, choosing first one of: "+axiomCandidates)
       }
 
       if (axiomCandidates.isEmpty) {
-        def allAtoms(l : Seq[FormulaOccurrence]) = l.forall(_.formula.isAtom)
+        def allAtoms(l : Seq[FormulaOccurrence]) = l.forall( ( o => isAtom( o.formula )))
         if (allAtoms( r.antecedent ) && allAtoms( r.succedent ) ) {
           println("Warning: No candidates for axiom formula in expansion tree extraction, treating as atom trees since axiom only contains atoms: "+r)
           Map(r.antecedent.map(fo => (fo, AtomTree(fo.formula) )) ++

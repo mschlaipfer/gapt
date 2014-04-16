@@ -4,19 +4,17 @@ import at.logic.calculi.lk._
 import at.logic.calculi.lk.base._
 import at.logic.calculi.slk._
 import at.logic.language.schema.{Substitution => SubstitutionSchema, SchemaVar, SchemaExpression, SchemaFormula, BigAnd, BigOr, IntVar, Pred, Or => OrSchema, And => AndSchema}
-import at.logic.language.HOL.{Substitution => SubstitutionHOL}
-import at.logic.language.hol._
+import at.logic.language.hol.{Substitution => SubstitutionHOL, _}
 import at.logic.calculi.expansionTrees.{ExpansionTree, ExpansionSequent, BinaryExpansionTree, getETOfFormula, StrongQuantifier, WeakQuantifier, toFormula, UnaryExpansionTree, Atom => AtomET}
-import at.logic.language.lambda.typedLambdaCalculus.{VariantGenerator, VariableNameGenerator, Var}
+//import at.logic.language.lambda.typedLambdaCalculus.{VariantGenerator, VariableNameGenerator, Var}
 import at.logic.language.schema.{BigAnd, BigOr, SchemaFormula, IntVar, Pred}
 import at.logic.language.lambda.types.{Ti, Tindex}
-import at.logic.language.lambda.substitutions.Substitution
+//import at.logic.language.lambda.substitutions.Substitution
 import at.logic.calculi.lk.quantificationRules._
 import at.logic.provers.Prover
 import at.logic.calculi.lk.equationalRules.{EquationRight1Rule, EquationRight2Rule, EquationLeft2Rule, EquationLeft1Rule}
 import at.logic.calculi.lk.definitionRules.{DefinitionRightRule, DefinitionLeftRule}
 import at.logic.algorithms.lk.ExpansionTreeProofStrategy.ExpansionTreeAction
-
 
 /**
  * Constructs proofs sequents. Currently supports propositional logic as well as proof construction using expansion trees.

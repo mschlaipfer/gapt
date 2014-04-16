@@ -9,6 +9,7 @@ import at.logic.language.schema.BetaReduction._
 import at.logic.utils.ds.trees._
 import at.logic.utils.traits.Occurrence
 import at.logic.calculi.lk.{ContractionRightRuleType, ContractionLeftRuleType, CutRuleType, Axiom}
+import at.logic.language.hol.HOLExpression
 
 case object AndEquivalenceRule1Type extends UnaryRuleTypeA
 case object AndEquivalenceRule2Type extends UnaryRuleTypeA

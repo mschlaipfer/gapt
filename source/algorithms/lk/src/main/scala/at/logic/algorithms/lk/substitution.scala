@@ -6,11 +6,6 @@ import at.logic.calculi.occurrences._
 import at.logic.language.hol._
 import at.logic.language.hol.BetaReduction._
 import ProofTransformationUtils.computeMap
-import at.logic.calculi.lksk._
-import at.logic.calculi.lksk.base.LabelledFormulaOccurrence
-import at.logic.calculi.lk.propositionalRules.Axiom
-import at.logic.calculi.lk.propositionalRules.WeakeningLeftRule
-import at.logic.calculi.lk.propositionalRules.WeakeningRightRule
 
 object applySubstitution {
 

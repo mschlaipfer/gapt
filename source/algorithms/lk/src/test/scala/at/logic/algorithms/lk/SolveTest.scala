@@ -1,7 +1,6 @@
 package at.logic.algorithms.lk
 
-import at.logic.calculi.lk.base.LKProof
-import at.logic.calculi.lk.base.FSequent
+import at.logic.calculi.lk.base.{LKUnaryRuleCreationException, LKProof, FSequent, beSyntacticFSequentEqual}
 import at.logic.calculi.lk.{Axiom, NegLeftRule}
 import at.logic.calculi.occurrences.{FormulaOccurrence, defaultFormulaOccurrenceFactory}
 import at.logic.language.hol._
@@ -16,7 +15,6 @@ import org.specs2.runner.JUnitRunner
 import org.specs2.execute.Success
 import at.logic.language.lambda.types.{To, Ti}
 import at.logic.algorithms.lk.statistics._
-import at.logic.calculi.lk.base.beSyntacticFSequentEqual
 import at.logic.calculi.expansionTrees.{ExpansionTree, ExpansionSequent, Atom => AtomET, Neg => NegET, Or => OrET, WeakQuantifier => WeakQuantifierET, StrongQuantifier => StrongQuantifierET, toSequent}
 
 @RunWith(classOf[JUnitRunner])
@@ -178,7 +176,7 @@ class SolveTest extends SpecificationWithJUnit {
       val et = WeakQuantifierET.applyWithoutMerge(formula, List( (inst1, u), (inst2, c)))
       val etSeq = new ExpansionSequent(Nil, et::Nil)
 
-      val lkProof = solve.expansionProofToLKProof( toSequent(etSeq).toFSequent, etSeq )
+      val lkProof = solve.expansionProofToLKProof(toSequent(etSeq).toFSequent, etSeq)
       lkProof.isDefined must beTrue
     }
 

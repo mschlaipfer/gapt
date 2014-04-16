@@ -19,7 +19,7 @@ object NaiveIncompleteMatchingAlgorithm {
   def holMatch( s: HOLExpression, t: HOLExpression )(implicit restrictedDomain: List[HOLVar]) : Option[Substitution] =
     (s, t) match {
       case ( HOLApp(s_1, s_2), HOLApp(t_1, t_2) ) => merge( holMatch(s_1, t_1), holMatch(s_2, t_2) )
-      case ( s : HOLVar, _ ) if !restrictedDomain.contains(s) => Some(Substitution( s, t  ) )
+      case ( s : HOLVar, t:HOLExpression ) if !restrictedDomain.contains(s) && s.exptype == t.exptype => Some(Substitution( s, t  ) )
       case ( v1 : HOLVar, v2 : HOLVar ) if v1 == v2 => Some(Substitution())
       case ( v1 : HOLVar, v2 : HOLVar ) if v1 != v2 =>  None
       case ( c1 : HOLConst, c2 : HOLConst ) if c1 == c2 => Some(Substitution())

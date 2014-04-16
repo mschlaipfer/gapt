@@ -18,6 +18,7 @@ class Substitution(val holmap: Map[HOLVar, HOLExpression]) extends SubstitutionL
   }
   
   def compose(sub: Substitution): Substitution = Substitution(holmap ++ sub.holmap.map(x => (x._1, apply(x._2))))
+
 }
 object Substitution {
   def apply(subs: List[(HOLVar, HOLExpression)]): Substitution = new Substitution(Map() ++ subs)

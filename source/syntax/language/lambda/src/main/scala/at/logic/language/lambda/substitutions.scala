@@ -16,7 +16,9 @@ import symbols._
 class Substitution(val map: Map[Var, LambdaExpression]) {
  
   // Require that each variable is substituted by a term of the same type
-  require( map.forall( s => s._1.exptype == s._2.exptype) )
+  for( s <- map) require( s._1.exptype == s._2.exptype,
+                          "Error creating substitution: variable "+s._1+" has type "+s._1.exptype+
+                          " but subterm "+s._2+" has type "+s._2.exptype )
 
   // Substitution (capture-avoinding)
   // as in http://en.wikipedia.org/wiki/Lambda_calculus#Capture-avoiding_substitutions   
@@ -72,6 +74,9 @@ class Substitution(val map: Map[Var, LambdaExpression]) {
 
   //TODO: implement
   def isInjectiveRenaming = throw new Exception("Not yet implemented!")
+
+  override def toString() = map.map(x => x._1 +" -> "+x._2).mkString("Substitution(",",",")")
+
 }
 
 object Substitution {

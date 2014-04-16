@@ -19,6 +19,7 @@
     <module>lksk</module>
     <module>fol</module>
     <module>shlk</module>
+    <module>llk</module>
     <module>cutIntroduction</module>
     <module>interpolation</module>
     <module>expansionTrees</module>

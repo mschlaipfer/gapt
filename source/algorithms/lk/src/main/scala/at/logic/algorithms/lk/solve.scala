@@ -1,20 +1,14 @@
 package at.logic.algorithms.lk
 
+import at.logic.algorithms.lk.ExpansionTreeProofStrategy.ExpansionTreeAction
+import at.logic.calculi.expansionTrees.{ExpansionTree, ExpansionSequent, BinaryExpansionTree, getETOfFormula, StrongQuantifier, WeakQuantifier, toFormula, UnaryExpansionTree, Atom => AtomET}
 import at.logic.calculi.lk._
 import at.logic.calculi.lk.base._
 import at.logic.calculi.slk._
-import at.logic.language.schema.{Substitution => SubstitutionSchema, SchemaVar, SchemaExpression, SchemaFormula, BigAnd, BigOr, IntVar, Pred, Or => OrSchema, And => AndSchema}
 import at.logic.language.hol.{Substitution => SubstitutionHOL, _}
-import at.logic.calculi.expansionTrees.{ExpansionTree, ExpansionSequent, BinaryExpansionTree, getETOfFormula, StrongQuantifier, WeakQuantifier, toFormula, UnaryExpansionTree, Atom => AtomET}
-//import at.logic.language.lambda.typedLambdaCalculus.{VariantGenerator, VariableNameGenerator, Var}
-import at.logic.language.schema.{BigAnd, BigOr, SchemaFormula, IntVar, Pred}
 import at.logic.language.lambda.types.{Ti, Tindex}
-//import at.logic.language.lambda.substitutions.Substitution
-import at.logic.calculi.lk.quantificationRules._
+import at.logic.language.schema.{Substitution => SubstitutionSchema, SchemaVar, SchemaExpression, SchemaFormula, BigAnd, BigOr, IntVar, Pred, Or => OrSchema, And => AndSchema}
 import at.logic.provers.Prover
-import at.logic.calculi.lk.equationalRules.{EquationRight1Rule, EquationRight2Rule, EquationLeft2Rule, EquationLeft1Rule}
-import at.logic.calculi.lk.definitionRules.{DefinitionRightRule, DefinitionLeftRule}
-import at.logic.algorithms.lk.ExpansionTreeProofStrategy.ExpansionTreeAction
 
 /**
  * Constructs proofs sequents. Currently supports propositional logic as well as proof construction using expansion trees.
@@ -273,7 +267,7 @@ object solve extends at.logic.utils.logging.Logger {
         }
         else {
           val new_map = Map[SchemaVar, SchemaExpression]() + Pair(i, to)
-          val subst = new SchemaSubstitution(new_map)
+          val subst = new SubstitutionSchema(new_map)
           val sf1 = BigAnd(i, iter, from, Pred(to))
           val sf2 = subst(iter)
           val p_ant = sf1 +: sf2 +: rest.antecedent
@@ -293,7 +287,7 @@ object solve extends at.logic.utils.logging.Logger {
         val i = IntVar("i")
         if (from == to) {
           val new_map = Map[SchemaVar, SchemaExpression]() + Pair(i, to)
-          val subst = new SchemaSubstitution(new_map)
+          val subst = new SubstitutionSchema(new_map)
           val sf = subst(iter)
           val p_ant = sf +: rest.antecedent
           val p_suc = rest.succedent
@@ -307,7 +301,7 @@ object solve extends at.logic.utils.logging.Logger {
         }
         else {
           val new_map = Map[SchemaVar, SchemaExpression]() + Pair(i, to)
-          val subst = new SchemaSubstitution(new_map)
+          val subst = new SubstitutionSchema(new_map)
           val p_ant1 = BigOr(i, iter, from, Pred(to)) +: rest.antecedent
           val p_suc1 = rest.succedent
           val p_ant2 = subst(iter) +: rest.antecedent
@@ -318,7 +312,7 @@ object solve extends at.logic.utils.logging.Logger {
             case Some(proof1) => prove(premise2, nextProofStrategies(1)) match {
               case Some(proof2) =>
                 val proof3 = OrLeftRule(proof1, proof2, BigOr(i, iter, from, Pred(to)), subst(iter))
-                val or = Or(BigOr(i, iter, from, Pred(to)), subst(iter))
+                val or = OrSchema(BigOr(i, iter, from, Pred(to)), subst(iter))
                 val proof4 = OrLeftEquivalenceRule1(proof3, or, BigOr(i, iter, from, to))
                 val proof5 = addContractions(proof4, seq)
                 Some(proof5)
@@ -463,8 +457,8 @@ object solve extends at.logic.utils.logging.Logger {
       case BigOr(i, iter, from, to) =>
         val i = IntVar("i")
         if (from == to) {
-          val new_map = Map[SchemaVar, SchemaSubstitution]() + Pair(i, to)
-          val subst = new SchemaSubstitution(new_map)
+          val new_map = Map[SchemaVar, SchemaExpression]() + Pair(i, to)
+          val subst = new SubstitutionSchema(new_map)
           val p_ant = subst(iter) +: rest.antecedent
           val p_suc = rest.succedent
           val premise = FSequent(p_ant, p_suc)
@@ -477,7 +471,7 @@ object solve extends at.logic.utils.logging.Logger {
         }
         else {
           val new_map = Map[SchemaVar, SchemaExpression]() + Pair(i, to)
-          val subst = new SchemaSubstitution(new_map)
+          val subst = new SubstitutionSchema(new_map)
           val p_ant = rest.antecedent
           val p_suc = BigOr(i, iter, from, Pred(to)) +: subst(iter) +: rest.succedent
           val premise = FSequent(p_ant, p_suc)
@@ -495,7 +489,7 @@ object solve extends at.logic.utils.logging.Logger {
         val i = IntVar("i")
         if (from == to) {
           val new_map = Map[SchemaVar, SchemaExpression]() + Pair(i, to)
-          val subst = new SchemaSubstitution(new_map)
+          val subst = new SubstitutionSchema(new_map)
           val p_ant = rest.antecedent
           val p_suc = subst(iter) +: rest.succedent
           val premise = FSequent(p_ant, p_suc)
@@ -508,7 +502,7 @@ object solve extends at.logic.utils.logging.Logger {
         }
         else {
           val new_map = Map[SchemaVar, SchemaExpression]() + Pair(i, to)
-          val subst = new SchemaSubstitution(new_map)
+          val subst = new SubstitutionSchema(new_map)
           val p_ant1 = rest.antecedent
           val p_suc1 = BigAnd(i, iter, from, Pred(to)) +: rest.succedent
           val p_ant2 = rest.antecedent
@@ -775,7 +769,7 @@ class ExpansionTreeProofStrategy(val expansionSequent: ExpansionSequent) extends
    * Naive approach: always check everything.
    * This data does not really change (except on et seq changes), so it could be cached/precalculated for efficiency in the future
    */
-  private def doVariablesAppearInStrongQuantifier(vars: Set[Var], et: ExpansionTree): Boolean = {
+  private def doVariablesAppearInStrongQuantifier(vars: Set[HOLVar], et: ExpansionTree): Boolean = {
     et match {
       case StrongQuantifier(formula, v, sel) =>
         vars.contains(v) || doVariablesAppearInStrongQuantifier(vars, sel)
@@ -801,7 +795,7 @@ class ExpansionTreeProofStrategy(val expansionSequent: ExpansionSequent) extends
       val firstApplicable = instances.find(inst => inst match {
         case (et: ExpansionTree, term: HOLExpression) =>
           // check if free variables of term appear in any strong quantifier
-          val vars = term.getFreeVariables().toSet
+          val vars = freeVariables(term).toSet
           val doVarsAppear = doVariablesAppearInStrongQuantifier(vars, _: ExpansionTree)
           val canUseInstance = expansionSequent.succedent.forall(!doVarsAppear(_)) && expansionSequent.antecedent.forall(!doVarsAppear(_))
           canUseInstance
@@ -873,7 +867,7 @@ private object SolveUtils extends at.logic.utils.logging.Logger {
   // Checks if the sequent is of the form A, \Gamma |- A, \Delta
   def isAxiom(seq: FSequent): Boolean = {
     seq.antecedent.exists( f =>
-      f.isAtom &&
+      isAtom(f) &&
         seq.succedent.exists(f2 =>
           f.syntaxEquals(f2)
         )
@@ -981,8 +975,8 @@ private object SolveUtils extends at.logic.utils.logging.Logger {
    */
   def canSkipRuleApplication(toInsertLeft: List[HOLFormula], toInsertRight: List[HOLFormula], seq: FSequent) : Boolean = {
     checkDuplicate(toInsertLeft, toInsertRight, seq) &&
-      toInsertLeft.forall(!_.containsQuantifier) &&
-      toInsertRight.forall(!_.containsQuantifier)
+      toInsertLeft.forall(f => !containsQuantifier(f)) &&
+      toInsertRight.forall(f => !containsQuantifier(f))
   }
 
 }
@@ -996,7 +990,6 @@ class LKProver(val cleanStructuralRules: Boolean = true) extends Prover {
 
 
 object AtomicExpansion {
-  import at.logic.language.hol._
 
   /*  === implements algorithm from Lemma 4.1.1 in Methods of Cut-Elimination === */
   /* given a sequent S = F :- F for an arbitrary formula F, derive a proof of S from atomic axioms
@@ -1017,68 +1010,65 @@ object AtomicExpansion {
 
   /* Same as apply(fs:FSequent) but you can specify the formula on the lhs (f1) and rhs (f2) */
   def apply(fs:FSequent, f1:HOLFormula, f2: HOLFormula) = {
-    //initialize generator for eigenvariables
-    var index = 100
-    val vg = new EVGenerator(() => {index = index+1; index.toString})
 
-    val atomic_proof = atomicExpansion_(vg, f1,f2)
+    val atomic_proof = atomicExpansion_(f1,f2)
 
     addWeakenings(atomic_proof, fs)
   }
 
   // assumes f1 == f2
-  private def atomicExpansion_(gen : VariableNameGenerator ,f1 : HOLFormula, f2: HOLFormula) : LKProof = {
+  private def atomicExpansion_(f1 : HOLFormula, f2: HOLFormula) : LKProof = {
     try {
       (f1,f2) match {
         case (Neg(l1), Neg(l2)) =>
-          val parent = atomicExpansion_(gen, l1,l2)
+          val parent = atomicExpansion_(l1,l2)
           NegLeftRule(NegRightRule(parent,l1 ), l2)
 
         case (And(l1,r1), And(l2,r2) ) =>
-          val parent1 = atomicExpansion_(gen, l1,l2)
-          val parent2 = atomicExpansion_(gen, r1,r2)
+          val parent1 = atomicExpansion_(l1,l2)
+          val parent2 = atomicExpansion_(r1,r2)
           val i1 = AndLeft1Rule(parent1, l1, r1)
           val i2 = AndLeft2Rule(parent2, l2, r2)
           val i3 = AndRightRule(i1,i2,l1,r1)
           ContractionLeftRule(i3, f1)
 
         case (Or(l1,r1), Or(l2,r2) ) =>
-          val parent1 = atomicExpansion_(gen, l1,l2)
-          val parent2 = atomicExpansion_(gen, r1,r2)
+          val parent1 = atomicExpansion_(l1,l2)
+          val parent2 = atomicExpansion_(r1,r2)
           val i1 = OrRight1Rule(parent1, l1, r1)
           val i2 = OrRight2Rule(parent2, l2, r2)
           val i3 = OrLeftRule(i1,i2,l1,r1)
           ContractionRightRule(i3,f1)
 
         case (Imp(l1,r1), Imp(l2,r2) ) =>
-          val parent1 = atomicExpansion_(gen, l1,l2)
-          val parent2 = atomicExpansion_(gen, r1,r2)
+          val parent1 = atomicExpansion_(l1,l2)
+          val parent2 = atomicExpansion_(r1,r2)
           val i1 = ImpLeftRule(parent1, parent2, l1, r1)
           ImpRightRule(i1, l2,r2)
 
         case (AllVar(x1:HOLVar,l1), AllVar(x2:HOLVar,l2)) =>
-          val eigenvar = gen(x1, List(l1,l2)).asInstanceOf[HOLVar]
+          val eigenvar = rename(x1, freeVariables(l1) ++ freeVariables(l2))
           val sub1 = SubstitutionHOL(List((x1,eigenvar)))
           val sub2 = SubstitutionHOL(List((x2,eigenvar)))
           val aux1 = sub1(l1)
           val aux2 = sub2(l2)
 
-          val parent = atomicExpansion_(gen, aux1, aux2)
+          val parent = atomicExpansion_(aux1, aux2)
           val i1 = ForallLeftRule(parent, aux1, f1, eigenvar)
           ForallRightRule(i1, aux2, f2, eigenvar)
 
         case (ExVar(x1:HOLVar,l1), ExVar(x2:HOLVar,l2)) =>
-          val eigenvar = gen(x1, List(l1,l2)).asInstanceOf[HOLVar]
+          val eigenvar = rename(x1, freeVariables(l1) ++ freeVariables(l2))
           val sub1 = SubstitutionHOL(List((x1,eigenvar)))
           val sub2 = SubstitutionHOL(List((x2,eigenvar)))
           val aux1 = sub1(l1)
           val aux2 = sub2(l2)
 
-          val parent = atomicExpansion_(gen, aux1, aux2)
+          val parent = atomicExpansion_(aux1, aux2)
           val i1 = ExistsRightRule(parent, aux2, f2, eigenvar)
           ExistsLeftRule(i1, aux1, f1, eigenvar)
 
-        case (a1,a2) if a1.isAtom && a2.isAtom =>
+        case (a1,a2) if isAtom(a1) && isAtom(a2) =>
           Axiom(a1::Nil, a2::Nil)
 
         case _ =>
@@ -1094,7 +1084,7 @@ object AtomicExpansion {
 
   def expandProof(p:LKProof) : LKProof = p match {
     case Axiom(seq@Sequent(antd,succd)) =>
-      val tautology_formulas = for (a <- antd; s <- succd; if a.formula == s.formula && !a.formula.isAtom) yield { a.formula }
+      val tautology_formulas = for (a <- antd; s <- succd; if a.formula == s.formula && !isAtom(a.formula)) yield { a.formula }
       if (tautology_formulas.nonEmpty) {
         val tf = tautology_formulas(0)
         //println("Expanding "+tf)
@@ -1204,11 +1194,4 @@ object AtomicExpansion {
 
   }
 
-  class EVGenerator( gen : () => String) extends VariableNameGenerator( gen ) {
-    override def apply(a : Var, blacklist : Set[String]) : Var = {
-      var name : String = "ev"+a.name+"_{"+gen()+"}"
-      while (blacklist.contains(name)) name = gen()
-      a.factory.createVar(name, a.exptype)
-    }
-  }
 }

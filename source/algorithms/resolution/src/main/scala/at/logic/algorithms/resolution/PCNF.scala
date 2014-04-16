@@ -175,8 +175,6 @@ object PCNF {
     case _ => throw new Exception()
   }
 
-<<<<<<< .working
-=======
   // we need to compute (Not anymore)) the power set of the literals of the clause in order to find the right division of them in and right and or left
   def power[A](lst: List[A]): List[Tuple2[List[A],List[A]]] = {
     @annotation.tailrec
@@ -199,7 +197,6 @@ object PCNF {
     s.take(index) ++ s.takeRight(s.size-index-1)
   }
 
->>>>>>> .merge-right.r1940
   // applying sub to a clause
   def as(a: FClause, sub: Substitution): FClause = FClause(a.neg.map(f => sub(f)), a.pos.map(f => sub(f)))
 }

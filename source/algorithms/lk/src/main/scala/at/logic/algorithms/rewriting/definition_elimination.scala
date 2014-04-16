@@ -4,15 +4,15 @@ import at.logic.calculi.lk.base._
 import at.logic.calculi.occurrences.FormulaOccurrence
 import at.logic.language.fol
 import at.logic.language.hol._
-import at.logic.language.lambda.symbols.SymbolA
+import at.logic.language.lambda.symbols.{SymbolA, StringSymbol}
 import at.logic.language.lambda.{Abs, App, Var, LambdaExpression}
 import at.logic.algorithms.matching.NaiveIncompleteMatchingAlgorithm
 import at.logic.language.fol.FOLFormula
 import at.logic.calculi.lk._
 import scala.Some
-import at.logic.calculi.lk.quantificationRules.{ExistsRightRule, ExistsLeftRule, ForallRightRule, ForallLeftRule}
-import at.logic.calculi.lk.equationalRules.{EquationRight2Rule, EquationRight1Rule, EquationLeft2Rule, EquationLeft1Rule}
-import at.logic.calculi.lk.definitionRules.{DefinitionRightRule, DefinitionLeftRule}
+import at.logic.calculi.lk.{DefinitionRightRule, DefinitionLeftRule, EquationRight2Rule,
+                            EquationRight1Rule, EquationLeft2Rule, EquationLeft1Rule,
+                            ExistsRightRule, ExistsLeftRule, ForallRightRule, ForallLeftRule}
 import at.logic.algorithms.lk.AtomicExpansion
 
 object DefinitionElimination extends DefinitionElimination
@@ -103,23 +103,29 @@ class DefinitionElimination {
 
   private def eliminate_from_(defs : ProcessedDefinitionsMap, f : HOLFormula) : HOLFormula = {
     f match {
-      case Atom(sym, args) =>
-        defs.get(sym) match {
-          case Some((definition_args, defined_formula)) =>
-            if (args.length != definition_args.length) {
-              println("Warning: ignoring definition replacement because argument numbers dont match!")
-              f
-            } else {
-              //we need to insert the correct values for the free variables in the definition
-              //the casting is needed since we cannot make a map covariant
-              //val pairs = (definition_args zip args)  filter ((x:(HOLExpression, HOLExpression) ) => x._1.isInstanceOf[HOLVar])
-              val pairs = definition_args zip  args
-              val sub = Substitution(pairs)
-              println("Substitution:")
-              println(sub)
-              sub.apply(defined_formula).asInstanceOf[HOLFormula]
-            }
-          case _ => f
+      case Atom(e, args) => {
+          val sym = e match {
+            case HOLVar(s,_) => StringSymbol(s)
+            case HOLConst(s,_) => StringSymbol(s)
+          }
+
+          defs.get(sym) match {
+            case Some((definition_args, defined_formula)) =>
+              if (args.length != definition_args.length) {
+                println("Warning: ignoring definition replacement because argument numbers dont match!")
+                f
+              } else {
+                //we need to insert the correct values for the free variables in the definition
+                //the casting is needed since we cannot make a map covariant
+                //val pairs = (definition_args zip args)  filter ((x:(HOLExpression, HOLExpression) ) => x._1.isInstanceOf[HOLVar])
+                val pairs = definition_args zip  args
+                val sub = Substitution(pairs)
+                println("Substitution:")
+                println(sub)
+                sub.apply(defined_formula).asInstanceOf[HOLFormula]
+              }
+            case _ => f
+          }
         }
       case Neg(f1) => Neg(eliminate_from_(defs, f1))
       case AllVar(q,f1) => AllVar(q, eliminate_from_(defs, f1))

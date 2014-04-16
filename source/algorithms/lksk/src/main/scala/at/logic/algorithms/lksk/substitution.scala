@@ -2,10 +2,8 @@ package at.logic.algorithms.lksk
 
 
 import at.logic.calculi.lksk._
-//import at.logic.calculi.lksk.base._
 import at.logic.calculi.occurrences.FormulaOccurrence
 import at.logic.calculi.lk.base._
-//import at.logic.calculi.lk.base.types._
 import at.logic.calculi.lk.{UnaryLKProof, BinaryLKProof}
 import at.logic.language.hol._
 import at.logic.algorithms.lk.{applySubstitution => LKapplySubstitution, ProofTransformationUtils}
@@ -47,23 +45,15 @@ def apply( proof: LKProof, subst: Substitution ) : (LKProof, Map[LabelledFormula
     }
     case ForallSkLeftRule(p, s, a, m, t) => {
       val new_parent = apply( p, subst )
-<<<<<<< .working
       val new_proof = ForallSkLeftRule( new_parent._1, new_parent._2(a), subst(m.formula), subst.apply(t), a.skolem_label.contains(t) )
-=======
-      val new_proof = ForallSkLeftRule( new_parent._1, new_parent._2(a), subst(m.formula).asInstanceOf[HOLFormula], subst.apply(t), !m.skolem_label.contains(t) )
-      //assert(new_proof.prin(0).skolem_label.size == m.skolem_label.size )
->>>>>>> .merge-right.r1940
+
       val es = toLabelledSequent( p.root )
       ( new_proof, computeMap( es.l_antecedent ++ es.l_succedent, proof, new_proof, new_parent._2 ) )
     }
     case ExistsSkRightRule(p, s, a, m, t) => {
       val new_parent = apply( p, subst )
-<<<<<<< .working
       val new_proof = ExistsSkRightRule( new_parent._1, new_parent._2(a), subst(m.formula), subst.apply(t), a.skolem_label.contains(t) )
-=======
-      val new_proof = ExistsSkRightRule( new_parent._1, new_parent._2(a), subst(m.formula).asInstanceOf[HOLFormula], subst.apply(t), !m.skolem_label.contains(t) )
-      //assert(new_proof.prin(0).skolem_label.size == m.skolem_label.size )
->>>>>>> .merge-right.r1940
+
       val es = toLabelledSequent( p.root )
       ( new_proof, computeMap( es.l_antecedent ++ es.l_succedent, proof, new_proof, new_parent._2 ) )
     }

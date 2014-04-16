@@ -3,7 +3,7 @@
 
 package at.logic.algorithms.rewriting
 
-import at.logic.calculi.lk.base.types.FSequent
+import at.logic.calculi.lk.FSequent
 import at.logic.calculi.lk.base.{PrincipalFormulas, BinaryLKProof, Sequent, LKProof}
 import at.logic.calculi.lk.definitionRules.{DefinitionRightRule, DefinitionLeftRule}
 import at.logic.calculi.lk.equationalRules.{EquationRight2Rule, EquationRight1Rule, EquationLeft2Rule, EquationLeft1Rule}

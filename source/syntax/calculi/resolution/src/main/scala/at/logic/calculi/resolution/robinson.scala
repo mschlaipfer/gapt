@@ -110,7 +110,7 @@ object createContext {
    def unapply(proof: ResolutionProof[Clause] with AppliedSubstitution) = if (proof.rule == ResolutionType) {
         val pr = proof.asInstanceOf[BinaryResolutionProof[Clause] with AppliedSubstitution with AuxiliaryFormulas]
         Some((pr.root, pr.uProof1.asInstanceOf[RobinsonResolutionProof], pr.uProof2.asInstanceOf[RobinsonResolutionProof],
-          pr.aux.head.head, pr.aux.tail.head.head, pr.substitution))
+          pr.aux.head.head, pr.aux.tail.head.head, pr.substitution.asInstanceOf[Substitution]))
       }
       else None
 /*
@@ -181,7 +181,7 @@ object createContext {
       if (p.aux(1).size != 1) throw new Exception("Unexpected number of auxiliary clauses during Paramodulation matching (aux(1).size != 1)!")
 
       Some( (p.root, p.uProof1.asInstanceOf[RobinsonResolutionProof], p.uProof2.asInstanceOf[RobinsonResolutionProof],
-        p.aux(0)(0), p.aux(1)(0), p.prin(0), p.substitution) )
+        p.aux(0)(0), p.aux(1)(0), p.prin(0), p.substitution.asInstanceOf[Substitution]) )
     } else None
   }
 
@@ -211,7 +211,7 @@ object createContext {
 
     def unapply(proof: ResolutionProof[Clause] with AppliedSubstitution) = if (proof.rule == VariantType) {
         val pr = proof.asInstanceOf[UnaryResolutionProof[Clause] with AppliedSubstitution]
-        Some((pr.root, pr.uProof.asInstanceOf[RobinsonResolutionProof], pr.substitution))
+        Some((pr.root, pr.uProof.asInstanceOf[RobinsonResolutionProof], pr.substitution.asInstanceOf[Substitution]))
       }
       else None
   }
@@ -299,7 +299,7 @@ object createContext {
      * (i.e. aux.size is either 1 or 2, each contained list has size >=1).  */
     def unapply(proof: ResolutionProof[Clause] with AppliedSubstitution) = if (proof.rule == FactorType) {
       val pr = proof.asInstanceOf[UnaryResolutionProof[Clause] with AppliedSubstitution with AuxiliaryFormulas]
-      Some((pr.root, pr.uProof.asInstanceOf[RobinsonResolutionProof], pr.aux, pr.substitution))
+      Some((pr.root, pr.uProof.asInstanceOf[RobinsonResolutionProof], pr.aux, pr.substitution.asInstanceOf[Substitution]))
     }
     else None
   }

@@ -2,10 +2,9 @@ package at.logic.algorithms.rewriting
 
 import at.logic.calculi.lk.base._
 import at.logic.calculi.occurrences.FormulaOccurrence
-import at.logic.language.fol
 import at.logic.language.hol._
 import at.logic.language.lambda.symbols.{SymbolA, StringSymbol}
-import at.logic.language.lambda.{Abs, App, Var, LambdaExpression}
+//import at.logic.language.lambda.{Abs, App, Var, LambdaExpression}
 import at.logic.algorithms.matching.NaiveIncompleteMatchingAlgorithm
 import at.logic.language.fol.FOLFormula
 import at.logic.calculi.lk._
@@ -60,9 +59,6 @@ class DefinitionElimination {
       case And(s,t) => And(replaceAll_informula(dmap,s), replaceAll_informula(dmap,t))
       case Or(s,t) => Or(replaceAll_informula(dmap,s), replaceAll_informula(dmap,t))
       case Imp(s,t) => Imp(replaceAll_informula(dmap,s), replaceAll_informula(dmap,t))
-      //TODO: fix issue 224 and remove the fol specific matches
-      case fol.AllVar(x,t) => fol.AllVar(x, replaceAll_informula(dmap, t).asInstanceOf[FOLFormula])
-      case fol.ExVar(x,t) => fol.ExVar(x, replaceAll_informula(dmap, t).asInstanceOf[FOLFormula])
       case AllVar(x,t) => AllVar(x, replaceAll_informula(dmap, t))
       case ExVar(x,t) => ExVar(x, replaceAll_informula(dmap, t))
       case HOLApp(s,t) =>

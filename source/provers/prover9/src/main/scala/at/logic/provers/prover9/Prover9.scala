@@ -6,36 +6,31 @@
 
 package at.logic.provers.prover9
 
+import at.logic.algorithms.lk.applyReplacement
 import at.logic.algorithms.resolution.InstantiateElimination
+import at.logic.algorithms.resolution.{RobinsonToLK, fixSymmetry, CNFn}
 import at.logic.algorithms.rewriting.NameReplacement
-import at.logic.calculi.lk.base.FSequent
+import at.logic.calculi.lk.base._
 import at.logic.calculi.lk.{CutRule, Axiom}
 import at.logic.calculi.resolution.Clause
 import at.logic.calculi.resolution.robinson.{InitialClause, RobinsonResolutionProof}
-//import at.logic.language.hol._
 import at.logic.language.fol._
-//import at.logic.language.lambda.types.Arity
+//import at.logic.language.hol.logicSymbols.{ConstantStringSymbol, ConstantSymbolA}
+//import at.logic.language.lambda.substitutions._
+//import at.logic.language.lambda.symbols.SymbolA
+//import at.logic.language.lambda.typedLambdaCalculus._
 import at.logic.parsing.ivy.IvyParser
 import at.logic.parsing.ivy.IvyParser.{IvyStyleVariables, PrologStyleVariables, LadrStyleVariables}
 import at.logic.parsing.ivy.conversion.IvyToRobinson
 import at.logic.parsing.language.prover9._
-import at.logic.provers.Prover
-import at.logic.algorithms.resolution.{RobinsonToLK, fixSymmetry, CNFn}
-import at.logic.calculi.resolution.base._
-import at.logic.calculi.lk.base._
-import at.logic.language.lambda.typedLambdaCalculus._
-import at.logic.language.lambda.substitutions._
-import at.logic.language.hol.logicSymbols.{ConstantStringSymbol, ConstantSymbolA}
-import at.logic.language.lambda.symbols.SymbolA
-import at.logic.language.fol._
 import at.logic.parsing.language.tptp.TPTPFOLExporter
+import at.logic.provers.Prover
 import at.logic.provers.prover9.commands.InferenceExtractor
-import java.io.File
+//import java.io.File
 import java.io._
 import scala.collection.immutable.HashMap
 import scala.io.Source
 import scala.util.matching.Regex
-import at.logic.algorithms.lk.applyReplacement
 
 class Prover9Exception(msg: String) extends Exception(msg)
 

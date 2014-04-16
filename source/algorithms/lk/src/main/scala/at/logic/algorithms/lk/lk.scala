@@ -5,7 +5,7 @@ import at.logic.language.hol._
 import at.logic.calculi.lk._
 import at.logic.calculi.lk.base._
 import at.logic.calculi.slk._
-import at.logic.calculi.lksk.{ForallSkLeftRule, ExistsSkRightRule, ExistsSkLeftRule, ForallSkRightRule, UnaryLKskProof}
+import at.logic.calculi.lksk.UnaryLKskProof
 import at.logic.calculi.occurrences._
 import scala.collection.immutable.HashSet
 import ProofTransformationUtils.computeMap

@@ -11,9 +11,7 @@ import at.logic.language.hol.HOLFormula
 import at.logic.language.fol._
 import at.logic.language.lambda.symbols._
 import at.logic.language.lambda.types._
-import at.logic.language.lambda.typedLambdaCalculus._
 import at.logic.utils.ds.acyclicGraphs._
-import at.logic.language.lambda.substitutions._
 import at.logic.calculi.lk.base._
 import base._
 import scala.collection.immutable.HashSet

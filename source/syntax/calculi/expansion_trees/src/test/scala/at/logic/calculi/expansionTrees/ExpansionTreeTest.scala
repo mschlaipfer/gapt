@@ -5,28 +5,23 @@ import org.specs2.mutable._
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import at.logic.language.hol.{Atom => AtomHOL, And => AndHOL, Or => OrHOL, Imp => ImpHOL, _}
-import at.logic.language.lambda.symbols._
-import at.logic.language.lambda.substitutions._
-import at.logic.language.lambda.types.Definitions._
-import at.logic.language.hol.logicSymbols._
-import at.logic.calculi.lk.propositionalRules.{ContractionLeftRule, Axiom}
-import at.logic.calculi.lk.quantificationRules.{ExistsLeftRule, ExistsRightRule}
+import at.logic.language.lambda.types.{Ti => i}
 
 
 @RunWith(classOf[JUnitRunner])
 class ExpansionTreeTest extends SpecificationWithJUnit {
 
-  val alpha = HOLVar(VariableStringSymbol("\\alpha" ), i)
-  val beta = HOLVar(VariableStringSymbol("\\beta" ), i)
-  val c = HOLConst(ConstantStringSymbol("c" ), i)
-  val d = HOLConst(ConstantStringSymbol("d" ), i)
-  val f = ConstantStringSymbol("f")
-  val x = HOLVar(VariableStringSymbol("x" ), i)
-  val y = HOLVar(VariableStringSymbol("y" ), i)
-  val z = HOLVar(VariableStringSymbol("z" ), i)
-  val eq = new ConstantStringSymbol("=")
-  val P = new ConstantStringSymbol("P")
-  val Q = new ConstantStringSymbol("Q")
+  val alpha = HOLVar(("\\alpha" ), i)
+  val beta = HOLVar(("\\beta" ), i)
+  val c = HOLConst(("c" ), i)
+  val d = HOLConst(("d" ), i)
+  val f = HOLConst("f", i)
+  val x = HOLVar(("x" ), i)
+  val y = HOLVar(("y" ), i)
+  val z = HOLVar(("z" ), i)
+  val eq = HOLConst("=", i)
+  val P = HOLConst("P", i)
+  val Q = HOLConst("Q", i)
 
   val et1 = WeakQuantifier(
     ExVar(x, AtomHOL(eq, x::x::Nil)),
@@ -55,7 +50,7 @@ class ExpansionTreeTest extends SpecificationWithJUnit {
   "Expansion Trees substitution" should {
 
     "replace variables correctly 1" in {
-      val s = Substitution[HOLExpression](y, d)
+      val s = Substitution(y, d)
       val etPrime = substitute(s, et2)
 
       etPrime mustEqual WeakQuantifier(
@@ -65,7 +60,7 @@ class ExpansionTreeTest extends SpecificationWithJUnit {
     }
 
     "replace variables correctly 2" in {
-      val s = Substitution[HOLExpression](z, d)
+      val s = Substitution(z, d)
       val etPrime = substitute(s, et2)
 
       etPrime mustEqual WeakQuantifier(
@@ -75,7 +70,7 @@ class ExpansionTreeTest extends SpecificationWithJUnit {
     }
 
     "replace variables correctly 3" in {
-      val s = Substitution[HOLExpression](z, y)
+      val s = Substitution(z, y)
       val etPrime = substitute(s, et3)
 
       etPrime mustEqual StrongQuantifier(
@@ -86,14 +81,14 @@ class ExpansionTreeTest extends SpecificationWithJUnit {
     }
 
     "not replace const " in {
-      val s = Substitution[HOLExpression](HOLVar(new VariableStringSymbol("c"), i), HOLConst(new ConstantStringSymbol("d"), i))
+      val s = Substitution(HOLVar("c", i), HOLConst("d", i))
       val etPrime = substitute(s, et1)
 
       etPrime mustEqual et1
     }
 
     "create merge node in case of collapse in weak quantifier instances " in {
-      val s = Substitution[HOLExpression](z, y)
+      val s = Substitution(z, y)
       val etPrime = substitute.applyNoMerge(s, et4)
 
         etPrime mustEqual WeakQuantifier(
@@ -128,8 +123,8 @@ class ExpansionTreeTest extends SpecificationWithJUnit {
       // example from Chaudhuri et.al : A multi-focused proof system isomorphic to expansion proofs
       val etSubst1 = StrongQuantifier(AllVar(x, AtomHOL(P, x::Nil) ), z, Atom( AtomHOL(P, z::Nil)) )
       val etSubst2 = StrongQuantifier(AllVar(x, AtomHOL(P, x::Nil) ), y, Atom( AtomHOL(P, y::Nil)) )
-      val fy = Function(f, y::Nil, i)
-      val fz = Function(f, z::Nil, i)
+      val fy = Function(f, y::Nil)
+      val fz = Function(f, z::Nil)
       val seq = (Nil,
         // only succedent:
         MergeNode(etSubst1, etSubst2) ::

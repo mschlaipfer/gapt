@@ -7,7 +7,7 @@ package at.logic.language.fol
 import at.logic.language.lambda.types._
 import at.logic.language.lambda.symbols.getRenaming
 import at.logic.language.lambda.{freeVariables => freeVariablesLambda, rename => renameLambda}
-import at.logic.language.hol.{isPrenex => isPrenexHOL, containsQuantifier => containsQuantifierHOL}
+import at.logic.language.hol.{isPrenex => isPrenexHOL, containsQuantifier => containsQuantifierHOL, getMatrix => getMatrixHOL}
 
 // Returns a list *without duplicates* of the free variables in the expression.
 // There is no guarantee on the ordering of the list.
@@ -196,21 +196,7 @@ object numOfAtoms {
 
 // Returns the quantifier free part of a prenex formula
 object getMatrix {
-  def apply(f: FOLFormula) : FOLFormula = {
-    assert(isPrenex(f))
-    f match {
-      case FOLVar(_) |
-           FOLConst(_) |
-           Atom(_,_) |
-           Imp(_,_) |
-           And(_,_) |
-           Or(_,_) |
-           Neg(_) => f
-      case ExVar(x,f0) => getMatrix(f0)
-      case AllVar(x,f0) => getMatrix(f0)
-      case _ => throw new Exception("ERROR: Unexpected case while extracting the matrix of a formula.")
-    }
-  }
+  def apply(f: FOLFormula) : FOLFormula = getMatrixHOL(f).asInstanceOf[FOLFormula]
 }
 
 /** Replaces all free ocurrences of a variable by another variable in a FOL formula.

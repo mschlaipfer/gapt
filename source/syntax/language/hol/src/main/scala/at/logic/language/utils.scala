@@ -112,3 +112,22 @@ object lcomp {
     case AllVar(x,f) => lcomp(f) + 1
   }
 }
+
+// Returns the quantifier free part of a prenex formula
+object getMatrix {
+  def apply(f: HOLFormula) : HOLFormula = {
+    assert(isPrenex(f))
+    f match {
+      case HOLVar(_) |
+           HOLConst(_) |
+           Atom(_,_) |
+           Imp(_,_) |
+           And(_,_) |
+           Or(_,_) |
+           Neg(_) => f
+      case ExVar(x,f0) => getMatrix(f0)
+      case AllVar(x,f0) => getMatrix(f0)
+      case _ => throw new Exception("ERROR: Unexpected case while extracting the matrix of a formula.")
+    }
+  }
+}

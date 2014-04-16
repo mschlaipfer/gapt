@@ -66,7 +66,7 @@ class ACNFTest extends SpecificationWithJUnit {
       ok
     }
 
-    "chould correctly handle equality rules" in {
+    "should correctly handle equality rules" in {
       def groundproj(projections: Set[LKProof], groundSubs: List[(HOLVar, HOLExpression)]): Set[LKProof] = {
         groundSubs.map(subs => projections.map(pr => renameIndexedVarInProjection(pr, subs))).flatten.toSet
       }

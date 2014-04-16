@@ -24,21 +24,6 @@ import at.logic.transformations.ceres.clauseSets.StandardClauseSet._
 import at.logic.transformations.ceres.RelevantCC
 import scala.collection.immutable.HashSet
 
-<<<<<<< .working
-=======
-// for debugging
-import clauseSets.StandardClauseSet._
-
-package struct {
-
-import at.logic.algorithms.shlk._
-import clauseSchema.SchemaSubstitution3
-import at.logic.language.hol.HOLAppFormula
-import at.logic.language.schema.Pred
-import at.logic.utils.ds.Multisets.Multiset
-import scala.annotation.tailrec
-
->>>>>>> .merge-right.r1940
 trait Struct {
   def formula_equal(that: Struct) : Boolean;
 }
@@ -532,20 +517,14 @@ trait Struct {
     def handleSchemaProofLink( so: Sequent , name: String, indices: List[IntegerTerm], cut_occs: TypeSynonyms.CutOccurrenceConfiguration) = {
       val root = SchemaProofDB.get( name ).rec.root
       val root_focc = root.antecedent++root.succedent
-<<<<<<< .working
-      val cutsInPLink = cut_occs.filter( occ => (so.antecedent ++ so.succedent).contains(occ))
-      //println("\ncutsInPLink = "+cutsInPLink)
-      val sym = new ClauseSetSymbol( name, cutOccConfigToCutConfig.applyRCC( so, cut_occs.filter( occ => (so.antecedent ++ so.succedent).contains(occ))))
-=======
       val cutsInPLink = cut_occs.filter( occ => (so.antecedent ++ so.succedent).contains(occ)).map(fo => if(FixedFOccs.PLinksMap.contains(fo)) FixedFOccs.PLinksMap.get(fo).get else fo)
-      println("\ncutsInPLink = "+cutsInPLink)
+      //println("\ncutsInPLink = "+cutsInPLink)
 //      root_focc.filter(fo => getAncestors(fo).intersect(cutsInPLink).nonEmpty)
 //      val sym = new ClauseSetSymbol( name, cutOccConfigToCutConfig.applyRCC( so, cut_occs.filter( occ => (so.antecedent ++ so.succedent).contains(occ))))
       val sym = if ((so.antecedent ++ so.succedent).intersect(FixedFOccs.PLinksMap.keySet.toList).nonEmpty)
               new ClauseSetSymbol( name, cutOccConfigToCutConfig.applyRCC( root, cutsInPLink.filter( occ => (root.antecedent ++ root.succedent).contains(occ))))
                 else
               new ClauseSetSymbol( name, cutOccConfigToCutConfig.applyRCC( so, cut_occs.filter( occ => (so.antecedent ++ so.succedent).contains(occ))))
->>>>>>> .merge-right.r1940
       val atom = IndexedPredicate( sym, indices )
       A( toOccurrence( atom, so ) )
     }

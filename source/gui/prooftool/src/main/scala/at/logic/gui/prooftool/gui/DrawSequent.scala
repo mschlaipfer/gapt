@@ -19,10 +19,6 @@ import java.awt.event.MouseEvent
 import java.awt.image.BufferedImage
 import java.awt.{Color, Font}
 import org.scilab.forge.jlatexmath.{TeXIcon, TeXConstants, TeXFormula}
-<<<<<<< .working
-import scala.swing._
-import scala.swing.event.{MouseClicked, MouseEntered, MouseExited, WindowDeactivated}
-=======
 import java.awt.{Color, Font}
 import java.awt.image.BufferedImage
 import swing._
@@ -30,7 +26,6 @@ import event.{MouseClicked, MouseEntered, MouseExited, WindowDeactivated}
 import java.awt.event.MouseEvent
 import at.logic.language.lambda.types.Definitions._
 import at.logic.language.schema.IntZero
->>>>>>> .merge-right.r1940
 import at.logic.utils.latex.nameToLatexString
 import collection.mutable
 import at.logic.gui.prooftool.parser.{ShowOnly, ChangeFormulaColor, ChangeSequentColor, ProofToolPublisher}
@@ -48,16 +43,12 @@ object DrawSequent {
   } else apply(seq, ft, None)
 
   //used by DrawClList to draw FSequents
-<<<<<<< .working
   def applyF(seq: FSequent, ft: Font, str: String): FlowPanel = {
     implicit val factory = defaultFormulaOccurrenceFactory
     implicit def fo2occ(f:HOLFormula) = factory.createFormulaOccurrence(f, Seq[FormulaOccurrence]())
     implicit def fseq2seq(s : FSequent) = Sequent(s._1 map fo2occ, s._2 map fo2occ  )
     apply(fseq2seq(seq), ft, str)
   }
-=======
-  def applyF(seq: types.FSequent, ft: Font, str: String): FlowPanel = apply(fseq2seq(seq), ft, str)
->>>>>>> .merge-right.r1940
 
   //used by DrawProof
   def apply(seq: Sequent, ft: Font, vis_occ: Option[Set[FormulaOccurrence]]) = new FlowPanel {
@@ -114,19 +105,11 @@ object DrawSequent {
     s
   }
 
-<<<<<<< .working
-  def formulaToLatexString(t: HOLExpression): String = t match {
-    case Neg(f) => """\neg """ + formulaToLatexString(f)
-    case And(f1,f2) => "(" + formulaToLatexString(f1) + """ \wedge """ + formulaToLatexString(f2) + ")"
-    case Or(f1,f2) => "(" + formulaToLatexString(f1) + """ \vee """ + formulaToLatexString(f2) + ")"
-    case Imp(f1,f2) => "(" + formulaToLatexString(f1) + """ \supset """ + formulaToLatexString(f2) + ")"
-=======
   def formulaToLatexString(t: LambdaExpression, outermost : Boolean=true): String = t match {
     case Neg(f) => """\neg """ + formulaToLatexString(f, false)
     case And(f1,f2) => "(" + formulaToLatexString(f1, false) + """ \wedge """ + formulaToLatexString(f2, false) + ")"
     case Or(f1,f2) => "(" + formulaToLatexString(f1, false) + """ \vee """ + formulaToLatexString(f2, false) + ")"
     case Imp(f1,f2) => "(" + formulaToLatexString(f1, false) + """ \supset """ + formulaToLatexString(f2, false) + ")"
->>>>>>> .merge-right.r1940
     case ExVar(v, f) => {
       if (v.exptype == Tindex->Tindex)
         "(" + """\exists^{hyp} """ + formulaToLatexString(v, false) + """)""" + formulaToLatexString(f, false)
@@ -141,6 +124,7 @@ object DrawSequent {
     }
     case BigAnd(v, formula, init, end) =>
       """ \bigwedge_{ """ + formulaToLatexString(v, false) + "=" + formulaToLatexString(init) + "}^{" + formulaToLatexString(end, false) + "}" + formulaToLatexString(formula, false)
+
     case BigOr(v, formula, init, end) =>
       """ \bigvee_{ """ + formulaToLatexString(v, false) + "=" + formulaToLatexString(init, false) + "}^{" + formulaToLatexString(end, false) + "}" + formulaToLatexString(formula)
     case IndexedPredicate(constant, indices) if (constant != BiggerThanC) =>
@@ -176,33 +160,18 @@ object DrawSequent {
     val cl = name.asInstanceOf[ClauseSetSymbol]
       "cl^{" + cl.name +",(" + cl.cut_occs._1.foldLeft( "" )( (s, f) => s + {if (s != "") ", " else ""} + formulaToLatexString(f) ) + " | " +
         cl.cut_occs._2.foldLeft( "" )( (s, f) => s + {if (s != "") ", " else ""} + formulaToLatexString(f, false) ) + ")}"
-<<<<<<< .working
-    } //else if (t.asInstanceOf[HOLVar].isBound) "z_{" + t.asInstanceOf[HOLVar].dbIndex.get + "}" // This line is added for debugging reasons!!!
-      else if (t.exptype == Tindex->Tindex)
-        "\\textbf {" + name.toString() + "}"
-      else  name.toString()
-=======
     } else if (t.asInstanceOf[Var].isBound) "z_{" + t.asInstanceOf[Var].dbIndex.get + "}" // This line is added for debugging reasons!!!
     else if (t.exptype == ind->ind)
       "\\textbf {" + name.toString + "}"
     else  name.toString
->>>>>>> .merge-right.r1940
     case Function(name, args, _) =>
       if (name.toString == "EXP")
         args.last.asInstanceOf[IntVar].name + "^{" + parseIntegerTerm(args.head.asInstanceOf[IntegerTerm], 0) + "}"
-<<<<<<< .working
-      else if (args.size == 1) parseNestedUnaryFunction(name.toString(), args.head, 1)
-      else if (args.size == 2 && !name.toString().matches("""[\w\p{InGreek}]*"""))
-        "(" + formulaToLatexString(args.head) + nameToLatexString(name.toString()) + formulaToLatexString(args.last) + ")"
-      else nameToLatexString(name.toString()) + {if (args.isEmpty) "" else args.map(x => formulaToLatexString(x)).mkString("(",",",")")}
-    case HOLAbs(v, s) => "(" + """ \lambda """ + formulaToLatexString(v) + """.""" + formulaToLatexString(s) + ")"
-=======
       else if (args.size == 1) parseNestedUnaryFunction(name.toString, args.head, 1)
       else if (args.size == 2 && name.toString.matches("""(=|!=|\\neq|<|>|\\leq|\\geq|\\in|\+|-|\*|/)"""))  //!name.toString.matches("""[\w\p{InGreek}]*"""))
         "(" + formulaToLatexString(args.head, false) + " "+ nameToLatexString(name.toString) +" " + formulaToLatexString(args.last, false) + ")"
       else nameToLatexString(name.toString) + {if (args.isEmpty) "" else args.map(x => formulaToLatexString(x, false)).mkString("(",",",")")}
-    case Abs(v, s) => "(" + """ \lambda """ + formulaToLatexString(v, false) + """.""" + formulaToLatexString(s, false) + ")"
->>>>>>> .merge-right.r1940
+    case HOLAbs(v, s) => "(" + """ \lambda """ + formulaToLatexString(v, false) + """.""" + formulaToLatexString(s, false) + ")"
   }
 
   def parseIntegerTerm( t: IntegerTerm, n: Int) : String = t match {
@@ -212,15 +181,9 @@ object DrawSequent {
     case z : IntConst => n.toString
     case IntZero() => n.toString
     case v : IntVar => if (n > 0)
-<<<<<<< .working
-        v.toString + "+" + n.toString
-      else
-        v.toString
-=======
       v.toStringSimple + "+" + n.toString
     else
       v.toStringSimple()
->>>>>>> .merge-right.r1940
     case Succ(s) => parseIntegerTerm( s, n + 1 )
     case _ => throw new Exception("Error in parseIntegerTerm(..) in gui")
   }

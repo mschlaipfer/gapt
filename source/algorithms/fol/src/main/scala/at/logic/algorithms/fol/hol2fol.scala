@@ -206,7 +206,20 @@ class replaceAbstractions {
     (scope2, FSequent(ant.reverse, succ.reverse))
   }
 
-  def apply(formula: HOLFormula) : FOLFormula = apply(formula.asInstanceOf[HOLExpression]).asInstanceOf[FOLFormula]
+  def apply(e : HOLExpression) : HOLExpression = {
+    val counter = new {
+      private var state = 0;
+
+      def nextId = {
+        state = state + 1; state
+      }
+    }
+    val emptymap = Map[LambdaExpression, StringSymbol]()
+    apply(e, emptymap, counter)._2
+  }
+
+  def apply(formula: HOLFormula) : HOLFormula =
+    apply(formula.asInstanceOf[HOLExpression]).asInstanceOf[HOLFormula]
 
   // scope and id are used to give the same names for new functions and constants between different calls of this method
   def apply(e : HOLExpression, scope : ConstantsMap, id: {def nextId: Int})
@@ -359,11 +372,11 @@ object changeTypeIn {
   //different names bc of type erasure
   def holsub(s:HOLSubstitution, tmap : TypeMap) : HOLSubstitution = HOLSubstitution(
     s.holmap.map(x =>
-    (apply(x._1, tmap), apply(x._2, tmap) )
+    (apply(x._1, tmap).asInstanceOf[HOLVar], apply(x._2, tmap) )
   ))
 
   def folsub(s:FOLSubstitution, tmap : TypeMap) : FOLSubstitution = FOLSubstitution(s.folmap.map(x =>
-    (apply(x._1.asInstanceOf[FOLVar], tmap), apply(x._2, tmap) )
+    (apply(x._1, tmap).asInstanceOf[FOLVar], apply(x._2, tmap) )
   ))
 }
 

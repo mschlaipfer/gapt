@@ -7,22 +7,17 @@
 
 package at.logic.algorithms.lk
 
-//import scala.collection.mutable.{Map, HashMap}
-
-import at.logic.calculi.lk.propositionalRules._
-import at.logic.calculi.lk.definitionRules._
-import at.logic.calculi.lk.equationalRules._
-import at.logic.calculi.lk.quantificationRules._
-import at.logic.calculi.occurrences._
+import at.logic.algorithms.rewriting.FOLReplacement
+import at.logic.calculi.lk._
 import at.logic.calculi.lk.base._
-import at.logic.calculi.lk.lkExtractors.{UnaryLKProof, BinaryLKProof}
+//import at.logic.calculi.lk.lkExtractors.{UnaryLKProof, BinaryLKProof}
+import at.logic.calculi.occurrences._
 import at.logic.language.fol._
 import at.logic.language.hol.HOLFormula
-import at.logic.language.lambda.substitutions.Substitution
-import at.logic.language.lambda.typedLambdaCalculus.LambdaExpression
-import at.logic.language.lambda.BetaReduction._
-import at.logic.language.lambda.BetaReduction.ImplicitStandardStrategy._
-import at.logic.algorithms.rewriting.FOLReplacement
+//import at.logic.language.lambda.BetaReduction.ImplicitStandardStrategy._
+//import at.logic.language.lambda.BetaReduction._
+//import at.logic.language.lambda.substitutions.Substitution
+//import at.logic.language.lambda.typedLambdaCalculus.LambdaExpression
 
 object applyReplacement {
   import ProofTransformationUtils.computeMap

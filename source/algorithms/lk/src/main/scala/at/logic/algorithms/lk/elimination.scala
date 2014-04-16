@@ -18,8 +18,6 @@ object CleanStructuralRules {
 
   def apply(p: LKProof) : LKProof = {
     val (proof, ws) = cleanStructuralRules(p)
-    // TODO: this assertion needs to change
-    //assert(ws.forall(f => (p.root.antecedent ++ p.root.succedent).map(_.formula).contains(f)))
     addWeakenings(proof, p.root.toFSequent)
   }
 
@@ -136,35 +134,35 @@ object CleanStructuralRules {
     // Schema rules (all unary with one aux formula):
     case AndLeftEquivalenceRule1(p, _, a, m) => 
       val (proof, ws) = cleanStructuralRules(p)
-      handle_unary_one_aux_left(proof, ws, a.formula, m.formula, { (p, a, m) => AndLeftEquivalenceRule1(p, a, m) } )
+      handle_unary_one_aux_left(proof, ws, a.formula, m.formula, { (p, a, m) => AndLeftEquivalenceRule1(p, a.asInstanceOf[SchemaFormula], m.asInstanceOf[SchemaFormula]) } )
 
     case AndRightEquivalenceRule1(p, _, a, m) => 
       val (proof, ws) = cleanStructuralRules(p)
-      handle_unary_one_aux_right(proof, ws, a.formula, m.formula, { (p, a, m) => AndRightEquivalenceRule1(p, a, m) } )
+      handle_unary_one_aux_right(proof, ws, a.formula, m.formula, { (p, a, m) => AndRightEquivalenceRule1(p, a.asInstanceOf[SchemaFormula], m.asInstanceOf[SchemaFormula]) } )
     
     case OrLeftEquivalenceRule1(p, _, a, m) => 
       val (proof, ws) = cleanStructuralRules(p)
-      handle_unary_one_aux_left(proof, ws, a.formula, m.formula, { (p, a, m) => OrLeftEquivalenceRule1(p, a, m) } )
+      handle_unary_one_aux_left(proof, ws, a.formula, m.formula, { (p, a, m) => OrLeftEquivalenceRule1(p, a.asInstanceOf[SchemaFormula], m.asInstanceOf[SchemaFormula]) } )
     
     case OrRightEquivalenceRule1(p, _, a, m) => 
       val (proof, ws) = cleanStructuralRules(p)
-      handle_unary_one_aux_right(proof, ws, a.formula, m.formula, { (p, a, m) => OrRightEquivalenceRule1(p, a, m) } )
+      handle_unary_one_aux_right(proof, ws, a.formula, m.formula, { (p, a, m) => OrRightEquivalenceRule1(p, a.asInstanceOf[SchemaFormula], m.asInstanceOf[SchemaFormula]) } )
     
     case AndLeftEquivalenceRule3(p, _, a, m) => 
       val (proof, ws) = cleanStructuralRules(p)
-      handle_unary_one_aux_left(proof, ws, a.formula, m.formula, { (p, a, m) => AndLeftEquivalenceRule3(p, a, m) } )
+      handle_unary_one_aux_left(proof, ws, a.formula, m.formula, { (p, a, m) => AndLeftEquivalenceRule3(p, a.asInstanceOf[SchemaFormula], m.asInstanceOf[SchemaFormula]) } )
     
     case AndRightEquivalenceRule3(p, _, a, m) => 
       val (proof, ws) = cleanStructuralRules(p)
-      handle_unary_one_aux_right(proof, ws, a.formula, m.formula, { (p, a, m) => AndRightEquivalenceRule3(p, a, m) } )
+      handle_unary_one_aux_right(proof, ws, a.formula, m.formula, { (p, a, m) => AndRightEquivalenceRule3(p, a.asInstanceOf[SchemaFormula], m.asInstanceOf[SchemaFormula]) } )
     
     case OrLeftEquivalenceRule3(p, _, a, m) =>
       val (proof, ws) = cleanStructuralRules(p)
-      handle_unary_one_aux_left(proof, ws, a.formula, m.formula, { (p, a, m) => OrLeftEquivalenceRule3(p, a, m) } )
+      handle_unary_one_aux_left(proof, ws, a.formula, m.formula, { (p, a, m) => OrLeftEquivalenceRule3(p, a.asInstanceOf[SchemaFormula], m.asInstanceOf[SchemaFormula]) } )
     
     case OrRightEquivalenceRule3(p, _, a, m) => 
       val (proof, ws) = cleanStructuralRules(p)
-      handle_unary_one_aux_right(proof, ws, a.formula, m.formula, { (p, a, m) => OrRightEquivalenceRule3(p, a, m) } )
+      handle_unary_one_aux_right(proof, ws, a.formula, m.formula, { (p, a, m) => OrRightEquivalenceRule3(p, a.asInstanceOf[SchemaFormula], m.asInstanceOf[SchemaFormula]) } )
 
     // Definition rules (all unary with one aux formula):
     case DefinitionLeftRule(p, _, a, m) =>

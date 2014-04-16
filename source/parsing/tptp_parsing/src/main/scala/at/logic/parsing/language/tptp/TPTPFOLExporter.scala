@@ -7,15 +7,19 @@ package at.logic.parsing.language.tptp
 
 import at.logic.algorithms.fol.hol2fol._
 import at.logic.language.fol._
-import at.logic.language.lambda.symbols.SymbolA
+import at.logic.language.lambda.symbols.{StringSymbol, SymbolA}
 import at.logic.calculi.lk.base.FSequent
 import scala.collection.immutable.HashMap
+import at.logic.language.hol.HOLFormula
+import at.logic.language.hol
+import scala.collection.mutable
+import at.logic.language.lambda.LambdaExpression
 
 object TPTPFOLExporter extends at.logic.utils.logging.Logger {
   // FIXME: this should not be here!
   def hol2fol(f: HOLFormula) : FOLFormula = 
   {
-    val imap = mutable.Map[LambdaExpression, ConstantStringSymbol]()
+    val imap = mutable.Map[LambdaExpression, StringSymbol]()
     val iid = new {var idd = 0; def nextId = {idd = idd+1; idd}}
     convertHolToFol(f)
   } 
@@ -27,7 +31,7 @@ object TPTPFOLExporter extends at.logic.utils.logging.Logger {
 
   // Convert a sequent into a tptp proof problem.
   def tptp_proof_problem( seq : FSequent ) =
-    "fof( to_prove, conjecture, " + exportFormula ( hol2fol( toFormula(seq) ) )+ ").\n"
+    "fof( to_prove, conjecture, " + exportFormula ( hol2fol( seq.toFormula ) )+ ").\n"
 
   // convert a list of clauses to a CNF refutation problem.
   def tptp_problem( ss: List[FSequent] ) =
@@ -55,7 +59,7 @@ object TPTPFOLExporter extends at.logic.utils.logging.Logger {
   }
 
   def getVarRenaming( f: FOLFormula ) = {
-    getVariablesFOL( f ).toList.zipWithIndex.foldLeft( new HashMap[FOLVar, String] )( (m, p) =>
+    freeVariables( f ).toList.zipWithIndex.foldLeft( new HashMap[FOLVar, String] )( (m, p) =>
       m + (p._1 -> ("X" + p._2.toString) )
     )
   }

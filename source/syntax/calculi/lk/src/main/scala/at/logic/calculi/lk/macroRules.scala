@@ -7,12 +7,9 @@ package at.logic.calculi.lk
 import at.logic.calculi.occurrences._
 import at.logic.calculi.proofs._
 import at.logic.language.hol._
-<<<<<<< .working
-=======
 import at.logic.language.fol.{Neg => FOLNeg, Or => FOLOr, And => FOLAnd, Imp => FOLImp, Atom => FOLAtom, AllVar => FOLAllVar, Equation => FOLEquation}
 import at.logic.language.fol.{FOLVar, FOLTerm, FOLFormula}
 import at.logic.language.lambda.symbols._
->>>>>>> .merge-right.r1940
 import at.logic.language.hol.logicSymbols._
 import at.logic.utils.ds.trees._
 import base._
@@ -88,7 +85,6 @@ object OrRightRule {
     ContractionRightRule( p1, p1.prin.head, p1.getDescendantInLowerSequent( p0.prin.head ).get )
   }
 
-<<<<<<< .working
   /** <pre>Replaces a formulas term1, term2 with the disjunction
     * term1 v term2 in the succedent of a sequent. 
     * 
@@ -112,7 +108,9 @@ object OrRightRule {
     if (x2 == None)
       throw new LKRuleCreationException("Not matching formula occurrences found for application of the rule with the given formula")
     apply(s1, x1.get, x2.get)
-=======
+  }
+}
+
   object TransRule {
     /** <pre>Performs a proof employing transitivity.
       *
@@ -157,7 +155,6 @@ object OrRightRule {
 
       ContractionLeftRule(allQXYZ, Trans)
     }
->>>>>>> .merge-right.r1940
   }
 
   object ForallLeftBlock {

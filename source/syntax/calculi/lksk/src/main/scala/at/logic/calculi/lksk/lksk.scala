@@ -14,16 +14,11 @@ import at.logic.calculi.lk.base.{Sequent, FSequent, AuxiliaryFormulas, Principal
 import at.logic.calculi.lk.{InitialRuleType, WeakeningLeftRuleType, WeakeningRightRuleType, Axiom => LKAxiom, _}
 import scala.collection.mutable.{Map,HashMap}
 import base._
-import base.LabelledFormulaOccurence.lfo2fo
-import base.TypeSynonyms._
-import at.logic.calculi.lk.base.types._
 
 import at.logic.calculi.lk.base._
-import at.logic.calculi.lk.propositionalRules.{InitialRuleType, WeakeningLeftRuleType, WeakeningRightRuleType}
-import at.logic.calculi.lk.propositionalRules.{Axiom => LKAxiom}
-import at.logic.calculi.lk.quantificationRules._
+import at.logic.calculi.lk.{InitialRuleType, WeakeningLeftRuleType, WeakeningRightRuleType}
+import at.logic.calculi.lk.{Axiom => LKAxiom}
 import at.logic.calculi.occurrences.FormulaOccurrence
-import at.logic.calculi.lk.base.types.FSequent
 import scala.Some
 
 import TypeSynonyms._

@@ -231,11 +231,7 @@ class GrammarTest extends SpecificationWithJUnit {
         val f1 = Function(f, hggc::ggc::Nil)
         val f2 = Function(f, hgc::gc::Nil)
 
-<<<<<<< .working
         val alpha = FOLVar("α")
-=======
-        val alpha = FOLVar(new VariableStringSymbol("α_0"))
->>>>>>> .merge-right.r1940
         val galpha = Function(g, alpha::Nil)
         val hgalpha = Function(h, galpha::Nil)
         val common = Function(f, hgalpha::galpha::Nil)
@@ -265,11 +261,7 @@ class GrammarTest extends SpecificationWithJUnit {
         val f1 = Function(f, hggc::gga::Nil)
         val f2 = Function(f, hgc::gb::Nil)
 
-<<<<<<< .working
         val alpha = FOLVar("α")
-=======
-        val alpha = FOLVar(new VariableStringSymbol("α_0"))
->>>>>>> .merge-right.r1940
 
         val dec = delta.computeDelta(f1::f2::Nil, "α")
         val s = Set(((f1::f2::Nil)::Nil).transpose: _*)
@@ -296,11 +288,7 @@ class GrammarTest extends SpecificationWithJUnit {
         val f1 = Function(f, hggc::ga::Nil)
         val f2 = Function(f, hgc::ga::Nil)
 
-<<<<<<< .working
         val alpha = FOLVar("α")
-=======
-        val alpha = FOLVar(new VariableStringSymbol("α_0"))
->>>>>>> .merge-right.r1940
         val galpha = Function(g, alpha::Nil)
         val hgalpha = Function(h, galpha::Nil)
         val common = Function(f, hgalpha::ga::Nil)
@@ -323,11 +311,7 @@ class GrammarTest extends SpecificationWithJUnit {
         val f2a = Function(f, (Function(f, a::Nil))::Nil)
         val f3a = Function(f, (Function(f, (Function(f, a::Nil))::Nil))::Nil)
 
-<<<<<<< .working
         val alpha = FOLVar("α")
-=======
-        val alpha = FOLVar(new VariableStringSymbol("α_0"))
->>>>>>> .merge-right.r1940
         val falpha = Function(f, alpha::Nil)
 
         val dec = delta.computeDelta(fa::f2a::f3a::Nil, "α")
@@ -353,11 +337,7 @@ class GrammarTest extends SpecificationWithJUnit {
         val f3a = Function(f, (Function(f, (Function(f, a::Nil))::Nil))::Nil)
         val f4a = Function(f, (Function(f, (Function(f, (Function(f, a::Nil))::Nil))::Nil))::Nil)
 
-<<<<<<< .working
-        val alpha = FOLVar("α")
-=======
         val alpha = "α"
->>>>>>> .merge-right.r1940
         val falpha = Function(f, alpha::Nil)
         val f2alpha = Function(f, (Function(f, alpha::Nil))::Nil)
         val f3alpha = Function(f, (Function(f, (Function(f, alpha::Nil))::Nil))::Nil)
@@ -406,11 +386,7 @@ class GrammarTest extends SpecificationWithJUnit {
         val t5 = Function(f, g2c::gc::Nil)
         val t6 = Function(f, g3c::g2c::Nil)
 
-<<<<<<< .working
-        val alpha = FOLVar("α")
-=======
         val alpha = "α"
->>>>>>> .merge-right.r1940
         val galpha = Function(g, alpha::Nil)
         val g2alpha = Function(g, (Function(g, alpha::Nil))::Nil)
         val f_c_galpha = Function(f, c::galpha::Nil)
@@ -453,11 +429,7 @@ class GrammarTest extends SpecificationWithJUnit {
         val f3a = Function(f, (Function(f, (Function(f, a::Nil))::Nil))::Nil)
         val f4a = Function(f, (Function(f, (Function(f, (Function(f, a::Nil))::Nil))::Nil))::Nil)
 
-<<<<<<< .working
-        val alpha = FOLVar("α")
-=======
         val alpha = "α"
->>>>>>> .merge-right.r1940
         val falpha = Function(f, alpha::Nil)
         val f2alpha = Function(f, (Function(f, alpha::Nil))::Nil)
         val f3alpha = Function(f, (Function(f, (Function(f, alpha::Nil))::Nil))::Nil)
@@ -501,11 +473,8 @@ class GrammarTest extends SpecificationWithJUnit {
         val t5 = Function(f, g2c::gc::Nil)
         val t6 = Function(f, g3c::g2c::Nil)
 
-<<<<<<< .working
-        val alpha = FOLVar("α")
-=======
+
         val alpha = "α"
->>>>>>> .merge-right.r1940
         val galpha = Function(g, alpha::Nil)
         val g2alpha = Function(g, (Function(g, alpha::Nil))::Nil)
         val f_c_galpha = Function(f, c::galpha::Nil)
@@ -544,11 +513,7 @@ class GrammarTest extends SpecificationWithJUnit {
         val f2a = Function(f, (Function(f, a::Nil))::Nil)
         val f3a = Function(f, (Function(f, (Function(f, a::Nil))::Nil))::Nil)
 
-<<<<<<< .working
-        val alpha = FOLVar("α")
-=======
         val alpha = "α"
->>>>>>> .merge-right.r1940
         val falpha = Function(f, alpha::Nil)
         val f2alpha = Function(f, (Function(f, alpha::Nil))::Nil)
         val f3alpha = Function(f, (Function(f, (Function(f, alpha::Nil))::Nil))::Nil)
@@ -572,15 +537,9 @@ class GrammarTest extends SpecificationWithJUnit {
         // F3 (3 quant.) -> ([fa, a, a], [f²a, fa, a], [f³a, f²a, a], [f⁴a, f³a, a])
         val delta = new OneVariableDelta()
 
-<<<<<<< .working
         val f = "f"
         val a = FOLConst("a")
         val alpha = FOLVar("α")
-=======
-        val f = ConstantStringSymbol("f")
-        val a = FOLConst(new ConstantStringSymbol("a"))
-        val alpha = "α"
->>>>>>> .merge-right.r1940
 
         val fa = Function(f, a::Nil)
         val f2a = Function(f, (Function(f, a::Nil))::Nil)

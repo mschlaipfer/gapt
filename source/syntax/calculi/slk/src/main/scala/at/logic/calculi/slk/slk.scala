@@ -70,13 +70,8 @@ trait SchemaProofLink {
 }
 
 object FOSchemaProofLinkRule {
-<<<<<<< .working
   def apply(seq: FSequent, link_name: String, indices_ : List[SchemaExpression]) = {
     def createSide(side : Seq[SchemaFormula]) = {
-=======
-  def apply(seq: FSequent, link_name: String, indices_ : List[HOLExpression]) : LeafTree[Sequent] with NullaryLKProof with SchemaProofLink = {
-    def createSide(side : Seq[HOLFormula]) = {
->>>>>>> .merge-right.r1940
       side.map(f =>factory.createFormulaOccurrence(f, Seq.empty[FormulaOccurrence]))
     }
     new LeafTree[Sequent]( Sequent(createSide(seq._1.map(f => f.asInstanceOf[SchemaFormula])), createSide(seq._2.map(f => f.asInstanceOf[SchemaFormula])) ) ) with NullaryLKProof with SchemaProofLink {

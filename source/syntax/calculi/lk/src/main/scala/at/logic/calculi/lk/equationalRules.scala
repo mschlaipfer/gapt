@@ -5,12 +5,12 @@
 
 package at.logic.calculi.lk
 
-import at.logic.calculi.occurrences._
 import at.logic.calculi.proofs._
 import at.logic.language.hol._
 import at.logic.utils.ds.trees._
 import base._
 import at.logic.utils.traits.Occurrence
+import at.logic.language.lambda.{Abs, App, Var, LambdaExpression}
 
 
 // Equational rules
@@ -19,37 +19,6 @@ case object EquationLeft2RuleType extends BinaryRuleTypeA
 case object EquationRight1RuleType extends BinaryRuleTypeA
 case object EquationRight2RuleType extends BinaryRuleTypeA
 
-<<<<<<< .working
-// TODO: implement verification of the rule
-object EquationLeft1Rule {
-  /** <pre>Constructs a proof ending with a EqLeft rule.
-    * In it, a formula A (marked by term2oc) is replaced by formula main.
-    *
-    * This rule does not check for the correct use of the =-symbol.
-    * The burden of correct usage is on the programmer!
-    * 
-    * The rule: 
-    * (rest of s1)       (rest of s2)
-    * sL |- a=b, sR    tr, A[T1/a] |- tR
-    * ------------------------------------ (EqLeft1)
-    *      sL, A[T1/b], tL |- sR, tR
-    * </pre>
-    * 
-    * @param s1 The left proof with the equarion a=b in the succedent in its bottommost sequent.
-    * @param s2 The right proof with a formula A[T1/a] in the antecedent of its bottommost sequent,
-    *        in which some term T1 has been replaced by the term a. Note that identical terms to
-    *        T1 may occur elsewhere in A. These will not be changed.
-    *        e.g. P([f(0)]) v -P(f(0)), where f(0) occurs twice, but T1 only refers to the bracketed f(0).
-    *        This allows selective replacing of terms.
-    * @param term1oc The occurrence (a=b) in s1.
-    * @param term2oc The occurrence of A[T1/a] in s2.
-    * @param main The formula A[T1/b], in which T1 has been replaced by b instead.
-    * @return An LK Proof ending with the new inference.
-    */ 
-  def apply(s1: LKProof, s2: LKProof, term1oc: Occurrence, term2oc: Occurrence, main: HOLFormula) = {
-    val (eqocc, auxocc) = getTerms(s1.root, s2.root, term1oc, term2oc)
-    val prinFormula = eqocc.factory.createFormulaOccurrence(main, eqocc::auxocc::Nil)
-=======
   //TODO: perhaps there is a better place for this
   object EquationVerifier {
     //results
@@ -58,7 +27,7 @@ object EquationLeft1Rule {
     case object Different extends ReplacementResult;
     case class EqualModuloEquality(path : List[Int]) extends ReplacementResult;
 
-    def apply(s : LambdaExpression, t : LambdaExpression, e1 : LambdaExpression, e2 : LambdaExpression) = checkReplacement(s,t,e1,e2)
+    def apply(s : HOLExpression, t : HOLExpression, e1 : HOLExpression, e2 : HOLExpression) = checkReplacement(s,t,e1,e2)
     //this is a convenience method, apart from that everything is general
     def apply(eq : HOLFormula, e1 : HOLFormula, e2:HOLFormula) : Option[List[Int]] = {
       eq match {
@@ -117,24 +86,27 @@ object EquationLeft1Rule {
       */ 
     def apply(s1: LKProof, s2: LKProof, term1oc: Occurrence, term2oc: Occurrence, main: HOLFormula) = {
       val (eqocc, auxocc) = getTerms(s1.root, s2.root, term1oc, term2oc)
-      val prinFormula = eqocc.factory.createFormulaOccurrence(main, eqocc::auxocc::Nil)
->>>>>>> .merge-right.r1940
+      val prinFormula = eqocc.factory.createFormulaOccurrence(main, eqocc :: auxocc :: Nil)
 
-    val ant1 = createContext(s1.root.antecedent)
-    val ant2 = createContext(s2.root.antecedent.filterNot(_ == auxocc))
-    val antecedent = ant1 ++ ant2 :+ prinFormula
-    val suc1 = createContext(s1.root.succedent.filterNot(_ == eqocc))
-    val suc2 = createContext(s2.root.succedent)
-    val succedent = suc1 ++ suc2
+      val ant1 = createContext(s1.root.antecedent)
+      val ant2 = createContext(s2.root.antecedent.filterNot(_ == auxocc))
+      val antecedent = ant1 ++ ant2 :+ prinFormula
+      val suc1 = createContext(s1.root.succedent.filterNot(_ == eqocc))
+      val suc2 = createContext(s2.root.succedent)
+      val succedent = suc1 ++ suc2
 
-    new BinaryTree[Sequent](Sequent(antecedent, succedent), s1, s2 )
-    with BinaryLKProof with AuxiliaryFormulas with PrincipalFormulas {
-      def rule = EquationLeft1RuleType
-      def aux = (eqocc::Nil)::(auxocc::Nil)::Nil
-      def prin = prinFormula::Nil
-      override def name = "e:l1"
+      new BinaryTree[Sequent](Sequent(antecedent, succedent), s1, s2)
+        with BinaryLKProof with AuxiliaryFormulas with PrincipalFormulas {
+        def rule = EquationLeft1RuleType
+
+        def aux = (eqocc :: Nil) :: (auxocc :: Nil) :: Nil
+
+        def prin = prinFormula :: Nil
+
+        override def name = "e:l1"
+      }
     }
-  }
+
 
   /** <pre>Constructs a proof ending with a EqLeft rule.
     * In it, a formula A (marked by term2oc) is replaced by formula main.

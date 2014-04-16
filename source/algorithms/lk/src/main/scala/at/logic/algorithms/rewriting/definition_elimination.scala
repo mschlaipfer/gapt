@@ -4,15 +4,12 @@ import at.logic.calculi.lk.base._
 import at.logic.calculi.occurrences.FormulaOccurrence
 import at.logic.language.hol._
 import at.logic.language.lambda.symbols.{SymbolA, StringSymbol}
-//import at.logic.language.lambda.{Abs, App, Var, LambdaExpression}
 import at.logic.algorithms.matching.NaiveIncompleteMatchingAlgorithm
 import at.logic.language.fol.FOLFormula
 import at.logic.calculi.lk._
-import scala.Some
-import at.logic.calculi.lk.{DefinitionRightRule, DefinitionLeftRule, EquationRight2Rule,
-                            EquationRight1Rule, EquationLeft2Rule, EquationLeft1Rule,
-                            ExistsRightRule, ExistsLeftRule, ForallRightRule, ForallLeftRule}
 import at.logic.algorithms.lk.AtomicExpansion
+import Util._
+
 
 object DefinitionElimination extends DefinitionElimination
 class DefinitionElimination {
@@ -33,8 +30,7 @@ class DefinitionElimination {
     val edmap = expand_dmap(dmap)
     eliminate_in_proof(replaceAll_in(edmap,_),p)
   }
-
-
+  
   def fixedpoint_val[A](f : (A=>A), l : A) : A = {
     val r = f(l)
     if (r==l) r  else fixedpoint_val(f,r)
@@ -74,12 +70,12 @@ class DefinitionElimination {
 
   def try_to_matchformula(dmap:DefinitionsMap,e:HOLExpression) = c(try_to_match(dmap,e))
   def try_to_match(dmap: DefinitionsMap, e: HOLExpression): HOLExpression = {
-    dmap.keys.foldLeft(e)((v, elem) => {
-      //println("matching "+elem+" against "+v)
-      NaiveIncompleteMatchingAlgorithm.holMatch(elem,v)(Nil) match {
-        case None => v
+    dmap.keys.foldLeft(e)((v, key) => {
+      //println("matching " + v + " against " + key)
+      NaiveIncompleteMatchingAlgorithm.holMatch(key, v)(Nil) match {
+        case None => e
         case Some(sub) =>
-          val r = sub(dmap(elem))
+          val r = sub(dmap(key))
           //println("YES! "+sub)
           r
       }
@@ -101,8 +97,8 @@ class DefinitionElimination {
     f match {
       case Atom(e, args) => {
           val sym = e match {
-            case HOLVar(s,_) => StringSymbol(s)
-            case HOLConst(s,_) => StringSymbol(s)
+            case v : HOLVar => v.sym
+            case c : HOLConst => c.sym
           }
 
           defs.get(sym) match {
@@ -133,11 +129,8 @@ class DefinitionElimination {
     }
   }
 
-
-  import Util._
   private val emptymap = Map[FormulaOccurrence,FormulaOccurrence]() //this will be passed to some functions
   private def debug(s:String) = { }
-
 
   def eliminate_in_proof(rewrite : (HOLExpression => HOLExpression), proof : LKProof) : LKProof =
     eliminate_in_proof_(rewrite,proof)._2

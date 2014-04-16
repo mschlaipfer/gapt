@@ -17,7 +17,6 @@ trait HOLTermArithmeticalExporter extends OutputExporter with HOLTermExporter {
   def exportFunction(t: HOLExpression): Unit = t match {
     case TopC => getOutput.write("\\top")
     case BottomC => getOutput.write("\\bot")
-<<<<<<< .working
     case Function(HOLConst("+",_), x::y::Nil, _) => {getOutput.write("("); exportTerm(x); getOutput.write(" + "); exportTerm(y); getOutput.write(")")}
     case Function(HOLConst("-",_), x::y::Nil, _) => {getOutput.write("("); exportTerm(x); getOutput.write(" - "); exportTerm(y); getOutput.write(")")}
     case Function(HOLConst("*",_), x::y::Nil, _) => {getOutput.write("("); exportTerm(x); getOutput.write(" * "); exportTerm(y); getOutput.write(")")}
@@ -36,28 +35,8 @@ trait HOLTermArithmeticalExporter extends OutputExporter with HOLTermExporter {
       getOutput.write("}")
       exportTerm(f)
       getOutput.write(")")
-=======
-    case Function(ConstantStringSymbol("+"), x::y::Nil, _) => {getOutput.write("("); exportTerm(x); getOutput.write(" + "); exportTerm(y); getOutput.write(")")}
-    case Function(ConstantStringSymbol("-"), x::y::Nil, _) => {getOutput.write("("); exportTerm(x); getOutput.write(" - "); exportTerm(y); getOutput.write(")")}
-    case Function(ConstantStringSymbol("*"), x::y::Nil, _) => {getOutput.write("("); exportTerm(x); getOutput.write(" * "); exportTerm(y); getOutput.write(")")}
-    case Function(ConstantStringSymbol("""/"""), x::y::Nil, _) => {getOutput.write("("); exportTerm(x); getOutput.write(""" / """); exportTerm(y); getOutput.write(")")}
-    case Atom(ConstantStringSymbol("<"), x::y::Nil) => {getOutput.write("("); exportTerm(x); getOutput.write(""" < """); exportTerm(y); getOutput.write(")")}
-    case Atom(ConstantStringSymbol(">"), x::y::Nil) => {getOutput.write("("); exportTerm(x); getOutput.write(""" > """); exportTerm(y); getOutput.write(")")}
-    case Atom(BiggerThanSymbol, x::y::Nil) => {getOutput.write("("); exportTerm(x); getOutput.write(""" > """); exportTerm(y); getOutput.write(")")}
-    case Atom(ConstantStringSymbol("="), x::y::Nil) => {getOutput.write("("); exportTerm(x); getOutput.write(""" = """); exportTerm(y); getOutput.write(")")}
-    case Equation(x,y) => {getOutput.write("("); exportTerm(x); getOutput.write(""" = """); exportTerm(y); getOutput.write(")")}
-    case fol.Equation(x,y) => {getOutput.write("("); exportTerm(x); getOutput.write(""" = """); exportTerm(y); getOutput.write(")")}
-    case BigAnd(v, f, s, e) => {
-      getOutput.write("("); getOutput.write("""\bigwedge_{"""); exportTerm(v); 
-                                getOutput.write(" = "); exportTerm(s) ; getOutput.write("}^{"); exportTerm(e);
-                                getOutput.write("}"); exportTerm(f); getOutput.write(")")}
     // FIXME: SCALA BUG!
     case _ => t match {
-    case BigOr(v, f, s, e) => {
-      getOutput.write("("); getOutput.write("""\bigvee_{"""); exportTerm(v); 
-                                getOutput.write(" = "); exportTerm(s) ; getOutput.write("}^{"); exportTerm(e);
-                                getOutput.write("}"); exportTerm(f); getOutput.write(")")}
->>>>>>> .merge-right.r1940
 
     case BigOr(v, f, s, e) =>
       getOutput.write("(")
@@ -71,22 +50,13 @@ trait HOLTermArithmeticalExporter extends OutputExporter with HOLTermExporter {
       exportTerm(f)
       getOutput.write(")")
 
-    case Function(name, args, _) =>
+    case Function(name, args, _) => {
       getOutput.write(name.toString)
       getOutput.write("(")
       if (args.size > 0) exportTerm(args.head)
       if (args.size > 1) args.tail.foreach(x => {getOutput.write(","); exportTerm(x)})
       getOutput.write(")")
-<<<<<<< .working
-
-=======
-    }
->>>>>>> .merge-right.r1940
-<<<<<<< .working
-    case Atom(sym, args) =>
-      getOutput.write(sym.toString)
-      getOutput.write("(")
-=======
+  }
     case Atom(sym, args) => {
       var nonschematic = sym match {
         case cs : ClauseSetSymbol => {
@@ -108,12 +78,8 @@ trait HOLTermArithmeticalExporter extends OutputExporter with HOLTermExporter {
         getOutput.write("{")
       }
 
->>>>>>> .merge-right.r1940
       if (args.size > 0) exportTerm(args.head)
       if (args.size > 1) args.tail.foreach(x => {getOutput.write(","); exportTerm(x)})
-<<<<<<< .working
-      getOutput.write(")")
-=======
 
       if(nonschematic){
         getOutput.write(")}")
@@ -121,10 +87,6 @@ trait HOLTermArithmeticalExporter extends OutputExporter with HOLTermExporter {
       else
         getOutput.write("}}")
     }
->>>>>>> .merge-right.r1940
-  }
-<<<<<<< .working
-=======
   }}
 
   def exportSymbol(sym: SymbolA): Unit = sym match {
@@ -147,5 +109,4 @@ trait HOLTermArithmeticalExporter extends OutputExporter with HOLTermExporter {
       cc._2.tail.foreach ( f => {getOutput.write(", "); exportTerm( f ) })
     }
   }
->>>>>>> .merge-right.r1940
 }

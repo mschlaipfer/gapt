@@ -79,11 +79,30 @@ import at.logic.language.fol._
         val c2 = FSequent(Nil, Paa::Nil)
         StillmanSubsumptionAlgorithmFOL.subsumes(c1, c2) must beEqualTo (true)
       }
+<<<<<<< .working
       "P(x) | Q(x,y) and P(a) | Q(a,y) | R(x)" in {
         skipped("I am failing failing :( Please check me!")
         val c1 = FSequent(Nil, Px::Qxy::Nil)
         val c2 = FSequent(Nil, Pa::Qay::Rx::Nil)
         StillmanSubsumptionAlgorithmFOL.subsumes(c1, c2) must beEqualTo (true)
+=======
+      "P(x,y) and P(x,y)" in {
+        MyAlg.subsumes(new MyParser("P(x,y).").getClauseList.head, new MyParser("P(x,y).").getClauseList.head) must beEqualTo (true)
+      }
+      "P(x,y) and P(x1,y1)" in {
+        MyAlg.subsumes(new MyParser("P(x,y).").getClauseList.head, new MyParser("P(x1,y1).").getClauseList.head) must beEqualTo (true)
+      }
+
+      "P(x,y) and P(y,x)" in {
+        MyAlg.subsumes(new MyParser("P(x,y).").getClauseList.head, new MyParser("P(y,x).").getClauseList.head) must beEqualTo (true)
+      }
+
+      /*"P(x) | Q(x,y) and P(a) | Q(a,y) | R(x)" in {
+        MyAlg.subsumes(new MyParser("P(x) | Q(x,y).").getClauseList.head, new MyParser("P(a) | Q(a,y) | R(x).").getClauseList.head) must beEqualTo (true)
+      } */
+      /*"P(x:i,x:i) | P(x:i,a:i) and P(a:i,a:i)" in {
+        MyAlgHOL.subsumes(new MyParserHOL("P(x:i,x:i) | P(x:i,a:i).").getClauseList.head, new MyParserHOL("P(a:i,a:i).").getClauseList.head) must beEqualTo (true)
+>>>>>>> .merge-right.r1940
       }
     }
     "return false on the following clauses" in {

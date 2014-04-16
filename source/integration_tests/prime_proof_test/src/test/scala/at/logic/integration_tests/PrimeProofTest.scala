@@ -21,9 +21,39 @@ import at.logic.parsing.language.arithmetic.HOLTermArithmeticalExporter
 import at.logic.parsing.language.tptp.TPTPFOLExporter
 import at.logic.parsing.language.xml.XMLParser._
 import at.logic.parsing.readers.XMLReaders._
+<<<<<<< .working
+=======
+import at.logic.algorithms.lk.simplification._
+import at.logic.algorithms.lk.statistics._
+import at.logic.algorithms.lk.eliminateDefinitions
+import at.logic.parsing.calculus.xml.saveXML
+import at.logic.parsing.calculi.latex.SequentsListLatexExporter
+>>>>>>> .merge-right.r1940
 import at.logic.parsing.writers.FileWriter
+<<<<<<< .working
 import at.logic.provers.prover9._
 import at.logic.transformations.ceres.clauseSets.StandardClauseSet
+=======
+import at.logic.parsing.language.arithmetic.HOLTermArithmeticalExporter
+import java.io.{IOException, FileReader, FileInputStream, InputStreamReader}
+import at.logic.transformations.herbrandExtraction.extractExpansionTrees
+import at.logic.provers.veriT.VeriTProver
+import at.logic.calculi.expansionTrees.{toDeep, ExpansionSequent}
+
+/* comment out until atp works again
+import at.logic.provers.atp.Prover
+import at.logic.provers.atp.commands._
+import at.logic.provers.atp.refinements.UnitRefinement
+*/
+import at.logic.language.lambda.symbols._
+import at.logic.language.lambda.types._
+import at.logic.language.hol._
+import at.logic.language.hol.logicSymbols._
+import at.logic.language.fol.FOLFormula
+
+import at.logic.calculi.lk._
+import at.logic.calculi.lk.base._
+>>>>>>> .merge-right.r1940
 import at.logic.transformations.ceres.clauseSets.profile._
 import at.logic.transformations.ceres.projections.Projections
 import at.logic.transformations.ceres.struct.{StructCreators, structToExpressionTree}
@@ -148,6 +178,16 @@ class PrimeProofTest extends SpecificationWithJUnit {
       val proofdb = (new XMLReader(new InputStreamReader(new GZIPInputStream(new FileInputStream("target" + separator + "test-classes" + separator + "prime1-" + n + ".xml.gz")))) with XMLProofDatabaseParser).getProofDatabase()
       proofdb.proofs.size must beEqualTo(1)
       val proof = proofdb.proofs.head._2
+
+      if (false) { // run this code as soon as issue 260 is fixed:
+        if (VeriTProver.isInstalled()) {
+          // test expansion tree extraction by verifying that the deep formula is a tautology
+          val definitionFreeProof = eliminateDefinitions(proof) // can't extract ETs in the presence of definitions currently
+          val etSeq = extractExpansionTrees(definitionFreeProof)
+          val fSequent = toDeep(etSeq)
+          VeriTProver.isValid(fSequent) must beTrue
+        }
+      }
 
       //val proof_sk = skolemize( regularize( proof )._1 )
       val proof_sk = skolemize( proof )

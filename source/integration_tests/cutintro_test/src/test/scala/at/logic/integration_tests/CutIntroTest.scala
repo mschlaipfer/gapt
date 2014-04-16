@@ -1,6 +1,11 @@
 package at.logic.integration_tests
 
 import at.logic.algorithms.cutIntroduction._
+<<<<<<< .working
+=======
+import at.logic.utils.constraint.{Constraint, NoConstraint, ExactBound, UpperBound}
+
+>>>>>>> .merge-right.r1940
 import at.logic.algorithms.lk._
 import at.logic.calculi.lk._
 import at.logic.calculi.lk.base._
@@ -57,7 +62,7 @@ class CutIntroTest extends SpecificationWithJUnit {
         )
       )
 
-      CutIntroduction(proof)
+      CutIntroduction( proof, ExactBound(1), new LKProver() )
 
       termset must haveTheSameElementsAs ( LinearExampleTermset( 4 ) )
     }

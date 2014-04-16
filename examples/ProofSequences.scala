@@ -305,15 +305,14 @@ object SumExampleProof {
 object LinearEqExampleProof {
   val a = new ConstantStringSymbol("a")
   val f = new ConstantStringSymbol("f")
-  val eq = new ConstantStringSymbol("=")
 
   val x = FOLVar( VariableStringSymbol( "x" ))
   val y = FOLVar( VariableStringSymbol( "y" ))
   val z = FOLVar( VariableStringSymbol( "z" ))
 
-  val Refl = AllVar( x, Atom( eq, x::x::Nil ))
-  val Ass = AllVar( x, Atom( eq, Function( f, x::Nil )::x::Nil ))
-  val Trans = AllVar( x, AllVar( y, AllVar( z, Imp( Atom( eq, x::y::Nil ), Imp( Atom( eq, y::z::Nil ), Atom( eq, x::z::Nil ) ) ) ) ) )
+  val Refl = AllVar( x, Equation(x ,x))
+  val Ass = AllVar( x, Equation( Function( f, x::Nil ), x ))
+  val Trans = AllVar( x, AllVar( y, AllVar( z, Imp( Equation(x, y), Imp( Equation(y, z), Equation(x, z) ) ) ) ) )
 
   def apply( n: Int ) = proof( n )
 
@@ -321,22 +320,22 @@ object LinearEqExampleProof {
   def proof( k: Int )  : LKProof = {
     if ( k == 0 ) // leaf proof
     {
-      val a_eq_a = Atom( eq, Utils.iterateTerm( FOLConst( a ), f, 0 )::Utils.iterateTerm( FOLConst( a ), f, 0 )::Nil )
+      val a_eq_a = Equation( Utils.iterateTerm( FOLConst( a ), f, 0 ), Utils.iterateTerm( FOLConst( a ), f, 0 ) )
       WeakeningLeftRule( WeakeningLeftRule( ForallLeftRule( Axiom( a_eq_a::Nil, a_eq_a::Nil ), a_eq_a, Refl, FOLConst( a ) ), Trans ), Ass )
     }
     else
     {
       // atoms
-      val ka_eq_a = Atom( eq, Utils.iterateTerm( FOLConst( a ), f, k )::Utils.iterateTerm( FOLConst( a ), f, 0 )::Nil )
-      val ka_eq_ka = Atom( eq, Utils.iterateTerm( FOLConst( a ), f, k )::Utils.iterateTerm( FOLConst( a ), f, k )::Nil )
-      val kma_eq_a = Atom( eq, Utils.iterateTerm( FOLConst( a ), f, k-1 )::Utils.iterateTerm( FOLConst( a ), f, 0 )::Nil )
-      val ka_eq_kma = Atom( eq, Utils.iterateTerm( FOLConst( a ), f, k )::Utils.iterateTerm( FOLConst( a ), f, k-1 )::Nil )
-      val ka_eq_z = Atom( eq, Utils.iterateTerm( FOLConst( a ), f, k )::z::Nil )
-      val kma_eq_z = Atom( eq, Utils.iterateTerm( FOLConst( a ), f, k-1 )::z::Nil )
-      val y_eq_z = Atom( eq, y::z::Nil )
-      val ka_eq_y = Atom( eq, Utils.iterateTerm( FOLConst( a ), f, k )::y::Nil )
-      val x_eq_y = Atom( eq, x::y::Nil )
-      val x_eq_z = Atom( eq, x::z::Nil )
+      val ka_eq_a = Equation( Utils.iterateTerm( FOLConst( a ), f, k ), Utils.iterateTerm( FOLConst( a ), f, 0 ) )
+      val ka_eq_ka = Equation( Utils.iterateTerm( FOLConst( a ), f, k ), Utils.iterateTerm( FOLConst( a ), f, k ) )
+      val kma_eq_a = Equation( Utils.iterateTerm( FOLConst( a ), f, k-1 ), Utils.iterateTerm( FOLConst( a ), f, 0 ) )
+      val ka_eq_kma = Equation( Utils.iterateTerm( FOLConst( a ), f, k ), Utils.iterateTerm( FOLConst( a ), f, k-1 ) )
+      val ka_eq_z = Equation( Utils.iterateTerm( FOLConst( a ), f, k ), z )
+      val kma_eq_z = Equation( Utils.iterateTerm( FOLConst( a ), f, k-1 ), z )
+      val y_eq_z = Equation( y, z )
+      val ka_eq_y = Equation( Utils.iterateTerm( FOLConst( a ), f, k ), y )
+      val x_eq_y = Equation( x, y )
+      val x_eq_z = Equation( x, z )
       
       // prop. formulas
       val Trans2 = Imp( kma_eq_a, ka_eq_a )
@@ -370,7 +369,6 @@ object LinearEqExampleProof {
 }
 
 object SumOfOnesF2ExampleProof {
-  val eq = new ConstantStringSymbol("=")
   val s = new ConstantStringSymbol("s")
   val zero = new ConstantStringSymbol("0")
   val p = new ConstantStringSymbol("+")
@@ -384,27 +382,27 @@ object SumOfOnesF2ExampleProof {
   def Fn(n: Int) = Function(f, Utils.numeral(n)::Nil)
 
   //Forall x.(x + 1 = s(x)) (reversed to avoid the application of the symmetry of =)
-  val Plus = AllVar(x, Atom(eq, Function(p, x::Utils.numeral(1)::Nil)::Function(s, x::Nil)::Nil))
-  def PlusX(x:FOLTerm) = Atom(eq, Function(p, x::Utils.numeral(1)::Nil)::Function(s, x::Nil)::Nil)
+  val Plus = AllVar(x, Equation(Function(p, x::Utils.numeral(1)::Nil), Function(s, x::Nil)))
+  def PlusX(x:FOLTerm) = Equation(Function(p, x::Utils.numeral(1)::Nil),Function(s, x::Nil))
 
   //Forall xyz.(y=z -> (x+y=x+z))
-  val EqPlus = AllVar(x, AllVar(y, AllVar(z, Imp(Atom(eq, y::z::Nil), Atom(eq, Function(p, y::x::Nil)::Function(p, z::x::Nil)::Nil) ) )))
-  def EqPlusX(x:FOLTerm) = AllVar(y, AllVar(z, Imp(Atom(eq, y::z::Nil), Atom(eq, Function(p, y::x::Nil)::Function(p, z::x::Nil)::Nil) ) ))
-  def EqPlusXY(x:FOLTerm, y:FOLTerm) = AllVar(z, Imp(Atom(eq, y::z::Nil), Atom(eq, Function(p, y::x::Nil)::Function(p, z::x::Nil)::Nil) ) )
-  def EqPlusXYZ(x:FOLTerm, y:FOLTerm, z:FOLTerm) = Imp(Atom(eq, y::z::Nil), Atom(eq, Function(p, y::x::Nil)::Function(p, z::x::Nil)::Nil) )
+  val EqPlus = AllVar(x, AllVar(y, AllVar(z, Imp(Equation( y, z), Equation(Function(p, y::x::Nil), Function(p, z::x::Nil)) ) )))
+  def EqPlusX(x:FOLTerm) = AllVar(y, AllVar(z, Imp(Equation( y, z), Equation( Function(p, y::x::Nil), Function(p, z::x::Nil)) ) ))
+  def EqPlusXY(x:FOLTerm, y:FOLTerm) = AllVar(z, Imp(Equation( y, z), Equation( Function(p, y::x::Nil), Function(p, z::x::Nil)) ) )
+  def EqPlusXYZ(x:FOLTerm, y:FOLTerm, z:FOLTerm) = Imp(Equation( y, z), Equation( Function(p, y::x::Nil), Function(p, z::x::Nil)) )
 
   //Forall xyz.(x = y ^ y = z -> x = z)
-  val Trans = AllVar(x, AllVar(y, AllVar(z, Imp(And(Atom(eq, x::y::Nil) , Atom(eq, y::z::Nil) ), Atom(eq, x::z::Nil)))))
+  val Trans = AllVar(x, AllVar(y, AllVar(z, Imp(And(Equation( x, y) , Equation( y, z) ), Equation( x, z)))))
 
   //Definition of f
   //f(0) = 0
-  val FZero = Atom(eq, Function(f, Utils.numeral(0)::Nil)::Utils.numeral(0)::Nil)
+  val FZero = Equation(Function(f, Utils.numeral(0)::Nil), Utils.numeral(0))
   //Forall x.f(s(x)) = f(x) + s(0)
-  val FSucc = AllVar(x, Atom(eq, Function(f, Function(s, x::Nil)::Nil)::Function(p, Function(f, x::Nil)::Utils.numeral(1)::Nil)::Nil))
-  def FSuccX(x:FOLTerm) = Atom(eq, Function(f, Function(s, x::Nil)::Nil)::Function(p, Function(f, x::Nil)::Utils.numeral(1)::Nil)::Nil)
+  val FSucc = AllVar(x, Equation( Function(f, Function(s, x::Nil)::Nil), Function(p, Function(f, x::Nil)::Utils.numeral(1)::Nil)))
+  def FSuccX(x:FOLTerm) = Equation( Function(f, Function(s, x::Nil)::Nil), Function(p, Function(f, x::Nil)::Utils.numeral(1)::Nil))
 
   //The starting axiom f(n) = n |- f(n) = n
-  def start(n: Int) = Axiom(Atom(eq, Fn(n)::Utils.numeral(n)::Nil)::Trans::Plus::EqPlus::FSucc::Nil, Atom(eq, Fn(n)::Utils.numeral(n)::Nil)::Nil)
+  def start(n: Int) = Axiom(Equation( Fn(n), Utils.numeral(n))::Trans::Plus::EqPlus::FSucc::Nil, Equation( Fn(n), Utils.numeral(n))::Nil)
 
   def apply(n: Int) = RecProof(start(n), n)
 
@@ -414,15 +412,15 @@ object SumOfOnesF2ExampleProof {
     if (n <= 0) { s1 }
     else {
 
-      val fn_eq_n = Atom(eq, Fn(n-1)::Utils.numeral(n-1)::Nil)
+      val fn_eq_n = Equation( Fn(n-1), Utils.numeral(n-1))
       val fn_s0 = Function(p, Fn(n-1)::Utils.numeral(1)::Nil)
       val n_s0 = Function(p, Utils.numeral(n-1)::Utils.numeral(1)::Nil)
 
-      val tr = TransRule(eq, Fn(n), n_s0, Utils.numeral(n), s1)
+      val tr = TransRule(Fn(n), n_s0, Utils.numeral(n), s1)
 
-      val tr2 = TransRule(eq, Fn(n), fn_s0, n_s0, tr)
+      val tr2 = TransRule(Fn(n), fn_s0, n_s0, tr)
 
-      val impl = ImpLeftRule(Axiom(fn_eq_n::Nil, fn_eq_n::Nil), tr2, fn_eq_n, Atom(eq, fn_s0::n_s0::Nil))
+      val impl = ImpLeftRule(Axiom(fn_eq_n::Nil, fn_eq_n::Nil), tr2, fn_eq_n, Equation( fn_s0, n_s0))
 
       //Instantiate FSucc
       val allQFSucc = ForallLeftRule(impl, FSuccX(Utils.numeral(n-1)) , FSucc, Utils.numeral(n-1))
@@ -455,7 +453,6 @@ object SumOfOnesF2ExampleProof {
   *               Forall xy.x=y -> s(x) = s(y), f(0) = 0, Forall x.f(s(x)) = f(x) + s(0)}
   */
 object SumOfOnesFExampleProof {
-  val eq = new ConstantStringSymbol("=")
   val s = new ConstantStringSymbol("s")
   val zero = new ConstantStringSymbol("0")
   val p = new ConstantStringSymbol("+")
@@ -469,27 +466,27 @@ object SumOfOnesFExampleProof {
   def Fn(n: Int) = Function(f, Utils.numeral(n)::Nil)
 
   //Forall xyz.(x = y ^ y = z -> x = z)
-  val Trans = AllVar(x, AllVar(y, AllVar(z, Imp(And(Atom(eq, x::y::Nil) , Atom(eq, y::z::Nil) ), Atom(eq, x::z::Nil)))))
+  val Trans = AllVar(x, AllVar(y, AllVar(z, Imp(And(Equation( x, y) , Equation( y, z) ), Equation( x, z)))))
 
   //Forall xy.(x=y -> s(x) = s(y))
-  val CongSucc = AllVar(x, AllVar(y, Imp( Atom(eq, x::y::Nil), Atom(eq, Function(s, x::Nil)::Function(s, y::Nil)::Nil))))
-  def CongSuccX(x:FOLTerm) = AllVar(y, Imp( Atom(eq, x::y::Nil), Atom(eq, Function(s, x::Nil)::Function(s, y::Nil)::Nil)))
-  def CongSuccXY(x:FOLTerm, y:FOLTerm) = Imp( Atom(eq, x::y::Nil), Atom(eq, Function(s, x::Nil)::Function(s, y::Nil)::Nil))
+  val CongSucc = AllVar(x, AllVar(y, Imp( Equation( x, y), Equation( Function(s, x::Nil), Function(s, y::Nil)))))
+  def CongSuccX(x:FOLTerm) = AllVar(y, Imp( Equation( x, y), Equation( Function(s, x::Nil), Function(s, y::Nil))))
+  def CongSuccXY(x:FOLTerm, y:FOLTerm) = Imp( Equation( x, y), Equation(Function(s, x::Nil), Function(s, y::Nil)))
 
   //Forall x.(x + 1 = s(x)) (reversed to avoid the application of the symmetry of =)
-  val Plus = AllVar(x, Atom(eq, Function(p, x::Utils.numeral(1)::Nil)::Function(s, x::Nil)::Nil))
-  def PlusX(x:FOLTerm) = Atom(eq, Function(p, x::Utils.numeral(1)::Nil)::Function(s, x::Nil)::Nil)
+  val Plus = AllVar(x, Equation( Function(p, x::Utils.numeral(1)::Nil), Function(s, x::Nil)))
+  def PlusX(x:FOLTerm) = Equation( Function(p, x::Utils.numeral(1)::Nil), Function(s, x::Nil))
 
   //Definition of f
   //f(0) = 0
-  val FZero = Atom(eq, Function(f, Utils.numeral(0)::Nil)::Utils.numeral(0)::Nil)
+  val FZero = Equation( Function(f, Utils.numeral(0)::Nil), Utils.numeral(0))
   //Forall x.f(s(x)) = f(x) + s(0)
-  val FSucc = AllVar(x, Atom(eq, Function(f, Function(s, x::Nil)::Nil)::Function(p, Function(f, x::Nil)::Utils.numeral(1)::Nil)::Nil))
-  def FSuccX(x:FOLTerm) = Atom(eq, Function(f, Function(s, x::Nil)::Nil)::Function(p, Function(f, x::Nil)::Utils.numeral(1)::Nil)::Nil)
+  val FSucc = AllVar(x, Equation( Function(f, Function(s, x::Nil)::Nil), Function(p, Function(f, x::Nil)::Utils.numeral(1)::Nil)))
+  def FSuccX(x:FOLTerm) = Equation( Function(f, Function(s, x::Nil)::Nil), Function(p, Function(f, x::Nil)::Utils.numeral(1)::Nil))
 
 
   //The starting axiom f(n) = n |- f(n) = n
-  def start(n: Int) = Axiom(Atom(eq, Fn(n)::Utils.numeral(n)::Nil)::Trans::Plus::CongSucc::FSucc::Nil, Atom(eq, Fn(n)::Utils.numeral(n)::Nil)::Nil)
+  def start(n: Int) = Axiom(Equation( Fn(n), Utils.numeral(n))::Trans::Plus::CongSucc::FSucc::Nil, Equation( Fn(n), Utils.numeral(n))::Nil)
 
   def apply(n: Int) = proof(n)
   def proof (n: Int) = TermGenProof(EqChainProof(start(n), n), 0, n)
@@ -503,12 +500,12 @@ object SumOfOnesFExampleProof {
   def EqChainProof (s1: LKProof,  n: Int) : LKProof = {
     if (n <= 0) { s1 }
     else {
-      val tr = TransRule(eq, Fn(n), Utils.iterateTerm(Fn(n-1), s, 1), Utils.numeral(n), s1)
+      val tr = TransRule(Fn(n), Utils.iterateTerm(Fn(n-1), s, 1), Utils.numeral(n), s1)
 
-      val ax2 = Axiom(Atom(eq, Fn(n-1)::Utils.numeral(n-1)::Nil)::Nil, Atom(eq, Fn(n-1)::Utils.numeral(n-1)::Nil)::Nil)
+      val ax2 = Axiom(Equation( Fn(n-1), Utils.numeral(n-1))::Nil, Equation( Fn(n-1), Utils.numeral(n-1))::Nil)
 
       //Introduces the instantiated form of CongSuc
-      val impl = ImpLeftRule(ax2, tr, Atom(eq, Fn(n-1)::Utils.numeral(n-1)::Nil), Atom(eq, Utils.iterateTerm(Fn(n-1), s, 1)::Utils.numeral(n)::Nil))
+      val impl = ImpLeftRule(ax2, tr, Equation( Fn(n-1), Utils.numeral(n-1)), Equation( Utils.iterateTerm(Fn(n-1), s, 1), Utils.numeral(n)))
 
       //Quantify CongSucc
       val cong1 = ForallLeftRule(impl, CongSuccXY(Fn(n-1), Utils.numeral(n-1)), CongSuccX(Fn(n-1)), Utils.numeral(n-1))
@@ -530,7 +527,7 @@ object SumOfOnesFExampleProof {
     if (n >= targetN) { s1 }
     else {
 
-      val tr = TransRule(eq, Fn(n+1), Function(p, Fn(n)::Utils.numeral(1)::Nil), Utils.iterateTerm(Fn(n), s, 1), s1)
+      val tr = TransRule(Fn(n+1), Function(p, Fn(n)::Utils.numeral(1)::Nil), Utils.iterateTerm(Fn(n), s, 1), s1)
 
       //Quantify plus
       val plus = ForallLeftRule(tr, PlusX(Fn(n)), Plus, Fn(n))
@@ -554,7 +551,6 @@ object SumOfOnesFExampleProof {
 //
 // where n is an Integer parameter >= 0.
 object SumOfOnesExampleProof {
-  val eq = new ConstantStringSymbol("=")
   val s = new ConstantStringSymbol("s")
   val zero = new ConstantStringSymbol("0")
   val p = new ConstantStringSymbol("+")
@@ -564,11 +560,12 @@ object SumOfOnesExampleProof {
   val z = FOLVar( VariableStringSymbol( "z" ))
 
   // axioms
-  val Refl = AllVar( x, Atom( eq, x::x::Nil ))
-  val Trans = AllVar( x, AllVar( y, AllVar( z, Imp( Atom( eq, x::y::Nil ), Imp( Atom( eq, y::z::Nil ), Atom( eq, x::z::Nil ) ) ) ) ) )
-  val CongSuc = AllVar( x, AllVar( y, Imp( Atom( eq, x::y::Nil ), Atom( eq, Function( s, x::Nil )::Function( s, y::Nil )::Nil ) ) ) )
-  val ABase = AllVar( x, Atom( eq, Function( p, x::FOLConst( zero )::Nil )::x::Nil ) )
-  val ASuc = AllVar( x, AllVar( y, Atom( eq, Function( p, x::Function( s, y::Nil )::Nil )::Function( s, Function( p, x::y::Nil )::Nil )::Nil ) ) )
+  val Refl = AllVar( x, Equation( x, x ))
+  val Trans = AllVar( x, AllVar( y, AllVar( z, Imp( Equation( x, y ), Imp( Equation( y, z ), Equation( x, z ) ) ) ) ) )
+  val CongSuc = AllVar( x, AllVar( y, Imp( Equation( x, y ),
+  Equation( Function( s, x::Nil ), Function( s, y::Nil )) ) ) )
+  val ABase = AllVar( x, Equation(Function( p, x::FOLConst( zero )::Nil ), x ) )
+  val ASuc = AllVar( x, AllVar( y, Equation( Function( p, x::Function( s, y::Nil )::Nil ), Function( s, Function( p, x::y::Nil )::Nil ) ) ) )
 
   def apply( n: Int ) = proof( n )
 
@@ -576,7 +573,7 @@ object SumOfOnesExampleProof {
   def proof( k: Int ) : LKProof = {
     if ( k == 0 )
     {
-      val zero_eq_zero = Atom( eq, Utils.numeral( 0 )::Utils.numeral( 0 )::Nil )
+      val zero_eq_zero = Equation( Utils.numeral( 0 ), Utils.numeral( 0 ) )
       val p1 = ForallLeftRule( Axiom( zero_eq_zero::Nil, zero_eq_zero::Nil ), zero_eq_zero, Refl, Utils.numeral( 0 ) )
       val p2 = WeakeningLeftRule( p1, Trans )
       val p3 = WeakeningLeftRule( p2, CongSuc )
@@ -585,7 +582,7 @@ object SumOfOnesExampleProof {
     }
     else if ( k == 1 )
     {
-      val one_eq_one = Atom( eq, Utils.numeral( 1 )::Utils.numeral( 1 )::Nil )
+      val one_eq_one = Equation( Utils.numeral( 1 ), Utils.numeral( 1 ) )
       val p1 = ForallLeftRule( Axiom( one_eq_one::Nil, one_eq_one::Nil ), one_eq_one, Refl, Utils.numeral( 1 ) )
       val p2 = WeakeningLeftRule( p1, Trans )
       val p3 = WeakeningLeftRule( p2, CongSuc )
@@ -595,16 +592,16 @@ object SumOfOnesExampleProof {
     else
     {
       /// atoms
-      val ssumkm1_eq_k = Atom( eq, Function( s, sum( k-1 )::Nil )::Utils.numeral( k )::Nil )
-      val ssumkm1_eq_z = Atom( eq, Function( s, sum( k-1 )::Nil )::z::Nil )
-      val sumk_eq_k = Atom( eq, sum( k )::Utils.numeral( k )::Nil )
-      val sumk_eq_y = Atom( eq, sum( k )::y::Nil )
-      val sumk_eq_z = Atom( eq, sum( k )::z::Nil )
-      val y_eq_z = Atom( eq, y::z::Nil )
-      val sumk_eq_ssumkm1 = Atom( eq, sum( k )::Function( s, sum( k-1 )::Nil )::Nil )
-      val sumkm1_eq_km1 = Atom( eq, sum( k-1 )::Utils.numeral( k-1 )::Nil )
-      val sumkm1_eq_y = Atom( eq, sum( k-1 )::y::Nil )
-      val ssumkm1_eq_sy = Atom( eq, Function( s, sum( k-1 )::Nil )::Function( s, y::Nil )::Nil )
+      val ssumkm1_eq_k = Equation( Function( s, sum( k-1 )::Nil ), Utils.numeral( k ) )
+      val ssumkm1_eq_z = Equation( Function( s, sum( k-1 )::Nil ), z )
+      val sumk_eq_k = Equation( sum( k ), Utils.numeral( k ) )
+      val sumk_eq_y = Equation( sum( k ), y )
+      val sumk_eq_z = Equation( sum( k ), z )
+      val y_eq_z = Equation( y, z )
+      val sumk_eq_ssumkm1 = Equation( sum( k ), Function( s, sum( k-1 )::Nil ) )
+      val sumkm1_eq_km1 = Equation( sum( k-1 ), Utils.numeral( k-1 ) )
+      val sumkm1_eq_y = Equation( sum( k-1 ), y )
+      val ssumkm1_eq_sy = Equation( Function( s, sum( k-1 )::Nil ), Function( s, y::Nil ) )
       
       /// prop. formulas
       val Trans2 = Imp( ssumkm1_eq_k, sumk_eq_k )
@@ -645,17 +642,17 @@ object SumOfOnesExampleProof {
   // TODO should be private - but scala shell does not allow access modifiers when :loading a file
   def aux_proof( k: Int ) : LKProof = {
     /// atoms
-    val ssumkp0_eq_ssumk = Atom( eq, Function( s, Function( p, sum( k )::Utils.numeral( 0 )::Nil )::Nil )::Function( s, sum( k )::Nil )::Nil )
-    val sumkp1_eq_ssumk = Atom( eq, sum( k+1 )::Function( s, sum( k )::Nil )::Nil )
-    val sumkp1_eq_ssumkp0 = Atom( eq, sum( k+1 )::Function( s, Function( p, sum( k )::Utils.numeral( 0 )::Nil )::Nil )::Nil )
-    val ssumkp0_eq_z = Atom( eq, Function( s, Function( p, sum( k )::Utils.numeral( 0 )::Nil )::Nil )::z::Nil )
-    val sumkp1_eq_z = Atom( eq, sum( k+1 )::z::Nil )
-    val sumkp1_eq_y = Atom( eq, sum( k+1 )::y::Nil )
-    val y_eq_z = Atom( eq, y::z::Nil )
-    val sumkp0_eq_sumk = Atom( eq, Function( p, sum( k )::Utils.numeral( 0 )::Nil )::sum( k )::Nil )
-    val sumkp0_eq_y = Atom( eq, Function( p, sum( k )::Utils.numeral( 0 )::Nil )::y::Nil )
-    val ssumkp0_eq_sy = Atom( eq, Function( s, Function( p, sum( k )::Utils.numeral( 0 )::Nil )::Nil )::Function( s, y::Nil )::Nil )
-    val sumkpsy_eq_ssumkpy = Atom( eq, Function( p, sum( k )::Function( s, y::Nil)::Nil )::Function( s, Function( p, sum( k )::y::Nil )::Nil )::Nil )
+    val ssumkp0_eq_ssumk = Equation( Function( s, Function( p, sum( k )::Utils.numeral( 0 )::Nil )::Nil ), Function( s, sum( k )::Nil ) )
+    val sumkp1_eq_ssumk = Equation( sum( k+1 ), Function( s, sum( k )::Nil ) )
+    val sumkp1_eq_ssumkp0 = Equation( sum( k+1 ), Function( s, Function( p, sum( k )::Utils.numeral( 0 )::Nil )::Nil ) )
+    val ssumkp0_eq_z = Equation( Function( s, Function( p, sum( k )::Utils.numeral( 0 )::Nil )::Nil ), z )
+    val sumkp1_eq_z = Equation( sum( k+1 ), z )
+    val sumkp1_eq_y = Equation( sum( k+1 ), y )
+    val y_eq_z = Equation( y, z )
+    val sumkp0_eq_sumk = Equation( Function( p, sum( k )::Utils.numeral( 0 )::Nil ), sum( k ) )
+    val sumkp0_eq_y = Equation( Function( p, sum( k )::Utils.numeral( 0 )::Nil ), y )
+    val ssumkp0_eq_sy = Equation( Function( s, Function( p, sum( k )::Utils.numeral( 0 )::Nil )::Nil ), Function( s, y::Nil ) )
+    val sumkpsy_eq_ssumkpy = Equation( Function( p, sum( k )::Function( s, y::Nil)::Nil ), Function( s, Function( p, sum( k )::y::Nil )::Nil ) )
  
     /// prop. formulas
     val Trans2 = Imp( ssumkp0_eq_ssumk, sumkp1_eq_ssumk )
@@ -701,3 +698,481 @@ object SumOfOnesExampleProof {
   }
 }
 
+
+
+/**
+ * Auxiliary structure to deal with axioms of the schema:
+ * Forall variables cond1 -> cond2 -> ... -> condn -> consequence |- ...
+ */
+class AllQuantifiedConditionalAxiomHelper(variables: List[FOLVar], conditions: List[FOLFormula], consequence: FOLFormula) {
+  /**
+   * Returns the full axiom
+   */
+  def get_axiom(): FOLFormula = {
+    // TODO: refactor apply_conditional_equality, combine duplicate code
+    var impl_chain = consequence
+    for (elem <- conditions.reverse) {
+      impl_chain = Imp(elem, impl_chain)
+    }
+
+    def quantify(variables: List[FOLVar], body: FOLFormula): FOLFormula = {
+      variables match {
+        case Nil => body
+        case head :: tail => AllVar(head, quantify(tail, body))
+      }
+    }
+
+    quantify(variables, impl_chain)
+  }
+
+  /**
+   * Use axiom with given expressions in proof.
+   * Consequence of axiom must appear in current proof.
+   * Instantiated conditions will of course remain in the antecedent of the returned proof
+   */
+  def apply(expressions: List[FOLTerm], p: LKProof): LKProof = {
+    assert(expressions.length == variables.length, "Number of expressions doesn't equal number of variables")
+
+    // construct implication with instantiated conditions and consequence
+    var instantiated_conditions = conditions
+    var instantiated_consequence = consequence
+    for (i <- 0 to variables.length - 1) {
+      val substitute = (x: FOLFormula) => FOLSubstitution(x, variables(i), expressions(i))
+      instantiated_conditions = instantiated_conditions.map(substitute)
+      instantiated_consequence = substitute(instantiated_consequence)
+    }
+
+    val p1 = apply_conditional_equality(instantiated_conditions, instantiated_consequence, p)
+
+    // iteratively instantiate all-quantified variables with expression
+    def instantiate_axiom(expressions: List[FOLTerm], axiom: FOLFormula, p: LKProof): LKProof = {
+      expressions match {
+        case Nil => p
+        case head :: tail => {
+          val new_axiom = axiom.instantiate(head)
+          val new_p = instantiate_axiom(tail, new_axiom, p)
+
+          ForallLeftRule(new_p, new_axiom, axiom, head)
+        }
+      }
+    }
+
+    val ax = get_axiom()
+    val p2 = instantiate_axiom(expressions, ax, p1)
+
+    ContractionLeftRule(p2, ax)
+  }
+
+  private def apply_conditional_equality(equalities: List[FOLFormula], result: FOLFormula, p: LKProof) : LKProof = {
+    equalities match {
+      case Nil => {
+        p // no conditions at all
+      }
+      case head :: Nil => {
+        val ax = Axiom(head::Nil, head::Nil)
+        ImpLeftRule(ax, p, head, result)
+      }
+      case head :: tail => {
+        val ax = Axiom(head::Nil, head::Nil)
+        var impl_chain = result
+        for (elem <- tail.reverse) {
+          impl_chain = Imp(elem, impl_chain)
+        }
+        val s2 = apply_conditional_equality(tail, result, p)
+        ImpLeftRule(ax, s2, head, impl_chain)
+      }
+    }
+  }
+}
+
+object UniformAssociativity3ExampleProof {
+
+  val s = new ConstantStringSymbol("s")
+  val p = new ConstantStringSymbol("+")
+
+  val x = FOLVar( VariableStringSymbol( "x" ))
+  val y = FOLVar( VariableStringSymbol( "y" ))
+  val z = FOLVar( VariableStringSymbol( "z" ))
+
+  val x1 = FOLVar( VariableStringSymbol( "x_1" ))
+  val x2 = FOLVar( VariableStringSymbol( "x_2" ))
+  val y1 = FOLVar( VariableStringSymbol( "y_1" ))
+  val y2 = FOLVar( VariableStringSymbol( "y_2" ))
+
+  def f1( sym: ConstantSymbolA, arg: FOLTerm ) = Function(sym, arg::Nil)
+  def f2( sym: ConstantSymbolA, arg1: FOLTerm, arg2: FOLTerm ) : FOLTerm = Function(sym, arg1::arg2::Nil)
+  def f2( arg1: FOLTerm, sym: ConstantSymbolA, arg2: FOLTerm ) : FOLTerm = f2(sym, arg1, arg2)
+
+  // Axioms
+
+  // Trans as from TransRule, possibly unify or generalise
+  val Trans = AllVar(x, AllVar(y, AllVar(z, Imp(And(Equation( x, y) , Equation( y, z) ), Equation( x, z)))))
+  val Symm = AllVar(x, Equation( x, x))
+  val Cs = AllVar(x, AllVar(y, Imp(Equation( x, y), Equation( Function(s, x::Nil), Function(s, y::Nil)))))
+
+  // TODO: port these axioms to new format using AllQuantifiedConditionalAxiomHelper
+  def refl_ax(): FOLFormula = AllVar(x, refl_ax(x))
+  def refl_ax(x: FOLTerm): FOLFormula = AllVar(y, refl_ax(x, y))
+  def refl_ax(x: FOLTerm, y: FOLTerm): FOLFormula = Imp(Equation( x, y), Equation( y, x))
+
+  // x=y -> s(x) = s(y)
+  def cs_ax(): FOLFormula = AllVar(x, cs_ax(x))
+  def cs_ax(x: FOLTerm): FOLFormula = AllVar(y, cs_ax(x, y))
+  def cs_ax(x: FOLTerm, y: FOLTerm): FOLFormula = Imp(Equation( x, y), Equation( Function(s, x::Nil), Function(s, y::Nil)))
+  
+  // x1 = x2 -> y1 = y2 -> x1 + y1 = x2 + y2
+  val cp = new AllQuantifiedConditionalAxiomHelper(x1::x2::y1::y2::Nil, Equation( x1, x2)::Equation(y1, y2)::Nil, Equation(Function(p, x1::y1::Nil), Function(p, x2::y2::Nil)))
+
+  // Arithmetic axioms
+  val Ax1 = AllVar(x, Equation(Function(p, x::Utils.numeral(0)::Nil), x))
+
+  // Forall x, y: s(x+y) = x+s(y)
+  def ax2_ax(): FOLFormula = AllVar(x, AllVar(y, ax2_ax(x, y) ))
+  def ax2_ax(x: FOLTerm): FOLFormula = AllVar(y, ax2_ax(x, y) )
+  def ax2_ax(x: FOLTerm, y: FOLTerm): FOLFormula = Equation( f1(s, f2(x, p, y)), f2( x, p, f1(s, y)) )
+
+  def apply(n: Int): LKProof = {
+    assert (n>=1, "n must be >= 1")
+    val p = gen_proof_step(0, n)
+    induction_start(n, p)
+  }
+
+  /**
+   * Close off proof ending in (n + n) + 0 = n + (n + 0) |- ...
+   */
+  def induction_start(n: Int, p0: LKProof): LKProof = {
+    // show both sides equal to n + n
+    val n_num = Utils.numeral(n)
+    val zero = Utils.numeral(0)
+    val c1 = f2(f2(n_num, p, n_num), p, zero)
+    val d1 = f2(n_num, p, n_num)
+    val e1 = f2(n_num, p, f2(n_num, p, zero))
+    val p1 = TransRule(c1, d1, e1, p0)
+
+    // show (n + n) + 0 = (n + n) directly via ax1
+    val p2 = ForallLeftRule(p1, Equation( c1, d1), Ax1, d1)
+    val p3 = ContractionLeftRule(p2, Ax1)
+
+    // show (n + n) = n + (n + 0) 
+    val p4 = cp(n_num::n_num::n_num::f2(n_num, p, zero)::Nil, p3)
+
+    // show n = n and n = n + 0
+    val p5 = ForallLeftRule(p4, Equation( n_num, n_num), Symm, n_num)
+    val p6 = ContractionLeftRule(p5, Symm)
+
+    val p7 = reflect(f2(n_num, p, zero), n_num, p6)
+
+    val p8 = ForallLeftRule(p7, Equation( f2(n_num, p, zero), n_num), Ax1, n_num)
+    ContractionLeftRule(p8, Ax1)
+  }
+
+  /***
+    * Returns proof Pi (currently including line above and below Pi), with numerals n, i, i+1:
+    * (n + n) + i+1 = n + (n + i+1), Ax |- ...
+    *  Pi
+    * (n + n) + i   = n + (n + i), Ax |- ...
+    */
+  def gen_proof_step(i: Int, n: Int) : LKProof = {
+    val n_num = Utils.numeral(n)
+    val i_num = Utils.numeral(i)
+    val ip1_num = Utils.numeral(i+1)
+
+    val a1 = f2( f2( n_num, p, n_num ), p, ip1_num )
+    val a2 = f2( n_num, p, f2( n_num, p, ip1_num ) )
+    val b1 = f2( n_num, p, f1(s, f2( p, n_num, i_num ) ) )
+
+    val p0 =
+      if (i+1 >= n) {
+        // start, add axioms
+        val all_axioms = Trans::cp.get_axiom()::Symm::ax2_ax()::cs_ax()::refl_ax()::Ax1::Nil
+        def add_ax(start: LKProof, axioms : List[FOLFormula]): LKProof = {
+          axioms match {
+            case Nil => start
+            case head::tail => WeakeningLeftRule(add_ax(start, tail), head)
+          }
+        }
+
+        val final_expression = Equation( a1, a2 )
+
+        val top = Axiom( final_expression::Nil, final_expression::Nil )
+        add_ax(top, all_axioms)
+      } else {
+        gen_proof_step(i+1, n)
+      }
+
+    val p1 = TransRule(a1, b1, a2, p0)
+
+    // the left side now contains
+    // (n + n) + s(i) = n + s(n + i) as well as
+    // n + s(n + i) = n + (n + s(i))
+
+    // use Cp to reduce the latter to s(n + i) = (n + s(i))
+    val x1_1 = n_num
+    val x2_1 = n_num
+    val y1_1 = f1(s, f2( n_num, p, i_num ))
+    val y2_1 = f2(n_num, p, f1(s, i_num))
+    val p8 = cp(x1_1::x2_1::y1_1::y2_1::Nil, p1)
+
+    // show x1 = x2 by symmetry
+    val p9 = ForallLeftRule(p8, Equation( x1_1, x2_1 ), Symm, n_num)
+    val p10 = ContractionLeftRule(p9, Symm)
+
+    // show y1 = y2 by Ax2 (i.e. s(n + i) = (n + s(i)) )
+    val p13 = show_by_ax2(n_num, i_num, p10)
+
+    // now we only have (n + n) + s(i) = n + s(n + i) left (c=e), reduce right hand side by Ax2 and Trans to s(n + (n + i) (c=d) )
+    val c1 = f2(f2(n_num, p, n_num), p, f1(s, i_num))
+    val d1 = f1(s, f2(n_num, p, f2(n_num, p, i_num)))
+    val e1 = f2(n_num, p, f1(s, f2(n_num, p, i_num)))
+    val p14 = TransRule(c1, d1, e1, p13)
+
+    // show d=e by Ax2
+    val p15 = show_by_ax2(n_num, f2(n_num, p, i_num), p14)
+
+    // next goal: reduce (n + n) + s(i) = s(n + (n + i) to (n + n) + s(i) = s( (n + n) + i) using the IH, Trans and Cs)
+    val c2 = f2(f2(n_num, p, n_num), p, f1(s, i_num))
+    val d2 = f1(s, f2(f2(n_num, p, n_num), p, i_num))
+    val e2 = d1
+    val p16 = TransRule(c2, d2, e2, p15)
+
+    val p17 = show_by_cs(f2(f2(n_num, p, n_num), p, i_num), f2(n_num, p, f2(n_num, p, i_num)), p16)
+
+    // now we have:
+    // (n + n) + s(i) = s( (n + n) + i) 
+    // as well as
+    // (n + n) + i = n + (n + i)
+    // -> use Ax2
+
+    // use reflection to match definition of ax2 afterwards
+    val p18 = reflect( d2, c2, p17 )
+
+    val p19 = show_by_ax2( f2(n_num, p, n_num), i_num, p18)
+    p19
+
+    // we end up with the IH (n + n) + i = n + (n + i)
+  }
+
+  def show_by_ax2(x: FOLTerm, y: FOLTerm, p: LKProof): LKProof = {
+    val p1 = ForallLeftRule(p, ax2_ax(x, y), ax2_ax(x), y)
+    val p2 = ForallLeftRule(p1, ax2_ax(x), ax2_ax(), x)
+    ContractionLeftRule(p2, ax2_ax())
+  }
+
+  def show_by_cs(x: FOLTerm, y: FOLTerm, p: LKProof): LKProof = {
+    val p1 = apply_conditional_equality( Equation( x, y)::Nil, Equation( Function(s, x::Nil), Function(s, y::Nil)), p)
+
+    val p2 = ForallLeftRule(p1, cs_ax(x, y), cs_ax(x), y)
+    val p3 = ForallLeftRule(p2, cs_ax(x), cs_ax(), x)
+    ContractionLeftRule(p3, cs_ax())
+  }
+
+  /**
+    * Takes a proof s2 with end-sequent of the form
+    * (x=y), ... |- ...
+    * and return one with end-sequent of the form
+    * (y=x), ... |- ...
+    */
+  def reflect(x: FOLTerm, y: FOLTerm, p: LKProof): LKProof = {
+    val p1 = apply_conditional_equality( Equation(x,y)::Nil, Equation(y,x), p)
+
+    val p2 = ForallLeftRule(p1, refl_ax(x, y), refl_ax(x), y)
+    val p3 = ForallLeftRule(p2, refl_ax(x), refl_ax(), x)
+    ContractionLeftRule(p3, refl_ax())
+  }
+
+  def apply_conditional_equality(equalities: List[FOLFormula], result: FOLFormula, p: LKProof) : LKProof = {
+    equalities match {
+      case head :: Nil => {
+        val ax = Axiom(head::Nil, head::Nil)
+        ImpLeftRule(ax, p, head, result)
+      }
+      case head :: tail => {
+        val ax = Axiom(head::Nil, head::Nil)
+        var impl_chain = result
+        for (elem <- tail.reverse) {
+          impl_chain = Imp(elem, impl_chain)
+        }
+        val s2 = apply_conditional_equality(tail, result, p)
+        ImpLeftRule(ax, s2, head, impl_chain)
+      }
+    }
+  }
+}
+
+
+
+/**
+ * Proof of f(n) = g(n, 1), where f is the head recursive and g the tail recursive formulation of the factorial function
+ */
+object FactorialFunctionEqualityExampleProof {
+
+  val p = new ConstantStringSymbol("+")
+  val m = new ConstantStringSymbol("*")
+  val s = new ConstantStringSymbol("s")
+  val f = new ConstantStringSymbol("f")
+  val g = new ConstantStringSymbol("g")
+
+  val x = FOLVar(VariableStringSymbol("x"))
+  val y = FOLVar(VariableStringSymbol("y"))
+  val z = FOLVar(VariableStringSymbol("z"))
+
+  def f1( sym: ConstantSymbolA, arg: FOLTerm ) = Function(sym, arg::Nil)
+  def f2( sym: ConstantSymbolA, arg1: FOLTerm, arg2: FOLTerm ) : FOLTerm = Function(sym, arg1::arg2::Nil)
+  def f2( arg1: FOLTerm, sym: ConstantSymbolA, arg2: FOLTerm ) : FOLTerm = f2(sym, arg1, arg2)
+
+  val f_ax_1 = Equation( f1(f, Utils.numeral(0)), f1(s, Utils.numeral(0)))
+  val f_ax_2 = parse.fol("Forall x =(f(s(x)), *(s(x) , f(x)))")
+
+  val g_ax_1 = new AllQuantifiedConditionalAxiomHelper(y::Nil, Nil, Equation( y, f2(g, Utils.numeral(0), y)))
+  val g_ax_2 = parse.fol("Forall x Forall y =( g(s(x), y), g(x, *(y , s(x))) )")
+
+  val g_compat_2 = new AllQuantifiedConditionalAxiomHelper(x::y::z::Nil, Equation( y, z)::Nil, Equation( f2(g, x, y), f2(g, x, z)))
+
+  val trans_axiom = new AllQuantifiedConditionalAxiomHelper(x::y::z::Nil, Equation( x, y)::Equation( y, z)::Nil, Equation( x, z))
+  val symm_axiom = AllVar(x, Equation( x, x))
+  val refl_axiom = new AllQuantifiedConditionalAxiomHelper(x::y::Nil, Equation( x, y)::Nil, Equation( y, x))
+  val compat_mul_axiom = new AllQuantifiedConditionalAxiomHelper(x::y::z::Nil, Equation( x, y)::Nil, Equation( f2(z, m, x), f2(z, m, y)))
+  val assoc_mul_axiom = new AllQuantifiedConditionalAxiomHelper(x::y::z::Nil, Nil, Equation( f2(x, m, f2(y, m, z)), f2(f2(x, m, y), m, z)))
+
+  val mul_neutral_axiom = new AllQuantifiedConditionalAxiomHelper(x::Nil, Nil, Equation( f2(x, m, Utils.numeral(1)), x))
+  // this second axiom saves us from adding commutativity of multiplication
+  val mul_neutral_axiom_2 = new AllQuantifiedConditionalAxiomHelper(x::Nil, Nil, Equation( f2(Utils.numeral(1), m, x), x))
+
+  def apply(n :Int): LKProof = induction_steps(n)
+
+  def induction_steps(n: Int): LKProof = {
+    val axiom_formulae = Equation( f1(f, Utils.numeral(n)), f2(g, Utils.numeral(n), Utils.numeral(1)))::Nil
+    val axiom : LKProof = Axiom(axiom_formulae, axiom_formulae)
+
+    // add axioms
+    val all_axioms = List[FOLFormula](f_ax_1, f_ax_2, g_ax_1.get_axiom(), g_ax_2, symm_axiom, refl_axiom.get_axiom(),
+      trans_axiom.get_axiom(), compat_mul_axiom.get_axiom(), assoc_mul_axiom.get_axiom(), g_compat_2.get_axiom(),
+      mul_neutral_axiom.get_axiom(), mul_neutral_axiom_2.get_axiom())
+    val p1 = all_axioms.foldLeft( axiom )( (proof, elem) => WeakeningLeftRule(proof, elem))
+
+    val n_num = Utils.numeral(n)
+
+    /**
+     * Returns (( ([start_value*]n)*(n-1) ) * ... * ) k
+     */
+    def get_partial_factorial_term(n: Int, k: Int, start_value: Option[FOLTerm] = None): FOLTerm = {
+      if (n <= k) {
+        if (n == k) {
+          start_value match {
+            case Some(value) => f2(value, m, Utils.numeral(n))
+            case None => Utils.numeral(n)
+          }
+        } else throw new Exception("k larger than n in partial factorial")
+      } else {
+        f2(m, get_partial_factorial_term(n, k+1, start_value), Utils.numeral(k))
+      }
+    }
+
+    def induction_step_rec(p0: LKProof, k: Int): LKProof = {
+
+      val k_num = Utils.numeral(k)
+      val zero = Utils.numeral(0)
+      val one = Utils.numeral(1)
+
+      val part_fac =   if (n==k) one else  get_partial_factorial_term(n, k+1)
+      val part_fac_next = get_partial_factorial_term(n, k)
+
+      val f_k_term = if (n == k) f1(f, k_num)               // f(k)
+                     else f2(m, part_fac, f1(f, k_num))     // part_fac * f(k)
+
+      val g_k_term =  f2(g, k_num, part_fac)
+
+      if (k == 0)  {
+        // we have: n! * f(0) = g(0, ( ... (( (1 * n) * (n-1) ) * (n-2) ) * ... ) * 1 )
+
+        // use f(0) = s(0)
+        val p1 = trans_axiom( List( f_k_term, f2(part_fac, m, f1(s, zero)), g_k_term), p0 )
+        val p2 = compat_mul_axiom( List( f1(f, zero), f1(s, zero), part_fac), p1 )
+        val p3 = ContractionLeftRule( p2, f_ax_1 )
+
+        // use g(0, y) = y
+        val p4 = trans_axiom( List(f2(part_fac, m, f1(s, zero)), part_fac, g_k_term), p3)
+        val p5 = g_ax_1( part_fac::Nil, p4 )
+
+        // the formula actually says n! * 1 = n!, we have to get rid of the 1
+        val p6 = trans_axiom( List(f2(part_fac, m, one), part_fac, part_fac), p5 )
+        val p7 = mul_neutral_axiom( List(part_fac), p6)
+        val p8 = ForallLeftRule(p7, Equation( part_fac, part_fac), symm_axiom, part_fac)
+        val p9 = ContractionLeftRule(p8, symm_axiom)
+
+        p9
+      } else {
+        // lhs contains part_fac * f(k) = g(k, part_fac)
+
+        val km1_num = Utils.numeral(k-1) // must not be evaluated for k == 0
+        val f_km1_term = f2(m, part_fac_next, f1(f, km1_num)) // (part_fac * k) * f(k-1)
+        val g_km1_term = f2(g, km1_num, part_fac_next)
+
+        // first step: decompose f: part_fac * k * f(k-1) = g(k, 1*part_fac)
+        val p1 = trans_axiom( List(f_k_term, f_km1_term, g_k_term), p0)
+
+        val p3 =
+          if (n==k) {
+            // use axiom directly, part_fac is empty
+            val p1_0 = ForallLeftRule(p1, Equation( f_k_term, f_km1_term), f_ax_2, km1_num)
+            ContractionLeftRule(p1_0, f_ax_2)
+          } else  {
+            // the antecedent contains something along the lines of:
+            // 4*f(3) = (4*3) * f(2) or
+            // (4*3)*f(2) = ((4*3)*2) * f(1)
+            // we however need the last part exposed and grouped to be able to use compat & f_ax2 to show it, like in: 4*f(3) = 4* (3*f(2))
+            // use Trans to expose it and show it, other part can be shown by associativity
+            // step in between (=yTrans):
+            // 4 * (3*f(2)) or
+            // (4*3) * (2*f(1))
+            val yTrans = f2(part_fac, m, f2(k_num, m, f1(f, km1_num)))
+            val p1_0 = trans_axiom( f_k_term::yTrans::f_km1_term::Nil, p1)
+            // show by compat, then f_ax_2: part_fac * f(k) = part_fac * (k * f(k-1))
+            val f_k = f1(f, k_num)
+            val k_f_km1 = f2(k_num, m, f1(f, km1_num))
+            val p1_1 = compat_mul_axiom( List(f_k, k_f_km1, part_fac), p1_0)
+            val p1_2 = ForallLeftRule(p1_1, Equation( f_k, k_f_km1), f_ax_2, km1_num)
+            val p1_3 = ContractionLeftRule(p1_2, f_ax_2)
+            // show by assoc: part_fac * (k * f(k-1)) = (part_fac * k) * f(k-1)
+            val p1_4 = assoc_mul_axiom( List(part_fac, k_num, f1(f, km1_num)), p1_3)
+            p1_4
+        }
+
+        // now transform k * f(k-1) = g(k, part_fac) to k * f(k-1) = g(k-1, part_fac * k)
+        val p4 = trans_axiom( List(f_km1_term, g_km1_term, g_k_term), p3)
+
+        // show g(k, part_fac) = g(k-1, part_fac*k) (need to use reflection to get to this form first)
+        val p4_2 = refl_axiom( g_k_term::g_km1_term::Nil, p4 )
+
+        val p5 =
+          if (n==k) {
+            // g is initially called with a 1 as second argument, but we want to get rid of it to make the final result equal to the one f produces
+            // use trans to split into g-axiom part and part where the two expressions only differ by this extra one
+            val g_intermed = f2(g, km1_num, f2(one, m, part_fac_next))
+            val p5_1 = trans_axiom( g_k_term::g_intermed::g_km1_term::Nil, p4_2 )
+            // show g(n, 1) = g(n-1, 1*n) by g_ax_2
+            val intermed = AllVar(y, Equation( f2(g, k_num, y), f2(g, km1_num, f2(y, m, k_num))))
+            val p5_2 = ForallLeftRule(p5_1, Equation( g_k_term, g_intermed), intermed, one)
+            val p5_3 = ForallLeftRule(p5_2, intermed, g_ax_2, km1_num)
+            val p5_4 = ContractionLeftRule(p5_3, g_ax_2)
+
+            // show g(n-1, 1*n) = g(n-1, n) by g_compat_2
+            val p5_5 = g_compat_2( List(km1_num, f2(one, m, k_num), k_num), p5_4)
+            // show 1 * k = k
+            val p5_6 = mul_neutral_axiom_2( List(k_num), p5_5 )
+            p5_6
+          } else {
+            val intermed = AllVar(y, Equation( f2(g, f1(s, km1_num), y), f2(g, km1_num, f2(m, y, f1(s, km1_num)))))
+            val p6 = ForallLeftRule(p4_2, Equation( g_k_term, g_km1_term), intermed, part_fac)
+            val p7 = ForallLeftRule(p6, intermed, g_ax_2, km1_num)
+            val p8 = ContractionLeftRule(p7, g_ax_2)
+            p8
+          }
+
+        induction_step_rec(p5, k-1)
+      }
+    }
+
+    induction_step_rec(p1, n)
+  }
+}

@@ -6,6 +6,11 @@ import at.logic.calculi.occurrences._
 import at.logic.language.hol._
 import at.logic.language.hol.BetaReduction._
 import ProofTransformationUtils.computeMap
+import at.logic.calculi.lksk._
+import at.logic.calculi.lksk.base.LabelledFormulaOccurrence
+import at.logic.calculi.lk.propositionalRules.Axiom
+import at.logic.calculi.lk.propositionalRules.WeakeningLeftRule
+import at.logic.calculi.lk.propositionalRules.WeakeningRightRule
 
 object applySubstitution {
 
@@ -182,13 +187,44 @@ object applySubstitution {
         val new_proof = ForallRightRule( new_parent._1, new_parent._2( a ), betaNormalize(subst( m.formula )), v )
         ( new_proof, computeMap( p.root.antecedent ++ p.root.succedent, proof, new_proof, new_parent._2 ) )
       }
+/*
+      case ForallSkLeftRule( p, s, a, m, t ) => {
+        val new_parent = new_parents.head
+        val label_removed = m.skolem_label.diff(a.skolem_label).nonEmpty || a.skolem_label.diff(m.skolem_label).nonEmpty
+        val new_proof = ForallSkLeftRule( new_parent._1, new_parent._2( a ).asInstanceOf[LabelledFormulaOccurrence], subst.applyAndBetaNormalize( m.formula ).asInstanceOf[HOLFormula], subst.applyAndBetaNormalize( t ), label_removed )
+        ( new_proof, computeMap( p.root.antecedent ++ p.root.succedent, proof, new_proof, new_parent._2 ) )
+      }
+      case ExistsSkRightRule( p, s, a, m, t ) => {
+        val new_parent = new_parents.head
+        val label_removed = m.skolem_label.diff(a.skolem_label).nonEmpty || a.skolem_label.diff(m.skolem_label).nonEmpty
+        val new_proof = ExistsSkRightRule( new_parent._1, new_parent._2( a ).asInstanceOf[LabelledFormulaOccurrence], subst.applyAndBetaNormalize( m.formula ).asInstanceOf[HOLFormula], subst.applyAndBetaNormalize( t ), label_removed )
+        ( new_proof, computeMap( p.root.antecedent ++ p.root.succedent, proof, new_proof, new_parent._2 ) )
+      }
+      case ExistsSkLeftRule( p, s, a, m, v ) => {
+        val new_parent = new_parents.head
+        val new_proof = ExistsSkLeftRule( new_parent._1, new_parent._2( a ).asInstanceOf[LabelledFormulaOccurrence], subst.applyAndBetaNormalize( m.formula ).asInstanceOf[HOLFormula], v )
+        ( new_proof, computeMap( p.root.antecedent ++ p.root.succedent, proof, new_proof, new_parent._2 ) )
+      }
+      case ForallSkRightRule( p, s, a, m, v ) => {
+        val new_parent = new_parents.head
+        val new_proof = ForallSkRightRule( new_parent._1, new_parent._2( a ).asInstanceOf[LabelledFormulaOccurrence], subst.applyAndBetaNormalize( m.formula ).asInstanceOf[HOLFormula], v )
+        ( new_proof, computeMap( p.root.antecedent ++ p.root.succedent, proof, new_proof, new_parent._2 ) )
+      }
+ */
     }
   }
 
+<<<<<<< .working
   def apply( proof: LKProof, subst: Substitution ) : (LKProof, Map[FormulaOccurrence, FormulaOccurrence]) =
+=======
+
+
+  def apply( proof: LKProof, subst: Substitution[HOLExpression] ) : (LKProof, Map[FormulaOccurrence, FormulaOccurrence]) =
+>>>>>>> .merge-right.r1940
     proof match {
       case Axiom(_) => handleRule( proof, Nil, subst )
       case UnaryLKProof(_, p, _, _, _) => handleRule( proof, apply( p, subst )::Nil, subst )
+//      case UnaryLKSKProof(_, p, _, _, _) => handleRule( proof, apply( p, subst )::Nil, subst )
       case BinaryLKProof(_, p1, p2, _, _, _, _) =>
         handleRule( proof, apply( p1, subst )::apply( p2, subst )::Nil, subst )
     }

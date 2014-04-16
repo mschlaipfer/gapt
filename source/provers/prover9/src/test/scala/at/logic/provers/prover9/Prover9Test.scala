@@ -4,6 +4,18 @@
 
 package at.logic.provers.prover9
 
+<<<<<<< .working
+=======
+import at.logic.language.lambda.symbols._
+import _root_.at.logic.calculi.resolution.base.ResolutionProof
+import _root_.at.logic.calculi.resolution.base.Clause
+import _root_.at.logic.parsing.calculi.simple.SimpleResolutionParserFOL
+import _root_.at.logic.parsing.language.simple.SimpleFOLParser
+import _root_.at.logic.parsing.readers.StringReader
+import _root_.at.logic.provers.atp.commands.base.{SetStreamCommand, PrependCommand}
+import _root_.at.logic.provers.atp.commands.sequents.SetTargetClause
+import _root_.at.logic.provers.atp.Prover
+>>>>>>> .merge-right.r1940
 import at.logic.calculi.lk.base.FSequent
 import at.logic.calculi.occurrences.factory
 import at.logic.calculi.resolution.Clause
@@ -131,6 +143,9 @@ class Prover9Test extends SpecificationWithJUnit {
       }) must beTrue
     } */
     "prove (with xx - 3) -=(a,a) | -=(a,a)." in {
+      //checks, if the execution of prover9 works (used by getRefutation2), o.w. skip test
+      Prover9.refute(box ) must not(throwA[IOException]).orSkip
+
       val eaa = parse("=(a,a)")
       val s = FSequent(List(eaa,eaa),Nil)
       (getRefutation2(List(s)) match {
@@ -250,42 +265,68 @@ class Prover9Test extends SpecificationWithJUnit {
       val result  : Option[RobinsonResolutionProof] = Prover9.refute( List(s1,t1) )
       result match {
         case Some(proof) =>
-          "" must beEqualTo( "Refutation found although clause set satisfyable!" )
+          "" must beEqualTo( "Refutation found although clause set satisfiable!" )
 
         case None => true must beEqualTo(true)
       }
     }
+
+    "prove { :- (All x) x = x   }" in {
+      //checks, if the execution of prover9 works, o.w. skip test
+      Prover9.refute(box ) must not(throwA[IOException]).orSkip
+
+      val p = new Prover9Prover()
+
+      val s = FSequent(Nil,List(AllVar(FOLVar(new VariableStringSymbol("x")), parse("=(x,x)"))))
+
+
+  /* FIXME: commented out since tptp export of quantifiers is still failing.
+     Try again after merging Giselle's changes. */
+      /*
+      p.isValid(s) must beTrue
+      p.getRobinsonProof (s) must beLike {
+        case Some(_) => ok
+        case None => ko
+      }
+      */
+    }
+
+    "prove { A or B :- -(-A and -B)  }" in {
+      //checks, if the execution of prover9 works, o.w. skip test
+      Prover9.refute(box ) must not(throwA[IOException]).orSkip
+
+      val p = new Prover9Prover()
+      val s = FSequent(List(Or(parse("A"), parse("B"))), List(Neg(And(Neg(parse("A")), Neg(parse("B"))))))
+
+      p.isValid(s) must beTrue
+      p.getRobinsonProof (s) must beLike {
+        case Some(_) => ok
+        case None => ko
+      }
+    }
+
   }
 
 
   "The Prover9 interface" should {
     "successfully load the goat puzzle PUZ047+1.out" in {
-      try {
-        Prover9.parse_prover9("target" + separator + "test-classes" + separator +"PUZ047+1.out")
+        // if the execution of prooftrans does not work: skip test
+        Prover9.parse_prover9("target" + separator + "test-classes" + separator +"PUZ047+1.out") must not(throwA[IOException]).orSkip
+
         "success" must beEqualTo("success")
-      } catch {
-        case e:Exception =>
-          e.printStackTrace
-        "success" must beEqualTo(e.getMessage )
-      }
     }
 
     "successfully load the expansion proof paper example cade13example.out" in {
-      try {
-        Prover9.parse_prover9("target" + separator + "test-classes" + separator +"cade13example.out")
+        // if the execution of prooftrans does not work: skip test
+        Prover9.parse_prover9("target" + separator + "test-classes" + separator +"cade13example.out") must not(throwA[IOException]).orSkip
+
         "success" must beEqualTo("success")
-      } catch {
-        case e:Exception =>
-          e.printStackTrace
-          "success" must beEqualTo(e.getMessage )
-      }
     }
 
     "successfully load a proof with new_symbol" in {
       skipped("doesnt work with the old implementation, new one is not ready yet")
       try {
         val p = Prover9.parse_prover9("target" + separator + "test-classes" + separator +"ALG138+1.out")
-        //println("")
         Formatter.asHumanReadableString(p._1)
         "success" must beEqualTo("success")
       } catch {
@@ -295,6 +336,16 @@ class Prover9Test extends SpecificationWithJUnit {
       }
     }
 
+  }
+
+  "The Prover9 interface" should {
+    "load a Prover9 proof and verify the validity of the sequent" in {
+      skipped("TPTPFOLExporter bug (c.f. FIXME above in line 277, probably same error)")
+      for (testfilename <- "PUZ047+1.out"::"ALG138+1.out"::"cade13example.out"::Nil) {
+         val (robResProof, seq) = Prover9.parse_prover9("target" + separator + "test-classes" + separator + testfilename)
+        (new Prover9Prover).isValid(seq) must beTrue
+      }
+    }
   }
 
 }

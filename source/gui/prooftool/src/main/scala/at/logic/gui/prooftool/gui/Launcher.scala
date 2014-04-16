@@ -17,8 +17,18 @@ import at.logic.utils.ds.trees.Tree
 import java.awt.Font._
 import java.awt.event.{MouseEvent, MouseMotionListener}
 import javax.swing.border.TitledBorder
+<<<<<<< .working
 import scala.swing._
 import event.{MouseWheelMoved, MouseReleased, MouseDragged}
+=======
+import at.logic.gui.prooftool.parser.{UnLoaded, Loaded, ProofToolPublisher, StructPublisher}
+import at.logic.utils.ds.trees.Tree
+import at.logic.calculi.treeProofs.TreeProof
+import at.logic.calculi.expansionTrees.ExpansionSequent
+import at.logic.language.hol.HOLFormula
+import at.logic.calculi.proofs.Proof
+>>>>>>> .merge-right.r1940
+import at.logic.transformations.ceres.struct.{structToExpressionTree, Struct}
 
 class Launcher(private val option: Option[(String, AnyRef)], private val fSize: Int) extends GridBagPanel with MouseMotionListener {
   option match {
@@ -26,48 +36,12 @@ class Launcher(private val option: Option[(String, AnyRef)], private val fSize: 
       val c = new Constraints
       c.grid = (0,0)
       c.insets.set(15, 15, 15, 15)
-      obj match {
-        case proof: TreeProof[_] =>
-          layout(new DrawProof(proof, fSize, Set(), Set(), Set(), "")) = c
-          ProofToolPublisher.publish(Loaded)
-          StructPublisher.publish(UnLoaded)
-        case resProof: Proof[_] =>
-          layout(new DrawResolutionProof(resProof, fSize, Set(), Set(), "")) = c
-          ProofToolPublisher.publish(UnLoaded)
-          StructPublisher.publish(UnLoaded)
-        case tree: Tree[_] =>
-          layout(new DrawTree(tree, fSize, "")) = c
-          ProofToolPublisher.publish(UnLoaded)
-          StructPublisher.publish(Loaded)
-        case list: List[AnyRef] =>
-          layout(new DrawList(list, fSize)) = c
-          ProofToolPublisher.publish(UnLoaded)
-          StructPublisher.publish(UnLoaded)
-        case set: Set[AnyRef] => // use the case for lists for sets, too
-          layout(new DrawList(set.toList, fSize)) = c
-          ProofToolPublisher.publish(UnLoaded)
-          StructPublisher.publish(UnLoaded)
-        case formula: HOLFormula => // use the case for lists for single formulas, too
-          layout(new DrawList(formula::Nil, fSize)) = c
-          ProofToolPublisher.publish(UnLoaded)
-          StructPublisher.publish(UnLoaded)
-        case fSequent: FSequent =>
-          layout(new DrawHerbrandSequent[HOLFormula]((fSequent.antecedent,fSequent.succedent), fSize)) = c
-          ProofToolPublisher.publish(UnLoaded)
-          StructPublisher.publish(UnLoaded)
-        case expTrees: (Seq[ExpansionTree],Seq[ExpansionTree]) =>
-          layout(new DrawHerbrandSequent[ExpansionTree](expTrees, fSize)) = c
-          ProofToolPublisher.publish(UnLoaded)
-          StructPublisher.publish(UnLoaded)
-        case _ =>
-          layout(new Label("Cannot match the "+option.get._2.getClass.toString + " : " + option.get._2){
-            font = new Font(SANS_SERIF, BOLD, 16)
-          }) = c
-          ProofToolPublisher.publish(UnLoaded)
-          StructPublisher.publish(UnLoaded)
+      val actualname = setWindowContent(obj,c) match {
+        case Some(s) => s
+        case None => name
       }
 //      val bd: TitledBorder = Swing.TitledBorder(Swing.LineBorder(new Color(0,0,0), 2), " "+name+" ")
-      val nice_name:String = name match {
+      val nice_name:String = actualname match {
         case s:String if s == "\\psi" || s == "psi" => "ψ"
         case s:String if s == "\\chi" || s == "chi" => "χ"
         case s:String if s == "\\varphi" || s == "varphi" => "φ"
@@ -77,10 +51,10 @@ class Launcher(private val option: Option[(String, AnyRef)], private val fSize: 
         case s:String if s == "\\tau" || s == "tau" => "τ"
         case s:String if s == "\\omega" || s == "omega" => "Ω"
 
-        case _ => name
+        case _ => actualname
       }
       val bd: TitledBorder = Swing.TitledBorder(Swing.LineBorder(new Color(0,0,0), 2), " "+nice_name+" ")
-      bd.setTitleFont(new Font(SANS_SERIF, BOLD, 16))
+      bd.setTitleFont(new Font(SERIF, BOLD, 16))
       border = bd
     case _ =>
   }
@@ -102,6 +76,67 @@ class Launcher(private val option: Option[(String, AnyRef)], private val fSize: 
 
   this.peer.setAutoscrolls(true)
   this.peer.addMouseMotionListener(this)
+
+  def setWindowContent(obj : AnyRef, c : Constraints) : Option[String] = obj match {
+    case (s: String, p : AnyRef ) =>
+      setWindowContent(p,c)
+      Some(s)
+    case proof: TreeProof[_] =>
+      layout(new DrawProof(proof, fSize, None, "")) = c
+      ProofToolPublisher.publish(Loaded)
+      StructPublisher.publish(UnLoaded)
+      None
+    case resProof: Proof[_] =>
+      layout(new DrawResolutionProof(resProof, fSize, None, "")) = c
+      ProofToolPublisher.publish(UnLoaded)
+      StructPublisher.publish(UnLoaded)
+      None
+    case tree: Tree[_] =>
+      layout(new DrawTree(tree, fSize, "")) = c
+      ProofToolPublisher.publish(UnLoaded)
+      StructPublisher.publish(Loaded)
+      None
+    case list: List[AnyRef] =>
+      layout(new DrawList(list, fSize)) = c
+      ProofToolPublisher.publish(UnLoaded)
+      StructPublisher.publish(UnLoaded)
+      None
+    case set: Set[AnyRef] => // use the case for lists for sets, too
+      layout(new DrawList(set.toList, fSize)) = c
+      ProofToolPublisher.publish(UnLoaded)
+      StructPublisher.publish(UnLoaded)
+      None
+    case formula: HOLFormula => // use the case for lists for single formulas, too
+      layout(new DrawList(formula::Nil, fSize)) = c
+      ProofToolPublisher.publish(UnLoaded)
+      StructPublisher.publish(UnLoaded)
+      None
+/*
+ * do we need (vertical) display of sequents in prooftool?
+ *
+    case fSequent: FSequent =>
+      layout(new DrawHerbrandSequent[HOLFormula]((fSequent.antecedent,fSequent.succedent), fSize)) = c
+      ProofToolPublisher.publish(UnLoaded)
+      StructPublisher.publish(UnLoaded)
+      None
+*/
+    case expSequent: ExpansionSequent =>
+      layout(new DrawExpansionSequent(expSequent, fSize)) = c
+      ProofToolPublisher.publish(UnLoaded)
+      StructPublisher.publish(UnLoaded)
+      None
+    case struct : Struct =>
+      setWindowContent(structToExpressionTree.prunedTree(struct),c)
+
+    case _ =>
+      layout(new Label("Cannot match the "+option.get._2.getClass.toString + " : " + option.get._2){
+        font = new Font(SANS_SERIF, BOLD, 16)
+      }) = c
+      ProofToolPublisher.publish(UnLoaded)
+      StructPublisher.publish(UnLoaded)
+      None
+  }
+
 
   def mouseMoved(e: MouseEvent) {
     //println("mouse: " + e.getX + "/" + e.getY)

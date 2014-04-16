@@ -10,10 +10,13 @@
   </parent>
 
   <modules>
+    <module>base</module>
     <module>atp</module>
     <module>prover9</module>
     <module>vampire</module>
     <module>minisat</module>
+    <module>veriT</module>
+    <module>eqProver</module>
   </modules>
 
   <packaging>pom</packaging>

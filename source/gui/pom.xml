@@ -11,7 +11,7 @@
 
   <modules>
     <module>prooftool</module>
-<!--    <module>javaviewer</module> -->
+    <module>treeviz</module>
   </modules>
 
   <packaging>pom</packaging>

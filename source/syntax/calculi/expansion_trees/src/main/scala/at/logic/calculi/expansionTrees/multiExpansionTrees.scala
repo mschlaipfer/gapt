@@ -1,7 +1,12 @@
 
 package at.logic.calculi.expansionTrees
 
+<<<<<<< .working
 import at.logic.language.hol.{Atom => AtomHOL, And => AndHOL, Or => OrHOL, Imp => ImpHOL, _}
+=======
+import at.logic.language.hol._
+import at.logic.language.hol.{Atom => AtomHOL, And => AndHOL, Or => OrHOL, Imp => ImpHOL, Neg => NegHOL}
+>>>>>>> .merge-right.r1940
 import at.logic.utils.ds.trees._
 
 /**
@@ -57,7 +62,7 @@ case class Atom(formula: HOLFormula) extends MultiExpansionTree with TerminalNod
 // Can I call this using the dot notation? (met.toFormulaM)
 def toFormulaM(tree: MultiExpansionTree): HOLFormula = tree match {
   case Atom(f) => f
-  case Not(t1) => Neg(toFormulaM(t1))
+  case Not(t1) => NegHOL(toFormulaM(t1))
   case And(t1,t2) => AndHOL(toFormulaM(t1), toFormulaM(t2))
   case Or(t1,t2) => OrHOL(toFormulaM(t1), toFormulaM(t2))
   case Imp(t1,t2) => ImpHOL(toFormulaM(t1), toFormulaM(t2))
@@ -65,5 +70,19 @@ def toFormulaM(tree: MultiExpansionTree): HOLFormula = tree match {
   case StrongQuantifier(f,_,_) => f
 }
 
+def quantRulesNumber(tree: MultiExpansionTree): Int = tree match {
+  case Atom(f) => 0
+  case Not(t1) => quantRulesNumber(t1)
+  case And(t1,t2) => quantRulesNumber(t1) + quantRulesNumber(t2)
+  case Or(t1,t2) => quantRulesNumber(t1) + quantRulesNumber(t2)
+  case Imp(t1,t2) => quantRulesNumber(t1) + quantRulesNumber(t2)
+  case WeakQuantifier(_,children) => children.foldRight(0){
+    case ((et, _), sum) => quantRulesNumber(et) + 1 + sum
+  }
+  case StrongQuantifier(_,vars,et) => quantRulesNumber(et) + vars.size
 }
+
+}
+
+
 

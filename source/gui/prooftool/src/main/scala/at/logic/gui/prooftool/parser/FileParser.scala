@@ -15,9 +15,16 @@ import at.logic.parsing.readers.XMLReaders._
 import at.logic.parsing.language.xml.ProofDatabase
 import at.logic.parsing.calculi.xml.SimpleXMLProofParser
 import at.logic.parsing.ParsingException
+<<<<<<< .working
 import at.logic.calculi.proofs.TreeProof
 import at.logic.calculi.lk.base.{LKProof, FSequent}
 import at.logic.parsing.shlk_parsing.{sFOParser,sFOParserCNT}
+=======
+import at.logic.calculi.treeProofs.TreeProof
+import at.logic.calculi.lk.base.types.FSequent
+import at.logic.calculi.lk.base.LKProof
+import at.logic.algorithms.shlk.{SCHOLParser, sFOParser, sFOParserCNT}
+>>>>>>> .merge-right.r1940
 import at.logic.utils.ds.trees.{LeafTree, BinaryTree, Tree}
 import at.logic.language.hol.HOLExpression
 import at.logic.gui.prooftool.gui.{DrawSequent, Main}
@@ -34,12 +41,15 @@ class FileParser {
 
   def gzFileStreamReader(f: String) = new InputStreamReader(new GZIPInputStream(new FileInputStream(f)), "UTF8")
 
-  def ceresFileReader(input: InputStreamReader) {
+  def ceresFileReader(input: InputStreamReader) =
+    loadProofDatabase((new XMLReader(input) with XMLProofDatabaseParser).getProofDatabase())
+
+  def loadProofDatabase(db : ProofDatabase) {
     SchemaProofDB.clear
     resolutionProofSchemaDB.clear
     proofs = Nil
     termTrees = Nil
-    proofdb = (new XMLReader(input) with XMLProofDatabaseParser).getProofDatabase()
+    proofdb = db
   }
 
   def stabFileReader(input: InputStreamReader) {
@@ -66,7 +76,7 @@ class FileParser {
     resolutionProofSchemaDB.clear
     proofs = Nil
     termTrees = Nil
-    val ps = sFOParserCNT.parseProofs(input) // constructs dbTRS as a side effect.
+    val ps = SCHOLParser.parseProofs(input) // constructs dbTRS as a side effect.
     val defs = dbTRS.map.map(p => p._2._1::p._2._2::Nil).flatten.toMap[HOLExpression,HOLExpression]
     //  val start = System.currentTimeMillis()
     proofdb = new ProofDatabase(defs, ps, Nil, Nil)
@@ -103,7 +113,7 @@ class FileParser {
   }
 
   def parseFile(path: String) { try {
-    if (path.endsWith("David.lks")) lksCNTFileReader(fileStreamReader(path))
+    if (path.endsWith(".lksc")) lksCNTFileReader(fileStreamReader(path))
     else if (path.endsWith(".lks")) lksFileReader(fileStreamReader(path))
     else if (path.endsWith(".lks.gz")) lksFileReader(gzFileStreamReader(path))
     else if (path.endsWith(".rs")) rsFileReader(fileStreamReader(path))

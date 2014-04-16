@@ -28,7 +28,8 @@ trait SimpleFOLParser extends SimpleHOLParser {
       case x => FOLConst(x)
   }
 
-  override def const_atom: Parser[HOLFormula] = const_atom1 | const_atom2
+  override def const_atom: Parser[HOLFormula] = equation | const_atom1 | const_atom2
+  def equation: Parser[HOLFormula] = "=(" ~ repsep(non_formula,",") ~ ")" ^^ {case "=(" ~ params ~ ")" if params.size == 2 => Equation(params(0).asInstanceOf[FOLTerm], params(1).asInstanceOf[FOLTerm])}
   def const_atom1: Parser[HOLFormula] = regex(new Regex("["+symbols+"A-Z]" + word)) ~ "(" ~ repsep(non_formula,",") ~ ")" ^^ {
     case x ~ "(" ~ params ~ ")" => Atom(x, params.asInstanceOf[List[FOLTerm]])}
   def const_atom2: Parser[HOLFormula] = regex(new Regex("["+symbols+"A-Z]" + word)) ^^ {

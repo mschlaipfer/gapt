@@ -3,32 +3,57 @@ package at.logic.transformations.herbrandExtraction
 import at.logic.calculi.lk.base._
 import at.logic.calculi.lk._
 import at.logic.language.hol._
-import at.logic.utils.ds.algebraic.trees._
-import at.logic.calculi.expansionTrees.{ExpansionTree, WeakQuantifier => WQTree, StrongQuantifier => SQTree, And => AndTree, Or => OrTree, Imp => ImpTree,
-Not => NotTree, Atom => AtomTree}
+import at.logic.calculi.expansionTrees.{WeakQuantifier => WQTree, StrongQuantifier => SQTree, And => AndTree, Or => OrTree, Imp => ImpTree, Neg => NotTree, Atom => AtomTree, MergeNode => MergeNodeTree, ExpansionSequent, ExpansionTreeWithMerges, ExpansionTree, merge => mergeTree}
 import at.logic.calculi.occurrences._
 
 object extractExpansionTrees {
 
-  def apply(proof: LKProof): Tuple2[Seq[ExpansionTree],Seq[ExpansionTree]] = {
+  def apply(proof: LKProof): ExpansionSequent = {
     val map = extract(proof)
-    (proof.root.antecedent.map(fo => map(fo)), proof.root.succedent.map(fo => map(fo)))
+    mergeTree( (proof.root.antecedent.map(fo => map(fo)), proof.root.succedent.map(fo => map(fo))) )
   }
 
-  private def extract(proof: LKProof): Map[FormulaOccurrence,ExpansionTree] = proof match {
-    case Axiom(r) => Map(r.antecedent.map(fo => (fo,AtomTree(fo.formula))) ++
-                         r.succedent.map(fo => (fo, AtomTree(fo.formula))): _*)
+  private def extract(proof: LKProof): Map[FormulaOccurrence,ExpansionTreeWithMerges] = proof match {
+    case Axiom(r) => {
+      // guess the axiom: must be an atom and appear left as well as right
+      // can't use set intersection, but lists are small enough to do it manually
+      val axiomCandidates = (r.antecedent.filter(elem => r.succedent.exists(elem2 => elem syntaxEquals elem2))).filter(_.formula.isAtom)
+
+      if (axiomCandidates.size > 1) {
+        println("Warning: Multiple candidates for axiom formula in expansion tree extraction, choosing first one of: "+axiomCandidates)
+      }
+
+      if (axiomCandidates.isEmpty) {
+        def allAtoms(l : Seq[FormulaOccurrence]) = l.forall(_.formula.isAtom)
+        if (allAtoms( r.antecedent ) && allAtoms( r.succedent ) ) {
+          println("Warning: No candidates for axiom formula in expansion tree extraction, treating as atom trees since axiom only contains atoms: "+r)
+          Map(r.antecedent.map(fo => (fo, AtomTree(fo.formula) )) ++
+               r.succedent.map(fo => (fo, AtomTree(fo.formula) )): _*)
+        } else {
+          throw new IllegalArgumentException("Error: Axiom sequent in expansion tree extraction contains no atom A on left and right side and contains non-atomic formulas: "+r)
+        }
+
+        // this behaviour is convenient for development, as it allows to work reasonably with invalid axioms
+        Map(r.antecedent.map(fo => (fo, AtomTree(fo.formula) )) ++
+             r.succedent.map(fo => (fo, AtomTree(fo.formula) )): _*)
+      } else {
+        val axiomFormula = axiomCandidates(0)
+
+        Map(r.antecedent.map(fo => (fo, AtomTree(if (fo syntaxEquals axiomFormula) fo.formula else TopC) )) ++
+             r.succedent.map(fo => (fo, AtomTree(if (fo syntaxEquals axiomFormula) fo.formula else BottomC) )): _*)
+      }
+    }
     case UnaryLKProof(_,up,r,_,p) => {
       val map = extract(up)
       getMapOfContext((r.antecedent ++ r.succedent).toSet - p, map) + Pair(p, (proof match {
-        case WeakeningRightRule(_,_,_) => AtomTree(p.formula)
-        case WeakeningLeftRule(_,_,_) => AtomTree(p.formula)
+        case WeakeningRightRule(_,_,_) => AtomTree(BottomC)
+        case WeakeningLeftRule(_,_,_) => AtomTree(TopC)
         case ForallLeftRule(_,_,a,_,t) => WQTree(p.formula, List(Pair(map(a),t)))
         case ExistsRightRule(_,_,a,_,t) => WQTree(p.formula, List(Pair(map(a),t)))
         case ForallRightRule(_,_,a,_,v) => SQTree(p.formula, v, map(a))
         case ExistsLeftRule(_,_,a,_,v) => SQTree(p.formula, v, map(a))
-        case ContractionLeftRule(_,_,a1,a2,_) => mergeTrees(map(a1),map(a2))
-        case ContractionRightRule(_,_,a1,a2,_) => mergeTrees(map(a1),map(a2))
+        case ContractionLeftRule(_,_,a1,a2,_) => MergeNodeTree(map(a1),map(a2))
+        case ContractionRightRule(_,_,a1,a2,_) => MergeNodeTree(map(a1),map(a2))
         case AndLeft1Rule(_,_,a,_) => {val And(_,f2) = p.formula; AndTree(map(a), AtomTree(f2))}
         case AndLeft2Rule(_,_,a,_) => {val And(f1,_) = p.formula; AndTree(AtomTree(f1),map(a))}
         case OrRight1Rule(_,_,a,_) => {val Or(_,f2) = p.formula; OrTree(map(a), AtomTree(f2))}
@@ -55,24 +80,11 @@ object extractExpansionTrees {
   }
 
   // the set of formula occurrences given to method must not contain any principal formula
-  private def getMapOfContext(s: Set[FormulaOccurrence], map: Map[FormulaOccurrence,ExpansionTree]): Map[FormulaOccurrence,ExpansionTree] =
+  private def getMapOfContext(s: Set[FormulaOccurrence], map: Map[FormulaOccurrence,ExpansionTreeWithMerges]): Map[FormulaOccurrence,ExpansionTreeWithMerges] =
     Map(s.toList.map(fo => (fo, {
       require(fo.ancestors.size == 1)
       map(fo.ancestors.head)
     })): _*)
 
-  // The trees must have the same nodes up to quantified terms except a none terminal node in one tree can be terminal in the other
-  private def mergeTrees(tree1: ExpansionTree, tree2: ExpansionTree): ExpansionTree = {
-    if (tree1.isInstanceOf[AtomTree] && !(tree2.isInstanceOf[AtomTree])) tree2
-    else if (tree2.isInstanceOf[AtomTree]) tree1
-    else (tree1,tree2) match {
-      case (SQTree(_,_,_),SQTree(_,_,_)) => throw new UnsupportedOperationException("Expansion tree extractions works for skolemized proofs only(for now)")
-      case (WQTree(f1, children1), WQTree(f2,children2)) if f1 == f2 => WQTree(f1, children1++children2)
-      case (NotTree(s1),NotTree(s2)) => NotTree(mergeTrees(s1,s2))
-      case (AndTree(s1,t1),AndTree(s2,t2)) => AndTree(mergeTrees(s1,s2),mergeTrees(t1,t2))
-      case (OrTree(s1,t1),OrTree(s2,t2)) => OrTree(mergeTrees(s1,s2),mergeTrees(t1,t2))
-      case (ImpTree(s1,t1),ImpTree(s2,t2)) => ImpTree(mergeTrees(s1,s2),mergeTrees(t1,t2))
-      case _ => throw new IllegalArgumentException("Bug in mergeTrees in extractExpansionTrees. By Construction, the trees to be merge should have the same structure, which is violated.")
-    }
-  }
+
 }

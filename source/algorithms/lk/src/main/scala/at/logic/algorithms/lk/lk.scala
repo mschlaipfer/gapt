@@ -7,9 +7,34 @@ import at.logic.calculi.lk.base._
 import at.logic.calculi.slk._
 import at.logic.calculi.lksk.{ForallSkLeftRule, ExistsSkRightRule, ExistsSkLeftRule, ForallSkRightRule, UnaryLKskProof}
 import at.logic.calculi.occurrences._
+<<<<<<< .working
 import scala.collection.immutable.HashSet
 import ProofTransformationUtils.computeMap
 
+=======
+import at.logic.calculi.lk.propositionalRules._
+>>>>>>> .merge-right.r1940
+<<<<<<< .working
+=======
+import at.logic.calculi.lk.equationalRules._
+import at.logic.calculi.lk.quantificationRules._
+import at.logic.calculi.lk.definitionRules._
+import at.logic.calculi.lk.base._
+import at.logic.calculi.lk.base.types._
+import at.logic.calculi.lk.lkExtractors.{UnaryLKProof, BinaryLKProof}
+import at.logic.calculi.lksk.lkskExtractors.{UnaryLKskProof}
+import at.logic.calculi.slk._
+
+import at.logic.language.hol._
+import at.logic.language.lambda.typedLambdaCalculus._
+import at.logic.language.lambda.substitutions
+
+import substitutions.Substitution
+
+import scala.collection.mutable
+import scala.collection.immutable.HashSet
+
+>>>>>>> .merge-right.r1940
 object ProofTransformationUtils {
   // FIXME: adapted from LKtoLKskc!
   def computeMap[T<:FormulaOccurrence]( occs: Seq[T], old_proof: LKProof,
@@ -590,15 +615,17 @@ object cutformulaExtraction {
 }
 
 // Adds weakenings to p in order to obtain the sequent s as the end-sequent.
-// Note: s should be a super-set of p's end-sequent.
+// Note: s should be a super-set of p's end-sequent. This assertion can be turned off be passing check=false
 object addWeakenings {
-  def apply(p: LKProof, s: FSequent) = {
+  def apply(p: LKProof, s: FSequent, check : Boolean = true) = {
     val root_ant = p.root.antecedent.map(x => x.formula)
     val root_suc = p.root.succedent.map(x => x.formula)
     val s_ant = s.antecedent
     val s_suc = s.succedent
 
-    assert(root_ant.forall(e => s_ant.contains(e)) && root_suc.forall(e => s_suc.contains(e)))
+    if (check) {
+      assert(root_ant.forall(e => s_ant.contains(e)) && root_suc.forall(e => s_suc.contains(e)))
+    }
 
     // Take formulas that occur in s and do not occur in p's end-sequent
     val diff_ant = s_ant.diff(root_ant) 
@@ -613,18 +640,97 @@ object addWeakenings {
       WeakeningRightRule(proof, f)
     }
   }
+
+
+  //TODO: this is an alternative version which intentionally does less error checking, it could be merged with the other one
+  /* Apply weakening rules to a proof until a given end-sequent is obtained.
+    Throws an exception if this is impossible. */
+
+  def weaken(proof : LKProof, towhat : FSequent) : LKProof = {
+    val context = towhat diff proof.root.toFSequent
+    val leftcontr : LKProof = context.antecedent.foldLeft(proof)((intermediate, f) =>
+      try {
+        WeakeningLeftRule(intermediate, f)
+      } catch {
+        case e : Exception =>
+          throw new Exception("Could not weaken "+f+" in "+proof.root+"!",e)
+      }
+    )
+    val rightcontr : LKProof = context.succedent.foldLeft(leftcontr)((intermediate, f) =>
+      try {
+        WeakeningRightRule(intermediate, f)
+      } catch {
+        case e : Exception =>
+          throw new Exception("Could not weaken "+f+" in "+proof.root+"!",e)
+      }
+    )
+
+    require(rightcontr.root.toFSequent.multiSetEquals( towhat ), "Context of weakening errenous:\n" + proof.root + "\ndoes not weaken to\n" + towhat + "\nbut\n" + rightcontr.root +
+    " : "+(rightcontr.root.toFSequent diff towhat)+" || "+(towhat diff rightcontr.root.toFSequent))
+
+    rightcontr
+  }
+
+}
+
+
+object addWeakeningAndContraction {
+  def apply(proof : LKProof, towhat : FSequent) : LKProof = {
+    val context = towhat diff proof.root.toFSequent
+    val leftweak : LKProof = context.antecedent.foldLeft(proof)((intermediate, f) =>
+      try {
+        WeakeningLeftRule(intermediate, f)
+      } catch {
+        case e : Exception =>
+          throw new Exception("Could not weaken "+f+" in "+proof.root+"!",e)
+      }
+    )
+    val rightweak : LKProof = context.succedent.foldLeft(leftweak)((intermediate, f) =>
+      try {
+        WeakeningRightRule(intermediate, f)
+      } catch {
+        case e : Exception =>
+          throw new Exception("Could not weaken "+f+" in "+proof.root+"!",e)
+      }
+    )
+
+    val context2 = rightweak.root.toFSequent() diff towhat
+    val leftcontr : LKProof = context2.antecedent.foldLeft(rightweak)((intermediate, f) =>
+      try {
+        ContractionLeftRule(intermediate, f)
+      } catch {
+        case e : Exception =>
+          throw new Exception("Could not contract "+f+" in "+proof.root+"!",e)
+      }
+    )
+    val rightcontr : LKProof = context2.succedent.foldLeft(leftcontr)((intermediate, f) =>
+      try {
+        ContractionRightRule(intermediate, f)
+      } catch {
+        case e : Exception =>
+          throw new Exception("Could not contract "+f+" in "+proof.root+"!",e)
+      }
+    )
+
+    require(rightcontr.root.toFSequent.multiSetEquals( towhat ), "Context of combined weakening and contraction errenous:\n "+proof.root+" does not weaken to\n "+towhat+" but\n "+rightcontr.root+
+      "diff1:\n "+(rightcontr.root.toFSequent diff towhat)+"diff2:\n "+(towhat diff rightcontr.root.toFSequent))
+    rightcontr
+  }
 }
 
 // Adds contractions to p in order to obtain the sequent s as the end-sequent.
-// Note: s should be a sub-set of p's end-sequent.
+// Note: s should be a sub-set of p's end-sequent. This assertion can be turned off be passing check=false
 object addContractions {
-  def apply(p: LKProof, s: FSequent) = {
+  def apply(p: LKProof, s: FSequent, check : Boolean = true) = {
     val root_ant = p.root.antecedent.map(x => x.formula)
     val root_suc = p.root.succedent.map(x => x.formula)
     val s_ant = s.antecedent
     val s_suc = s.succedent
 
-    assert(s_ant.forall(e => root_ant.contains(e)) && s_suc.forall(e => root_suc.contains(e)))
+    if (check) {
+      assert(s_ant.forall(e => root_ant.contains(e)) && s_suc.forall(e => root_suc.contains(e)))
+    }
+
 
     // Take formulas that occur in p's end sequent and do not occur in s
     val diff_ant = root_ant.diff(s_ant)
@@ -638,6 +744,52 @@ object addContractions {
     diff_suc.foldRight(wl) {case (f, proof) =>
       ContractionRightRule(proof, f)
     }
+  }
+
+  //TODO: this is an alternative version which intentionally does less error checking, it could be merged with the other one
+  /* Apply contraction rules to a proof until a given end-sequent is obtained.
+    Throws an exception if this is impossible. */
+
+  def contract(proof : LKProof, towhat : FSequent) : LKProof = {
+    val context = proof.root.toFSequent diff towhat
+    val leftcontr : LKProof = context.antecedent.foldLeft(proof)((intermediate, f) =>
+      try {
+        ContractionLeftRule(intermediate, f)
+      } catch {
+        case e : Exception =>
+          throw new Exception("Could not contract "+f+" in "+proof.root+"!",e)
+      }
+    )
+    val rightcontr : LKProof = context.succedent.foldLeft(leftcontr)((intermediate, f) =>
+      try {
+        ContractionRightRule(intermediate, f)
+      } catch {
+        case e : Exception =>
+          throw new Exception("Could not contract "+f+" in "+proof.root+"!",e)
+      }
+    )
+
+    //require(rightcontr.root.toFSequent.multiSetEquals( towhat ), "Context "+context+" of contraction errenous: "+proof.root+" does not contract to "+rightcontr.root)
+
+    rightcontr
+  }
+
+}
+
+/**
+ * @return true iff this proof contains a reflexivity axiom or an equational inference
+ **/
+object containsEqualityReasoning {
+  def apply( p: LKProof ): Boolean = p match {
+    case Axiom( seq ) => seq.isReflexivity
+    // equational rules
+    case EquationLeft1Rule( _, _, _, _, _, _ ) => true
+    case EquationLeft2Rule( _, _, _, _, _, _ ) => true
+    case EquationRight1Rule( _, _, _, _, _, _ ) => true
+    case EquationRight2Rule( _, _, _, _, _, _ ) => true
+    // other rules
+    case UnaryLKProof( _, p1, _, _, _ ) => apply( p1 )
+    case BinaryLKProof( _, p1, p2, _, _, _, _ ) => apply( p1 ) || apply( p2 )
   }
 }
 

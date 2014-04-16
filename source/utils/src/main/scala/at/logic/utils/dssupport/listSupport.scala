@@ -58,6 +58,7 @@ object ListSupport {
       (new_acc2, y::ys)
     }
   }
+<<<<<<< .working
   
   def lst2string[T](fun: T => String, separator: String, l:List[T]) : String = l match {
     case Nil => ""
@@ -65,5 +66,34 @@ object ListSupport {
     case x::xs => fun(x)  + separator + lst2string(fun, separator, xs)
   }
 
+=======
+
+  /** Identical to foldLeft, but with addition function which returns when the folding should be aborted.
+    * If that function returns False for an element, the folding is aborted and the result of the last execution
+    * of the folding function is returned.
+    *
+    * @param acc The initial value and the first argument of the folding function.
+    * @param list The list of elements to fold.
+    * @param cont The function specifying when to abort.
+    * It is executed for each list element before the folding function.
+    * @param f The folding function which takes the accumulated value and the next list element
+    * and returns a the next accumulated value.
+    */
+  def foldLeftWhile[A,B](acc:B, list:Iterable[A], cont: A => Boolean, f:(B,A) => B) : B = {
+    if (list.isEmpty || !cont(list.head)) { acc }
+    else { foldLeftWhile(f(acc,list.head), list.tail, cont, f) }
+  }
+
+  /** A safe version of List.head which never fails.
+    * 
+    * @param xs The list of which to return the head.
+    * @param default The value to return in case the list is empty.
+    * @return xs.head if xs is not empty, otherwise default.
+    */
+  def safeHead[A](xs:List[A], default:A) : A = xs match {
+    case Nil => default
+    case (x::_) => x
+  }
+>>>>>>> .merge-right.r1940
 }
 

@@ -19,6 +19,7 @@ case object EquationLeft2RuleType extends BinaryRuleTypeA
 case object EquationRight1RuleType extends BinaryRuleTypeA
 case object EquationRight2RuleType extends BinaryRuleTypeA
 
+<<<<<<< .working
 // TODO: implement verification of the rule
 object EquationLeft1Rule {
   /** <pre>Constructs a proof ending with a EqLeft rule.
@@ -48,6 +49,76 @@ object EquationLeft1Rule {
   def apply(s1: LKProof, s2: LKProof, term1oc: Occurrence, term2oc: Occurrence, main: HOLFormula) = {
     val (eqocc, auxocc) = getTerms(s1.root, s2.root, term1oc, term2oc)
     val prinFormula = eqocc.factory.createFormulaOccurrence(main, eqocc::auxocc::Nil)
+=======
+  //TODO: perhaps there is a better place for this
+  object EquationVerifier {
+    //results
+    abstract class ReplacementResult;
+    case object Equal extends ReplacementResult;
+    case object Different extends ReplacementResult;
+    case class EqualModuloEquality(path : List[Int]) extends ReplacementResult;
+
+    def apply(s : LambdaExpression, t : LambdaExpression, e1 : LambdaExpression, e2 : LambdaExpression) = checkReplacement(s,t,e1,e2)
+    //this is a convenience method, apart from that everything is general
+    def apply(eq : HOLFormula, e1 : HOLFormula, e2:HOLFormula) : Option[List[Int]] = {
+      eq match {
+        case Equation(s,t) => apply(s,t,e1,e2) match {
+          case EqualModuloEquality(path) => Some(path)
+          case _ => None
+        }
+        case _ => throw new Exception("Error checking for term replacement in "+e1+" and "+e2+": "+eq+" is not an equation!")
+      }
+    }
+
+    def checkReplacement(s : LambdaExpression, t : LambdaExpression, e1 : LambdaExpression, e2 : LambdaExpression) : ReplacementResult = {
+      (e1,e2) match {
+        case _ if (e1 == e2) => Equal
+        case _ if (e1 == s) && (e2 == t) => EqualModuloEquality(Nil)
+        case (Var(_,_), Var(_,_)) => Different
+        case (App(l1,r1), App(l2,r2)) =>
+          (checkReplacement(s,t,l1,l2), checkReplacement(s,t,r1,r2)) match {
+            case (Equal, Equal) => Equal
+            case (EqualModuloEquality(path), Equal) => EqualModuloEquality(1::path)
+            case (Equal, EqualModuloEquality(path)) => EqualModuloEquality(2::path)
+            case _ => Different
+          }
+        case (Abs(v1,t1), Abs(v2,t2)) => Different
+        case _ => Different
+      }
+    }
+
+  }
+
+  // TODO: implement verification of the rule
+  object EquationLeft1Rule {
+    /** <pre>Constructs a proof ending with a EqLeft rule.
+      * In it, a formula A (marked by term2oc) is replaced by formula main.
+      *
+      * This rule does not check for the correct use of the =-symbol.
+      * The burden of correct usage is on the programmer!
+      * 
+      * The rule: 
+      * (rest of s1)       (rest of s2)
+      * sL |- a=b, sR    tr, A[T1/a] |- tR
+      * ------------------------------------ (EqLeft1)
+      *      sL, A[T1/b], tL |- sR, tR
+      * </pre>
+      * 
+      * @param s1 The left proof with the equarion a=b in the succedent in its bottommost sequent.
+      * @param s2 The right proof with a formula A[T1/a] in the antecedent of its bottommost sequent,
+      *        in which some term T1 has been replaced by the term a. Note that identical terms to
+      *        T1 may occur elsewhere in A. These will not be changed.
+      *        e.g. P([f(0)]) v -P(f(0)), where f(0) occurs twice, but T1 only refers to the bracketed f(0).
+      *        This allows selective replacing of terms.
+      * @param term1oc The occurrence (a=b) in s1.
+      * @param term2oc The occurrence of A[T1/a] in s2.
+      * @param main The formula A[T1/b], in which T1 has been replaced by b instead.
+      * @return An LK Proof ending with the new inference.
+      */ 
+    def apply(s1: LKProof, s2: LKProof, term1oc: Occurrence, term2oc: Occurrence, main: HOLFormula) = {
+      val (eqocc, auxocc) = getTerms(s1.root, s2.root, term1oc, term2oc)
+      val prinFormula = eqocc.factory.createFormulaOccurrence(main, eqocc::auxocc::Nil)
+>>>>>>> .merge-right.r1940
 
     val ant1 = createContext(s1.root.antecedent)
     val ant2 = createContext(s2.root.antecedent.filterNot(_ == auxocc))

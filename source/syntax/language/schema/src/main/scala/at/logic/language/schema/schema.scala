@@ -17,7 +17,12 @@ trait SchemaExpression extends HOLExpression {
   override def factory: FactoryA = SchemaFactory
 }
 
+<<<<<<< .working
 trait SchemaFormula extends SchemaExpression with HOLFormula 
+=======
+trait SchemaExpression extends HOLExpression with Schema  {
+}
+>>>>>>> .merge-right.r1940
 
 /******************** SPECIAL INTEGERS ************************************/
 
@@ -390,6 +395,7 @@ object Atom {
     case SchemaVar(_,_) if (expression.exptype == To) => Some( (expression, Nil) )
     case _ => None
   }
+<<<<<<< .working
   // Recursive unapply to get the head and args
   private def unapply_(e: SchemaExpression) : (SchemaExpression, List[SchemaExpression]) = e match {
     case v: SchemaVar => (v, Nil)
@@ -397,6 +403,15 @@ object Atom {
     case SchemaApp(e1, e2) => 
       val t = unapply_(e1)
       (t._1, t._2 :+ e2)
+=======
+}
+
+class indexedOmegaVar(override val name: VariableStringSymbol, val index: HOLExpression) extends HOLVar(name, Ti(), None) {
+  override def toString = name.toString+"("+index+")"+":"+exptype.toString
+  override def equals(a: Any): Boolean = a match {
+    case v:indexedOmegaVar if v.name.toString() == this.name.toString() && v.index == this.index => true
+    case _ => false
+>>>>>>> .merge-right.r1940
   }
 }
 
@@ -435,11 +450,19 @@ object Equation {
   }
 }
 
+<<<<<<< .working
 
 
 object aTerm {
   def apply(name: SchemaConst, ind: IntegerTerm): IntegerTerm = {
     SchemaApp(name, ind).asInstanceOf[IntegerTerm]
+=======
+//first-order variable of type individual
+class fowVar(name: VariableStringSymbol) extends HOLVar(name, Ti(), None) {
+  override def equals(a: Any): Boolean = a match {
+    case v:fowVar if v.name.toString() == this.name.toString() => true
+    case _ => false
+>>>>>>> .merge-right.r1940
   }
 }
 
@@ -486,20 +509,61 @@ object sTerm {
   }
 }
 
+<<<<<<< .working
 //indexed s-term of type ω->ω
 object sIndTerm {
   //the i should be of type Tindex !
   def apply(f: String, i: IntegerTerm): SchemaExpression = {
     val func = SchemaConst(f, ->(Tindex , Tindex))
     return SchemaApp(func, i)
+=======
+//This version of the function is used specifically to find the highest level subterms
+//within atoms and satoms. Terms within terms are not located within the set.
+  object SchemaSubTerms{
+      def apply(f:HOLExpression):Seq[HOLExpression] = f match {
+      case Var(_,_) => List(f)
+      case Atom(_, args) =>  args.map(a => apply(a.asInstanceOf[HOLExpression])).flatten
+      case Function(_,args,_)  =>  {/*println("wShould be here????????  " + f.toString);*/ List(f).toSeq   }
+      case BinaryFormula(x,y) =>  {/*println("why are you here????????  " + x.toString);*/ (apply(x.asInstanceOf[HOLExpression]) ++ apply(y.asInstanceOf[HOLExpression]))   }
+      case Neg(x) => apply(x.asInstanceOf[HOLExpression])
+      case Quantifier(_,_,x) =>  apply(x.asInstanceOf[HOLExpression])
+      case HOLAbs(_, x) =>  apply(x.asInstanceOf[HOLExpression])
+      case HOLApp(x, y) => List(f).toSeq
+    }
   }
+object isSAtom{
+  def apply(f:HOLFormula): Boolean = f match {
+    case sAtom(_,_) => true
+    case _ => false
+  }
+}
+
+//object representing a schematic atom: P(i:ω, args)
+object sAtom {
+  def apply( sym: ConstantStringSymbol, args: List[HOLExpression]): HOLFormula = {
+    val pred : Var = HOLFactory.createVar( sym, FunctionType( To(), args.map( a => a.exptype ) ) )
+    apply(pred, args).asInstanceOf[HOLFormula with Schema]
+>>>>>>> .merge-right.r1940
+  }
+<<<<<<< .working
   def unapply(s : SchemaExpression) = s match {
     case SchemaApp(func : SchemaConst, i) if i.exptype == Tindex => Some( ( func, i) )
+=======
+  def apply(head: Var, args: List[HOLExpression]): HOLFormula = {
+    AppN(head, args).asInstanceOf[HOLFormula with Schema]
+  }
+
+  def unapply( expression: LambdaExpression ) = expression match {
+    case App(Var(sym,_),_) if sym.isInstanceOf[LogicalSymbolsA] => None
+    case App(App(Var(sym,_),_),_) if sym.isInstanceOf[LogicalSymbolsA] => None
+    case AppN( Var( name, t ), args ) if (expression.exptype == To() && expression.isInstanceOf[Schema]) => Some( ( name, args.asInstanceOf[List[HOLExpression]] ) )
+>>>>>>> .merge-right.r1940
     case _ => None
   }
 }
 
 
+<<<<<<< .working
 //database for trs
 object dbTRS extends Iterable[(SchemaConst, ((SchemaExpression, SchemaExpression), (SchemaExpression, SchemaExpression)))] {
   val map = new scala.collection.mutable.HashMap[SchemaConst, ((SchemaExpression, SchemaExpression), (SchemaExpression, SchemaExpression))]
@@ -508,22 +572,81 @@ object dbTRS extends Iterable[(SchemaConst, ((SchemaExpression, SchemaExpression
   def clear = map.clear
   def add(name: SchemaConst, base: (SchemaExpression, SchemaExpression), step: (SchemaExpression, SchemaExpression)): Unit = {
     map.put(name, (base, step))
+=======
+
+case object simSymbol extends ConstantSymbolA {
+  override def unique = "simSymbol"
+  override def toString = "~"
+  def toCode = "simSymbol"
+  def compare(that: SymbolA) = that match {
+    case a: ConstantSymbolA => unique.compare( a.unique )
+  }
+}
+
+case object LeqSymbol extends ConstantSymbolA {
+  override def unique = "LeqSymbol"
+  override def toString = "≤"
+  def toCode = "LeqSymbol"
+  def compare(that: SymbolA) = that match {
+    case a: ConstantSymbolA => unique.compare( a.unique )
+>>>>>>> .merge-right.r1940
   }
   def iterator = map.iterator
 }
 
+<<<<<<< .working
+=======
+case class LessThanC(e:TA) extends HOLConst(lessThanSymbol, ->(Ti(), ->(Ti(), To())))
+case class SimsC(e:TA) extends HOLConst(simSymbol, ->(Tindex(), ->(Tindex(), To())))
+case class LeqC(e:TA) extends HOLConst(LeqSymbol, ->(Ti(), ->(Ti(), To())))
+>>>>>>> .merge-right.r1940
 
+<<<<<<< .working
 class sTermRewriteSys(val func: SchemaConst, val base: SchemaExpression, val rec: SchemaExpression)
 object sTermRewriteSys {
   def apply(f: SchemaConst, base: SchemaExpression, step: SchemaExpression) = new sTermRewriteSys(f, base, step)
+=======
+object lessThan {
+  def apply(left: HOLExpression, right: HOLExpression) = {
+    require(left.exptype == right.exptype)
+    App(App(LessThanC(left.exptype), left),right).asInstanceOf[HOLFormula]
+  }
+  def unapply(expression: LambdaExpression) = expression match {
+    case App(App(LessThanC(_),left),right) => Some( left.asInstanceOf[HOLExpression],right.asInstanceOf[HOLExpression] )
+    case _ => None
+  }
+>>>>>>> .merge-right.r1940
 }
 
+<<<<<<< .working
 object sTermDB extends Iterable[(SchemaConst, sTermRewriteSys)] with TraversableOnce[(SchemaConst, sTermRewriteSys)] {
   val terms = new scala.collection.mutable.HashMap[SchemaConst, sTermRewriteSys]
   def clear = terms.clear
   def get(func: SchemaConst) = terms(func)
   def put(sterm: sTermRewriteSys) = terms.put(sterm.func, sterm)
   def iterator = terms.iterator
+=======
+object sims {
+  def apply(left: HOLExpression, right: HOLExpression) = {
+    require(left.exptype == right.exptype)
+    App(App(SimsC(left.exptype), left),right).asInstanceOf[HOLFormula]
+  }
+  def unapply(expression: LambdaExpression) = expression match {
+    case App(App(SimsC(_),left),right) => Some( left.asInstanceOf[HOLExpression],right.asInstanceOf[HOLExpression] )
+    case _ => None
+  }
+}
+
+object leq {
+  def apply(left: HOLExpression, right: HOLExpression) = {
+//    require(left.exptype == right.exptype)
+    App(App(LeqC(left.exptype), left),right).asInstanceOf[HOLFormula]
+  }
+  def unapply(expression: LambdaExpression) = expression match {
+    case App(App(LeqC(_),left),right) => Some( left.asInstanceOf[HOLExpression],right.asInstanceOf[HOLExpression] )
+    case _ => None
+  }
+>>>>>>> .merge-right.r1940
 }
 
 

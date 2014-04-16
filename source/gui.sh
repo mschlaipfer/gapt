@@ -4,8 +4,8 @@
 # the prooftool jar package and runs the scala interpreter
 # (preference is given to the development version)
 
-export VERSION="1.4"
-export JARNAME="prooftool-$VERSION-SNAPSHOT-jar-with-dependencies.jar"
+export VERSION="1.7"
+export JARNAME="prooftool-$VERSION-jar-with-dependencies.jar"
 export RELEASE="prooftool-$VERSION.jar"
 export SCP=""
 export RCP=""

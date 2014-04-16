@@ -24,7 +24,24 @@ import at.logic.transformations.ceres.clauseSets.StandardClauseSet._
 import at.logic.transformations.ceres.RelevantCC
 import scala.collection.immutable.HashSet
 
-trait Struct
+<<<<<<< .working
+=======
+// for debugging
+import clauseSets.StandardClauseSet._
+
+package struct {
+
+import at.logic.algorithms.shlk._
+import clauseSchema.SchemaSubstitution3
+import at.logic.language.hol.HOLAppFormula
+import at.logic.language.schema.Pred
+import at.logic.utils.ds.Multisets.Multiset
+import scala.annotation.tailrec
+
+>>>>>>> .merge-right.r1940
+trait Struct {
+  def formula_equal(that: Struct) : Boolean;
+}
 
   // Times is done as an object instead of a case class since
   // it has a convenience constructor (with empty auxFOccs)
@@ -44,22 +61,66 @@ trait Struct
 
   class Times(val left: Struct, val right: Struct, val auxFOccs: List[FormulaOccurrence]) extends Struct {
     override def toString(): String = Console.RED+"("+Console.RESET+left+Console.RED+" ⊗ "+Console.RESET+right+Console.RED+")"+Console.RESET
+    override def formula_equal(s:Struct) = s match {
+      case Times(x,y,aux) => left.formula_equal(x) && right.formula_equal(y) &&
+        aux.diff(auxFOccs).isEmpty && auxFOccs.diff(aux).isEmpty
+      case _ => false
+    }
   }
   case class Plus(left: Struct, right: Struct) extends Struct {
     override def toString(): String = Console.BLUE+"("+Console.RESET+left+Console.BLUE+" ⊕ "+Console.RESET+right+Console.BLUE+")"+Console.RESET
+    override def formula_equal(s:Struct) = s match {
+      case Plus(x,y) => left.formula_equal(x) && right.formula_equal(y)
+      case _ => false
+    }
   }
   case class Dual(sub: Struct) extends Struct {
     override def toString(): String = Console.GREEN+"~("+Console.RESET+sub+Console.GREEN+")"+Console.RESET
+    override def formula_equal(s:Struct) = s match {
+      case Dual(x) => sub.formula_equal(x)
+      case _ => false
+    }
   }
   case class A(fo: FormulaOccurrence) extends Struct {// Atomic Struct
     override def toString(): String =fo.formula.toString
+    override def formula_equal(s:Struct) = s match {
+      case A(x) => fo.formula syntaxEquals(x.formula)
+      case _ => false
+    }
   }
   case class EmptyTimesJunction() extends Struct {
     override def toString(): String = Console.RED+"ε"+Console.RESET
+    override def formula_equal(s:Struct) = s match {
+      case EmptyTimesJunction() => true
+      case _ => false
+    }
   }
   case class EmptyPlusJunction() extends Struct {
     override def toString(): String = Console.BLUE+"ε"+Console.RESET
+    override def formula_equal(s:Struct) = s match {
+      case EmptyPlusJunction() => true
+      case _ => false
+    }
   }
+
+  /* convenience object allowing to create and match a set of plus nodes */
+  object PlusN {
+    def apply(l : List[Struct]) : Struct = l match {
+      case Nil => EmptyPlusJunction()
+      case x::Nil => x
+      case x::xs =>  Plus(x,PlusN(xs))
+    }
+
+
+    def unapply(s:Struct) : Option[List[Struct]] = Some(unapply_(s))
+
+    def unapply_(s:Struct) : List[Struct] = s match {
+      case Plus(l,r) => unapply_(l) ++ unapply_(r)
+      case _ => s::Nil
+    }
+  }
+
+
 
   // since case classes may be DAGs, we give a method to convert to a tree
   // (for, e.g. displaying purposes)
@@ -229,6 +290,16 @@ trait Struct
   }
 
   object StructCreators {
+    def size(s:Struct) : Int = size(s,0)
+    //TODO:make tailrecursive
+    def size(s:Struct, n:Int) : Int = s match {
+      case A(_) => n
+      case Dual(x) => size(x,n+1)
+      case Plus(l,r) => size(l, size(r,n+1))
+      case Times(l,r,_) => size(l, size(r,n+1))
+      case EmptyPlusJunction() => n
+      case EmptyTimesJunction() => n
+    }
 
     // this is for proof schemata: it extracts the characteristic
     // clause set for the proof called "name"
@@ -404,25 +475,47 @@ trait Struct
     def extract(p: LKProof) : Struct = extract( p, getCutAncestors( p ) )
     def extract(p: LKProof, predicate: HOLFormula => Boolean) : Struct = extract( p, getCutAncestors( p, predicate ) )
 
+    private def debug(s:String) = { /* println("DEBUG:"+s) */ }
+
     def extract(p: LKProof, cut_occs: Set[FormulaOccurrence]):Struct = p match {
       case Axiom(so) => // in case of axioms of the form A :- A with labelled formulas, proceed as in Daniel's PhD thesis
-      so match {
+      {
+        debug("0 "+cut_occs+ "  ");
+        so match {
         case lso : LabelledSequent  if lso.l_antecedent.size == 1 && lso.l_succedent.size == 1 =>
           handleLabelledAxiom( lso, cut_occs )
         case _ => handleAxiom( so, cut_occs )
-      }
-      case UnaryLKProof(_,upperProof,_,_,_) => handleUnary( upperProof, cut_occs )
-      case BinaryLKProof(_, upperProofLeft, upperProofRight, _, aux1, aux2, _) => 
+      }         }
+      case UnaryLKProof(_,upperProof,_,_,_) =>{
+        debug("1 "+cut_occs+ "  ");
+        handleUnary( upperProof, cut_occs )     }
+      case BinaryLKProof(_, upperProofLeft, upperProofRight, _, aux1, aux2, _) =>
+        debug("2 "+cut_occs+ "  ");
         handleBinary( upperProofLeft, upperProofRight, aux1::aux2::Nil, cut_occs )
-      case UnaryLKskProof(_,upperProof,_,_,_) => handleUnary( upperProof, cut_occs )
-      case UnarySchemaProof(_,upperProof,_,_,_) => handleUnary( upperProof, cut_occs )
-      case SchemaProofLinkRule(so, name, indices) => handleSchemaProofLink( so, name, indices.asInstanceOf[List[IntegerTerm]], cut_occs )
-      case TermEquivalenceRule1(upperProof, _, _, _) => extract(upperProof, cut_occs)
-      case ForallHyperLeftRule(upperProof, r, a, p, _) => extract(upperProof, cut_occs)
-      case ExistsHyperRightRule(upperProof, r, a, p, _) => extract(upperProof, cut_occs)
-      case ForallHyperRightRule(upperProof, r, a, p, _) => extract(upperProof, cut_occs)
-      case ExistsHyperLeftRule(upperProof, r, a, p, _) => extract(upperProof, cut_occs)
-      case _ => throw new Exception("\nMissin rule in StructCreators.extract\n")
+      case UnaryLKskProof(_,upperProof,_,_,_) =>
+        debug("3 "+cut_occs+ "  ");
+        handleUnary( upperProof, cut_occs )
+      case UnarySchemaProof(_,upperProof,_,_,_) =>
+        debug("4 "+cut_occs+ "  "); handleUnary( upperProof, cut_occs )
+      case SchemaProofLinkRule(so, name, indices) =>
+        debug("5 "+cut_occs+ "  ");
+        handleSchemaProofLink( so, name, indices.asInstanceOf[List[IntegerTerm]], cut_occs )
+      case TermEquivalenceRule1(upperProof, _, _, _) =>
+        debug("6 "+cut_occs+ "  ");
+        extract(upperProof, cut_occs)
+      case ForallHyperLeftRule(upperProof, r, a, p, _) =>
+        debug("7 "+cut_occs+ "  ");
+        extract(upperProof, cut_occs)
+      case ExistsHyperRightRule(upperProof, r, a, p, _) =>
+        debug("8 "+cut_occs+ "  ");
+        extract(upperProof, cut_occs)
+      case ForallHyperRightRule(upperProof, r, a, p, _) =>
+        debug("9 "+cut_occs+ "  ");
+        extract(upperProof, cut_occs)
+      case ExistsHyperLeftRule(upperProof, r, a, p, _) =>
+        debug("(10) "+cut_occs+ "  ");
+        extract(upperProof, cut_occs)
+      case _ => throw new Exception("Missing rule in StructCreators.extract: "+p.rule)
     }
 
     //the original version:
@@ -439,9 +532,20 @@ trait Struct
     def handleSchemaProofLink( so: Sequent , name: String, indices: List[IntegerTerm], cut_occs: TypeSynonyms.CutOccurrenceConfiguration) = {
       val root = SchemaProofDB.get( name ).rec.root
       val root_focc = root.antecedent++root.succedent
+<<<<<<< .working
       val cutsInPLink = cut_occs.filter( occ => (so.antecedent ++ so.succedent).contains(occ))
       //println("\ncutsInPLink = "+cutsInPLink)
       val sym = new ClauseSetSymbol( name, cutOccConfigToCutConfig.applyRCC( so, cut_occs.filter( occ => (so.antecedent ++ so.succedent).contains(occ))))
+=======
+      val cutsInPLink = cut_occs.filter( occ => (so.antecedent ++ so.succedent).contains(occ)).map(fo => if(FixedFOccs.PLinksMap.contains(fo)) FixedFOccs.PLinksMap.get(fo).get else fo)
+      println("\ncutsInPLink = "+cutsInPLink)
+//      root_focc.filter(fo => getAncestors(fo).intersect(cutsInPLink).nonEmpty)
+//      val sym = new ClauseSetSymbol( name, cutOccConfigToCutConfig.applyRCC( so, cut_occs.filter( occ => (so.antecedent ++ so.succedent).contains(occ))))
+      val sym = if ((so.antecedent ++ so.succedent).intersect(FixedFOccs.PLinksMap.keySet.toList).nonEmpty)
+              new ClauseSetSymbol( name, cutOccConfigToCutConfig.applyRCC( root, cutsInPLink.filter( occ => (root.antecedent ++ root.succedent).contains(occ))))
+                else
+              new ClauseSetSymbol( name, cutOccConfigToCutConfig.applyRCC( so, cut_occs.filter( occ => (so.antecedent ++ so.succedent).contains(occ))))
+>>>>>>> .merge-right.r1940
       val atom = IndexedPredicate( sym, indices )
       A( toOccurrence( atom, so ) )
     }

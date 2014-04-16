@@ -48,13 +48,26 @@
   <dependencies>
     <dependency>
       <groupId>at.logic</groupId>
+<<<<<<< .working
+      <artifactId>simple_parsing</artifactId>
+=======
+      <artifactId>unification</artifactId>
+>>>>>>> .merge-right.r1940
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>at.logic</groupId>
+      <artifactId>subsumption</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>at.logic</groupId>
       <artifactId>simple_parsing</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>at.logic</groupId>
-      <artifactId>algorithms_dependency</artifactId>
-      <type>pom</type>
+      <artifactId>parsing_core</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
     <dependency>

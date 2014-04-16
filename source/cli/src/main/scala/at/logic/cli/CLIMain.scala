@@ -28,17 +28,19 @@ object CLIMain {
   import at.logic.calculi.lk.equationalRules._
   import at.logic.calculi.lk.macroRules._
   import at.logic.calculi.lk.base.types.FSequent
-  import at.logic.calculi.lk.base.FSequent
   import at.logic.calculi.lksk.base._
   import at.logic.language.lambda.symbols._
   import at.logic.language.hol.logicSymbols._
   import at.logic.transformations.skolemization.skolemize
   import at.logic.algorithms.lk.regularize
   import at.logic.calculi.occurrences.FormulaOccurrence
+  import at.logic.algorithms.cutIntroduction.FlatTermSet
+  import at.logic.algorithms.cutIntroduction.Deltas._
+  import at.logic.algorithms.lk.statistics._
+  import at.logic.utils.constraint.{Constraint, NoConstraint, ExactBound, UpperBound}
+  import at.logic.gui.prooftool.gui.{Main => PT}
   import help.{apply => help}
   import at.logic.cli.GPL.{apply => copying, printLicense => license}
-  import at.logic.algorithms.cutIntroduction.FlatTermSet
-  import at.logic.algorithms.lk.statistics._
 
   println()
   println("    *************************************")
@@ -51,7 +53,7 @@ object CLIMain {
   println(" software, and you are welcome to redistribute it under certain")
   println(" conditions; type `copying' for details.")
   println()
-"""
+               """
 
   def main(args: Array[String]) {
     val f = File.createTempFile("cli-script", ".scala")

@@ -12,6 +12,7 @@ import at.logic.utils.ds.trees._
 import at.logic.utils.traits.Occurrence
 import at.logic.utils.dssupport.ListSupport.lst2string
 
+<<<<<<< .working
 class FSequent(val antecedent : Seq[HOLFormula], val succedent : Seq[HOLFormula]) {
   val _1 = antecedent
   val _2 = succedent
@@ -19,11 +20,83 @@ class FSequent(val antecedent : Seq[HOLFormula], val succedent : Seq[HOLFormula]
   override def equals(fs : Any) : Boolean = fs match {
     case FSequent(ant,succ) => (this.antecedent equals ant) && (this.succedent equals succ)
     case _ => false
+=======
+import java.util.Comparator
+import scala.math.Ordering._
+import tools.nsc.settings.FscSettings
+import base.types._
+
+  package types {
+    object implicits {
+      implicit def pair2fsequent(fs:(Seq[HOLFormula], Seq[HOLFormula])) = new FSequent(fs._1,fs._2)
+    }
+
+    class FSequent(val antecedent : Seq[HOLFormula], val succedent : Seq[HOLFormula]) {
+      val _1 = antecedent
+      val _2 = succedent
+      
+      override def equals(fs : Any) : Boolean = fs match {
+        case FSequent(ant,succ) => (this.antecedent equals ant) && (this.succedent equals succ)
+        case _ => false
+      }
+
+      override def toString() = FSequent.toString((x:HOLFormula) => x.toString, this)
+
+      def setEquals(g:FSequent) = FSequent.setEquals(this, g)
+      def multiSetEquals(g:FSequent) = FSequent.multiSetEquals(this, g)
+      def formulas : Seq[HOLFormula] = antecedent ++ succedent
+
+      def diff(that : FSequent) = FSequent(this.antecedent diff that.antecedent, this.succedent diff that.succedent)
+
+      /*
+       compose constructs a sequent from two sequents. Corresponds to the 'o' operator in CERes
+      */
+      def compose(other: FSequent) = FSequent(antecedent ++ other.antecedent, succedent ++ other.succedent)
+
+      def toFormula() = Or( antecedent.toList.map(x=> Neg( x ) ) ++ succedent.map(identity) )
+
+      def isEmpty = _1.isEmpty && _2.isEmpty
+
+      def sorted = FSequent(_1.sorted(HOLOrdering), _2.sorted(HOLOrdering))
+    }
+>>>>>>> .merge-right.r1940
+
   }
 
+<<<<<<< .working
   def setEquals(g:FSequent) = FSequent.setEquals(this, g)
   def multiSetEquals(g:FSequent) = FSequent.multiSetEquals(this, g)
   def formulas : Seq[HOLFormula] = antecedent ++ succedent
+=======
+  object FSequentOrdering extends FSequentOrdering;
+  class FSequentOrdering extends Ordering[FSequent]  {
+    def compare(x:FSequent,y:FSequent)  : Int = {
+      if (x.antecedent.size < y.antecedent.size) -1 else
+      if (y.antecedent.size < x.antecedent.size) 1 else
+      if (x.antecedent.size == y.antecedent.size && x.succedent.size < y.succedent.size) -1 else
+      if (x.antecedent.size == y.antecedent.size && y.succedent.size < x.succedent.size) 1 else
+      {
+        assert(x.antecedent.size == y.antecedent.size &&
+                x.succedent.size == y.succedent.size, "Implementation error comparing FSequents!")
+        val xs = x.sorted.formulas
+        val ys = y.sorted.formulas
+        val xys = xs zip ys
+        xys.foldLeft(0)( (rv, pair) => {
+          //as long as it is undecided, we compare pairs
+          if (rv == 0) HOLOrdering.compare(pair._1, pair._2)
+          //otherwise we pass the result on
+          else rv
+        })
+      }
+    }
+  }
+
+
+
+  object FSequent {
+    def apply(ant: Seq[HOLFormula], succ: Seq[HOLFormula]) : types.FSequent =  new FSequent(ant,succ) //Pair(ant, succ)
+    def apply(seq : Sequent) : types.FSequent = FSequent(seq.antecedent map (_.formula), seq.succedent map (_.formula))
+>>>>>>> .merge-right.r1940
 
   /*
    compose constructs a sequent from two sequents. Corresponds to the 'o' operator in CERes
@@ -56,6 +129,7 @@ object FSequent {
 
 class Sequent(val antecedent: Seq[FormulaOccurrence], val succedent: Seq[FormulaOccurrence]) {
 
+<<<<<<< .working
   //TODO improve both equals methods
   def multisetEquals( o: Sequent ) = o.antecedent.diff(antecedent).isEmpty &&
                                      o.succedent.diff(succedent).isEmpty &&
@@ -68,6 +142,10 @@ class Sequent(val antecedent: Seq[FormulaOccurrence], val succedent: Seq[Formula
   override def equals(o: Any) = o match {
     case s: Sequent => multisetEquals(s)
     case _ => false
+=======
+
+
+>>>>>>> .merge-right.r1940
   }
   // compares the multiset of formulas
   def syntacticMultisetEquals(o: Sequent ) = {
@@ -124,7 +202,54 @@ class Sequent(val antecedent: Seq[FormulaOccurrence], val succedent: Seq[Formula
         else first = false
         sb.append(f.formula)
     }
+<<<<<<< .working
     sb.toString
+=======
+
+   def =^(o: Sequent): Boolean = syntacticMultisetEquals(o)
+   def removeFormulasAtOccurrences(occs: Seq[Occurrence]): Sequent = Sequent(
+        antecedent.filterNot(x => occs.contains(x)),
+        succedent.filterNot(x => occs.contains(x))
+      )
+    def getChildOf(fo: Occurrence): Option[FormulaOccurrence] = (antecedent ++ succedent).find(_.ancestors.contains(fo))
+    //override def toString : String = antecedent.toString + " :- " + succedent.toString
+    def toStringSimple : String = antecedent.foldRight("")( (f, str) => str + ", " + f.formula.toStringSimple ) + " :- " +
+                                  succedent.foldRight("")( (f, str) => str + ", " + f.formula.toStringSimple )
+    def toFSequent() : FSequent = {
+      FSequent(antecedent.map(fo => fo.formula), succedent.map(fo => fo.formula))
+    }
+
+    def toFormula() : HOLFormula = this.toFSequent().toFormula()
+
+    // checks whether this sequent is of the form F :- F 
+    // TODO: name of this function should be changed -  there are many tautologies of different shape - new name: e.g. isIdAxiom
+    def isTaut = antecedent.size == 1 && succedent.size == 1 && antecedent.head.formula == succedent.head.formula
+
+    // checks whether this sequent is of the form :- t = t
+    def isReflexivity = antecedent.size == 0 && succedent.size == 1 && (
+      succedent.head.formula match {
+        case Equation( s, t ) => ( s == t )
+        case _ => false
+      }
+    )
+
+    def occurrences = antecedent ++ succedent
+
+    //sanity checks for free and bound variables
+    // TODO: should this be here??
+    def checkFormulaOccurrences(l : Seq[FormulaOccurrence]) = {
+      (l filterNot ((fo : FormulaOccurrence) => 
+        checkFormulas( List(fo.formula) ++ fo.ancestors.map(((occ:FormulaOccurrence) => occ.formula) ) ))
+      ).isEmpty
+    }
+    
+    def checkFormulas(l : Seq[HOLFormula]) = {
+      (l.foldLeft(List[LambdaExpression]())((x:List[LambdaExpression], y:HOLFormula) => 
+        x ++ checkLambdaExpression(y) )
+      ).isEmpty
+    }
+
+>>>>>>> .merge-right.r1940
   }
 
 }
@@ -133,10 +258,28 @@ object Sequent {
   def unapply(so: Sequent) = Some(so.antecedent, so.succedent)
 }
 
+<<<<<<< .working
 // exceptions
 class LKRuleException(msg: String) extends RuleException(msg)
 class LKRuleCreationException(msg: String) extends LKRuleException(msg)
 class FormulaNotExistsException(msg: String) extends LKRuleException(msg)
+=======
+  // exceptions
+  class LKRuleException(msg: String) extends RuleException(msg)
+  class LKRuleCreationException(msg: String) extends LKRuleException(msg)
+  //these two classes allow detailed error diagnosis
+  case class LKUnaryRuleCreationException(name: String, parent: LKProof, aux : List[HOLFormula])
+    extends LKRuleCreationException("") {
+    override def getMessage() = "Could not create lk rule "+name+" from parent "+parent.root+" with auxiliary formulas "+aux.mkString(", ")
+  }
+  case class LKBinaryRuleCreationException(name: String, parent1: LKProof, aux1 : HOLFormula,  parent2: LKProof, aux2 : HOLFormula)
+    extends LKRuleCreationException("") {
+    override def getMessage() = "Could not create lk rule "+name+" from left parent "+parent1.root+" with auxiliary formula "+aux1+
+      " and right parent "+parent2.root+" with auxiliary formula "+aux2
+  }
+
+  class FormulaNotExistsException(msg: String) extends LKRuleException(msg)
+>>>>>>> .merge-right.r1940
 
 trait LKProof extends TreeProof[Sequent] with Tree[Sequent] {
   def getDescendantInLowerSequent(fo: Occurrence): Option[FormulaOccurrence] = {

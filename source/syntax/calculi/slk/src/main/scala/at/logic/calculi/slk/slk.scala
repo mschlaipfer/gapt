@@ -40,11 +40,12 @@ class SchemaProof(val name: String, val vars: List[IntVar], val seq: FSequent, v
 
 object SchemaProofDB extends Iterable[(String, SchemaProof)] with TraversableOnce[(String, SchemaProof)] {
   val proofs = new scala.collection.mutable.HashMap[String, SchemaProof]
+  val LinkTerms = new scala.collection.mutable.HashMap[String, List[HOLExpression]]
 
-  def clear = proofs.clear
+  def clear = { proofs.clear;  LinkTerms.clear;}
 
   def get(name: String) = proofs(name)
-
+  def getLinkTerms(name: String) = LinkTerms(name)
   // Compute a map between sets of FOs from
   // SchemaProofLinkRules and end-sequents of proof.base, proof.rec
   // and CutConfigurations, such that the CutConfigurations are
@@ -59,6 +60,7 @@ object SchemaProofDB extends Iterable[(String, SchemaProof)] with TraversableOnc
   }
 
   def put(proof: SchemaProof) = proofs.put(proof.name, proof)
+  def putLinkTerms(name: String,linkparams:  List[HOLExpression]) = LinkTerms.put(name, linkparams)
   def iterator = proofs.iterator
 }
 
@@ -68,8 +70,13 @@ trait SchemaProofLink {
 }
 
 object FOSchemaProofLinkRule {
+<<<<<<< .working
   def apply(seq: FSequent, link_name: String, indices_ : List[SchemaExpression]) = {
     def createSide(side : Seq[SchemaFormula]) = {
+=======
+  def apply(seq: FSequent, link_name: String, indices_ : List[HOLExpression]) : LeafTree[Sequent] with NullaryLKProof with SchemaProofLink = {
+    def createSide(side : Seq[HOLFormula]) = {
+>>>>>>> .merge-right.r1940
       side.map(f =>factory.createFormulaOccurrence(f, Seq.empty[FormulaOccurrence]))
     }
     new LeafTree[Sequent]( Sequent(createSide(seq._1.map(f => f.asInstanceOf[SchemaFormula])), createSide(seq._2.map(f => f.asInstanceOf[SchemaFormula])) ) ) with NullaryLKProof with SchemaProofLink {
@@ -86,6 +93,24 @@ object FOSchemaProofLinkRule {
     }
     else None
 }
+object EXFOSchemaProofLinkRule  {
+  def unapply( proof: LKProof ) =
+    if (proof.rule == SchemaProofLinkRuleType) {
+      val r = proof.asInstanceOf[NullaryLKProof with SchemaProofLink]
+      Some((r.root, r.link, r.indices))
+    }
+    else None
+
+}
+//object ExtendedFOProofLinkRule {
+//  def unapply( proof: LKProof ) =
+//    if (proof.rule == SchemaProofLinkRuleType) {
+//      val r = proof.asInstanceOf[NullaryLKProof with SchemaProofLink]
+//      val intterm = r.indices(0)
+//      Some((r.root, r.link, r.indices, intterm))
+//    }
+//    else None
+//}
 
 object SchemaProofLinkRule {
   def apply(seq: FSequent, link_name: String, indices_ : List[IntegerTerm])(implicit factory: FOFactory) = {

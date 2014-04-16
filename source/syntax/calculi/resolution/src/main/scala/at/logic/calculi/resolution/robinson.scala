@@ -73,8 +73,23 @@ object Resolution {
           }
         }
 
+<<<<<<< .working
       case _ =>
         throw new LKRuleCreationException("Auxiliary formulas are not contained in the correct part of the sequent (first argument positive, second negative)")
+=======
+  object InitialClause {
+    def apply(c: FClause) (implicit factory: FOFactory): RobinsonResolutionProof =
+      apply( c.neg.map(f => f.asInstanceOf[FOLFormula]), c.pos.map(f => f.asInstanceOf[FOLFormula] ) )
+
+    def apply(ant: Seq[FOLFormula], suc: Seq[FOLFormula]) (implicit factory: FOFactory): RobinsonResolutionProof = {
+      val left: Seq[FormulaOccurrence] = ant.map(factory.createFormulaOccurrence(_,Nil))
+      val right: Seq[FormulaOccurrence] = suc.map(factory.createFormulaOccurrence(_,Nil))
+      new LeafAGraph[Clause](Clause(left, right)) with NullaryResolutionProof[Clause]  with RobinsonResolutionProof {
+        def rule = InitialType
+        override def name = ""
+        def getAccumulatedSubstitution = Substitution[FOLExpression]()
+      }
+>>>>>>> .merge-right.r1940
     }
   }
  def unapply(proof: ResolutionProof[Clause] with AppliedSubstitution) = if (proof.rule == ResolutionType) {
@@ -85,11 +100,28 @@ object Resolution {
     else None
 }
 
+<<<<<<< .working
 object Paramodulation {
   def apply(p1: RobinsonResolutionProof, p2: RobinsonResolutionProof, a1: Occurrence, a2: Occurrence, newLiteral: FOLFormula, sub: Substitution): RobinsonResolutionProof = {
     val term1op = p1.root.succedent.find(_ == a1)
     val term2opAnt = p2.root.antecedent.find(_ == a2)
     val term2opSuc = p2.root.succedent.find(_ == a2)
+=======
+  // left side is always resolved on positive literal and right on negative
+  object Resolution {
+
+    def apply(p1: RobinsonResolutionProof, p2: RobinsonResolutionProof,
+              a1: FOLFormula, a2: FOLFormula, sub: Substitution[FOLExpression]): RobinsonResolutionProof = {
+      val a1occ = p1.root.succedent.find( _.formula == a1 ).get
+      val a2occ = p2.root.antecedent.find( _.formula == a2 ).get
+      apply( p1, p2, a1occ, a2occ, sub )
+    }
+
+    def apply(p1: RobinsonResolutionProof, p2: RobinsonResolutionProof,
+              a1: FormulaOccurrence, a2: FormulaOccurrence, sub: Substitution[FOLExpression]): RobinsonResolutionProof = {
+      val term1op = p1.root.succedent.find(_ == a1)
+      val term2op = p2.root.antecedent.find(_ == a2)
+>>>>>>> .merge-right.r1940
 
     (term1op, term2opAnt, term2opSuc) match {
       case (None, _ , _ ) => throw new LKRuleCreationException("Auxiliary formulas are not contained in the right part of the sequent")
@@ -133,12 +165,49 @@ object Paramodulation {
     if (p.aux(0).size != 1) throw new Exception("Unexpected number of auxiliary clauses during Paramodulation matching (aux(0).size != 1)!")
     if (p.aux(1).size != 1) throw new Exception("Unexpected number of auxiliary clauses during Paramodulation matching (aux(1).size != 1)!")
 
+<<<<<<< .working
     Some( (p.root, p.uProof1.asInstanceOf[RobinsonResolutionProof], p.uProof2.asInstanceOf[RobinsonResolutionProof],
       p.aux(0)(0), p.aux(1)(0), p.substitution.asInstanceOf[Substitution]) )
   } else None
 }
+=======
+  object Paramodulation {
+    def apply(p1: RobinsonResolutionProof, p2: RobinsonResolutionProof, a1: FOLFormula, a2: FOLFormula, newLiteral: FOLFormula, sub: Substitution[FOLExpression], pos: Boolean): RobinsonResolutionProof = {
+      val a1occ = p1.root.succedent.find( _.formula == a1 ).get
+      val list2 = if (pos) p2.root.succedent else p2.root.antecedent
+      val a2occ = list2.find( _.formula == a2 ).get
+      apply( p1, p2, a1occ, a2occ, newLiteral, sub)
+    }
 
+    def apply(p1: RobinsonResolutionProof, p2: RobinsonResolutionProof, a1: Occurrence, a2: Occurrence, newLiteral: FOLFormula, sub: Substitution[FOLExpression]): RobinsonResolutionProof = {
+      val term1op = p1.root.succedent.find(_ == a1)
+      val term2opAnt = p2.root.antecedent.find(_ == a2)
+      val term2opSuc = p2.root.succedent.find(_ == a2)
+>>>>>>> .merge-right.r1940
 
+<<<<<<< .working
+=======
+      (term1op, term2opAnt, term2opSuc) match {
+        case (None, _ , _ ) => throw new LKRuleCreationException("Auxiliary formulas are not contained in the right part of the sequent")
+        case (_ ,None,None) => throw new LKRuleCreationException("Auxiliary formulas are not contained in the right part of the sequent")
+        case (Some(term1), Some(term2), _ ) =>
+          val prinFormula = term2.factory.createFormulaOccurrence(sub(newLiteral).asInstanceOf[FOLFormula], term1::term2::Nil)
+          new BinaryAGraph[Clause](Clause(
+              createContext(p1.root.antecedent, sub) ++ createContext(p2.root.antecedent.filterNot(_ == term2), sub) :+ prinFormula,
+              createContext(p1.root.succedent.filterNot(_ == term1), sub) ++ createContext(p2.root.succedent, sub))
+            , p1, p2)
+            with BinaryResolutionProof[Clause] with AppliedSubstitution[FOLExpression] with AuxiliaryFormulas with RobinsonResolutionProof with PrincipalFormulas {
+                def rule = ParamodulationType
+                def aux = (term1::Nil)::(term2::Nil)::Nil
+                def substitution = sub
+                override def toString = "Para(" + root.toString + ", " + p1.toString + ", " + p2.toString + ", " + substitution.toString + ")"
+                override def name = "pmod"
+                def getAccumulatedSubstitution = substitution compose p1.getAccumulatedSubstitution compose p2.getAccumulatedSubstitution
+                def prin = prinFormula::Nil
+            }
+>>>>>>> .merge-right.r1940
+
+<<<<<<< .working
 object Variant {
   def apply(p: RobinsonResolutionProof, sub: Substitution): RobinsonResolutionProof = {
     require( sub.isRenaming )
@@ -150,7 +219,39 @@ object Variant {
           override def toString = "Vr(" + root.toString + ", " + p.toString + ", " + substitution.toString + ")"
           override def name = "variant"
           def getAccumulatedSubstitution = substitution compose p.getAccumulatedSubstitution
+=======
+        case (Some(term1), _ , Some(term2)) =>
+          val term2 = term2opSuc.get
+          val prinFormula = term2.factory.createFormulaOccurrence(sub(newLiteral).asInstanceOf[FOLFormula], term1::term2::Nil)
+          new BinaryAGraph[Clause](Clause(
+              createContext(p1.root.antecedent, sub) ++ createContext(p2.root.antecedent, sub),
+              createContext(p1.root.succedent.filterNot(_ == term1), sub) ++ createContext(p2.root.succedent.filterNot(_ == term2), sub)  :+ prinFormula)
+            , p1, p2)
+            with BinaryResolutionProof[Clause] with AppliedSubstitution[FOLExpression] with AuxiliaryFormulas with RobinsonResolutionProof with PrincipalFormulas{
+                def rule = ParamodulationType
+                def aux = (term1::Nil)::(term2::Nil)::Nil
+                def substitution = sub
+                override def toString = "Para(" + root.toString + ", " + p1.toString + ", " + p2.toString + ", " + substitution.toString + ")"
+                override def name = "pmod"
+                def getAccumulatedSubstitution = substitution compose p1.getAccumulatedSubstitution compose p2.getAccumulatedSubstitution
+                def prin = prinFormula::Nil
+            }
+>>>>>>> .merge-right.r1940
         }
+<<<<<<< .working
+=======
+    }
+    
+    def unapply(proof: ResolutionProof[Clause] with AppliedSubstitution[FOLExpression]) = if (proof.rule == ParamodulationType) {
+      val p = proof.asInstanceOf[BinaryResolutionProof[Clause] with AppliedSubstitution[FOLExpression] with AuxiliaryFormulas with RobinsonResolutionProof with PrincipalFormulas]
+      if (p.aux.size != 2) throw new Exception("Unexpected number of auxiliary clauses during Paramodulation matching (aux.size != 2)!")
+      if (p.aux(0).size != 1) throw new Exception("Unexpected number of auxiliary clauses during Paramodulation matching (aux(0).size != 1)!")
+      if (p.aux(1).size != 1) throw new Exception("Unexpected number of auxiliary clauses during Paramodulation matching (aux(1).size != 1)!")
+
+      Some( (p.root, p.uProof1.asInstanceOf[RobinsonResolutionProof], p.uProof2.asInstanceOf[RobinsonResolutionProof],
+        p.aux(0)(0), p.aux(1)(0), p.prin(0), p.substitution) )
+    } else None
+>>>>>>> .merge-right.r1940
   }
 
   def apply(p: RobinsonResolutionProof): ResolutionProof[Clause] = {
@@ -181,6 +282,7 @@ object Factor {
    * apply the same resolution step and therefore this substitution should be anyway generated.
    */
 
+<<<<<<< .working
   /* creates a factorization of a single formula */
   def apply(p: RobinsonResolutionProof,
             a: FormulaOccurrence, occurrencesToRemove: Seq[FormulaOccurrence],
@@ -190,6 +292,57 @@ object Factor {
     val newCl = Clause( createContext( r.antecedent, sub, additional_ancestors ), createContext( r.succedent, sub, additional_ancestors ))
     new UnaryAGraph[Clause](newCl, p)
       with UnaryResolutionProof[Clause] with AppliedSubstitution with AuxiliaryFormulas with RobinsonResolutionProof {
+=======
+  object Factor {
+    /* the substitution contains also the substitutions generated by the resolution step happening later. We apply it
+     * now as it does not contain temporary substitutions for example:
+     * we first resolve p(y), p(x), -p(f(y) with -p(a) to get p(y), -p(f(y)) with x -> a and then we look for possible
+     * factors, like y -> x and get the factor p(x), -p(f(x)) with substitution y -> x and x -> a. but as we combine
+     * the substitutions we cannot remove the substitution generated by the first step. This is not important as we
+     * apply the same resolution step and therefore this substitution should be anyway generated.
+     */
+
+    /* creates a factorization of a single formula */
+    def apply(p: RobinsonResolutionProof,
+              a: FormulaOccurrence, occurrencesToRemove: Seq[FormulaOccurrence],
+              sub: Substitution[FOLExpression]): RobinsonResolutionProof = {
+      val r = p.root.removeFormulasAtOccurrences(occurrencesToRemove)
+      val additional_ancestors = Map[FormulaOccurrence, List[FormulaOccurrence]]() + ((a,occurrencesToRemove))
+      val newCl = Clause( createContext( r.antecedent, sub, additional_ancestors ), createContext( r.succedent, sub, additional_ancestors ))
+      new UnaryAGraph[Clause](newCl, p)
+        with UnaryResolutionProof[Clause] with AppliedSubstitution[FOLExpression] with AuxiliaryFormulas with RobinsonResolutionProof {
+          def rule = FactorType
+          def substitution = sub
+          def aux = (a::occurrencesToRemove.toList)::Nil
+          override def toString = "Fac(" + root + ", " + p.toString + ", " + substitution.toString + ")"
+          override def name = "factor"
+          def getAccumulatedSubstitution = substitution compose p.getAccumulatedSubstitution
+        }
+    }
+
+    /* factors cnt occurrences of a literal into 1.*/
+    def apply(p: RobinsonResolutionProof,
+              a: Formula, cnt: Int, pos: Boolean, sub: Substitution[FOLExpression]): RobinsonResolutionProof = {
+      val list = if (pos) p.root.positive else p.root.negative
+      val occ = list.find( fo => fo.formula == a).get
+      val occs = list.foldLeft(List[FormulaOccurrence]())( (res, fo) => if (res.size < cnt - 1 && fo.formula == a) 
+          fo::res
+        else
+          res)
+      apply( p, occ, occs, sub)
+    }
+
+    /* creates a factorization of two formulas (intention: one positive and one negative) of the sequent */
+    def apply(p: RobinsonResolutionProof,
+              a: FormulaOccurrence, oc1: Seq[FormulaOccurrence],
+              b: FormulaOccurrence, oc2: Seq[FormulaOccurrence],
+              sub: Substitution[FOLExpression]): RobinsonResolutionProof = {
+      val r = p.root.removeFormulasAtOccurrences(oc1 ++ oc2)
+      val additional_ancestors = Map[FormulaOccurrence, List[FormulaOccurrence]]() ++ List((a,oc1), (b,oc2))
+      val newCl = Clause( createContext( r.antecedent, sub, additional_ancestors ), createContext( r.succedent, sub, additional_ancestors ))
+      new UnaryAGraph[Clause](newCl, p)
+        with UnaryResolutionProof[Clause] with AppliedSubstitution[FOLExpression] with AuxiliaryFormulas with RobinsonResolutionProof {
+>>>>>>> .merge-right.r1940
         def rule = FactorType
         def substitution = sub
         def aux = (a::occurrencesToRemove.toList)::Nil
@@ -216,6 +369,36 @@ object Factor {
       override def name = "factor"
       def getAccumulatedSubstitution = substitution compose p.getAccumulatedSubstitution
     }
+<<<<<<< .working
+=======
+
+    /* factors a_cnt occurrences of a (pos) and b_cnt occurrences of b (neg)
+       into 1.*/
+    def apply(p: RobinsonResolutionProof,
+              a: Formula, a_cnt: Int, b: Formula, b_cnt: Int,
+              sub: Substitution[FOLExpression]): RobinsonResolutionProof = {
+      val a_occ = p.root.negative.find( fo => fo.formula == a).get
+      val b_occ = p.root.positive.find( fo => fo.formula == b).get
+      val oc1 = p.root.negative.foldLeft(List[FormulaOccurrence]())( (res, fo) => if (res.size < a_cnt - 1 && fo.formula == a) 
+          fo::res
+        else
+          res)
+      val oc2 = p.root.positive.foldLeft(List[FormulaOccurrence]())( (res, fo) => if (res.size < b_cnt - 1 && fo.formula == b) 
+          fo::res
+        else
+          res)
+      apply( p, a_occ, oc1, b_occ, oc2, sub)
+    }
+
+    /* decomposes to root clause, parent proof, aux formula and the substitution needed
+     * aux contains the list of auxiliar formulas for each factored formula in the conclusion
+     * (i.e. aux.size is either 1 or 2, each contained list has size >=1).  */
+    def unapply(proof: ResolutionProof[Clause] with AppliedSubstitution[FOLExpression]) = if (proof.rule == FactorType) {
+        val pr = proof.asInstanceOf[UnaryResolutionProof[Clause] with AppliedSubstitution[FOLExpression] with AuxiliaryFormulas]
+        Some((pr.root, pr.uProof.asInstanceOf[RobinsonResolutionProof], pr.aux, pr.substitution))
+      }
+      else None
+>>>>>>> .merge-right.r1940
   }
 
   /* decomposes to root clause, parent proof, aux formula and the substitution needed
@@ -252,7 +435,7 @@ object Formatter {
       else
         (m2 + ((clause, h2+1)), h2+1)
 
-    case Paramodulation(clause, p1, p2, occ1, occ2, subst) =>
+    case Paramodulation(clause, p1, p2, occ1, occ2, _, subst) =>
       val (m1,h1) = createMap(p1, i, map)
       val (m2,h2) = createMap(p2, h1, m1)
       if (m2 contains clause)
@@ -322,7 +505,7 @@ object Formatter {
         (str1 + str2 + "\\RL{Resolve} \n\\BI{" + f(clause.negative) + "}{" + f(clause.positive) +"}",   e1)
 
 
-      case Paramodulation(clause, p1, p2, occ1, occ2, subst) =>
+      case Paramodulation(clause, p1, p2, occ1, occ2, _, subst) =>
         val (str1, e1) = tex( p1, ids, edges)
         val (str2, e2) = tex( p2, ids, e1)
         (str1 + str2 + "\\RL{Para} \n\\BI{" + f(clause.negative) + "}{" + f(clause.positive) +"}",   e1)
@@ -365,7 +548,7 @@ object Formatter {
           triple :: e2)
 
 
-    case Paramodulation(clause, p1, p2, occ1, occ2, subst) =>
+    case Paramodulation(clause, p1, p2, occ1, occ2, _, subst) =>
       val (str1, e1) = gv( p1, ids, edges)
       val (str2, e2) = gv( p2, ids, e1)
       val triple = List(ids(clause), ids(p1.vertex), ids(p2.vertex))
@@ -415,7 +598,7 @@ object Formatter {
     case Resolution(clause, p1, p2, occ1, occ2, subst) =>
       indent + "(" + ids(clause) +") Resolution(["+clause+"] aux1=["+ occ1.formula + "] aux2=["+occ2.formula + "] sub=" + subst + ")\n" +
         apply("  "+indent, p1, ids) + apply("  "+indent, p2, ids)
-    case Paramodulation(clause, p1, p2, occ1, occ2, subst) =>
+    case Paramodulation(clause, p1, p2, occ1, occ2, _, subst) =>
       indent + "(" + ids(clause) + ") Paramodulation(["+clause+"] aux1=["+ occ1.formula + "] aux2=["+occ2.formula + "])\n" +
         apply("  "+indent, p1, ids) + apply("  "+indent, p2, ids)
     case Factor(clause, p1, occs, sub) =>

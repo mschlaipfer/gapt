@@ -11,7 +11,7 @@ import swing._
 import event.MouseClicked
 import java.awt.{Font, Color}
 import java.awt.event.MouseEvent
-import at.logic.calculi.expansionTrees.{ExpansionTree, WeakQuantifier, StrongQuantifier, And => AndET, Or => OrET, Imp => ImpET, Not => NotET, Atom => AtomET}
+import at.logic.calculi.expansionTrees.{ExpansionTree, WeakQuantifier, StrongQuantifier, And => AndET, Or => OrET, Imp => ImpET, Neg => NegET, Atom => AtomET}
 import org.scilab.forge.jlatexmath.{TeXConstants, TeXFormula}
 import java.awt.image.BufferedImage
 import at.logic.language.hol._
@@ -54,7 +54,7 @@ class DrawExpansionTree(val expansionTree: ExpansionTree, private val ft: Font) 
       contents += label("⊃",ft)
       contents += new DrawExpansionTree(right,ft)
       contents += parenthesis._2
-    case NotET(tree) =>
+    case NegET(tree) =>
       contents += label("¬",ft)
       contents += new DrawExpansionTree(tree,ft)
     case AtomET(f) =>
@@ -101,7 +101,7 @@ class DrawExpansionTree(val expansionTree: ExpansionTree, private val ft: Font) 
       extractTerms(left) ::: extractTerms(right)
     case ImpET(left, right) =>
       extractTerms(left) ::: extractTerms(right)
-    case NotET(tree) => extractTerms(tree)
+    case NegET(tree) => extractTerms(tree)
     case AtomET(f) => Nil
   }
 
@@ -137,7 +137,7 @@ class DrawExpansionTree(val expansionTree: ExpansionTree, private val ft: Font) 
 //      if (ll == Nil) rl
 //      else if (rl == Nil) ll
 //      else ll.foldLeft(List.empty[HOLFormula])((r, f1) => r ::: rl.map(f2 => Imp(f1,f2)))
-//    case NotET(tree) =>
+//    case NegET(tree) =>
 //      extractFormulas(tree,formula,n,start).map(f => Neg(f))
 //    case AtomET(f) => if (start) List(f) else Nil
 //  }
@@ -188,7 +188,7 @@ class DrawExpansionTree(val expansionTree: ExpansionTree, private val ft: Font) 
         val (quantifiers, number, formula) = analyzeFormula(holF)
         val (list1, list2) = splitList(number,list)
         if ( state.get(holF) != Some(Expand) ) {
-          val lbl = DrawSequent.latexToLabel(quantifiers, ft)
+          val lbl = LatexLabel(ft,quantifiers)
           if (allow) lbl.reactions += {
             case e: MouseClicked if e.peer.getButton == MouseEvent.BUTTON3 =>
               PopupMenu(DrawExpansionTree.this, holF, lbl, e.point.x, e.point.y)
@@ -206,7 +206,7 @@ class DrawExpansionTree(val expansionTree: ExpansionTree, private val ft: Font) 
         } else {
           val formulas = expTrees.map(et => extractET(et,number)).flatten
           if (formulas != Nil) { // Assumed that proofs are skolemized, i.e. there is no quantifier alternation.
-            val lbl = DrawSequent.latexToLabel(getMatrixSymbol(holF), ft)
+            val lbl = LatexLabel(ft, getMatrixSymbol(holF))
             lbl.reactions += {
               case e: MouseClicked if e.peer.getButton == MouseEvent.BUTTON1 => close(holF)
               case e: MouseClicked if e.peer.getButton == MouseEvent.BUTTON3 =>

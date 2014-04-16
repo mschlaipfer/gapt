@@ -17,7 +17,7 @@ import scala.collection.immutable.HashSet
 
 package robinson {
 
-import at.logic.language.fol.Neg
+import at.logic.language.fol.{Neg, freeVariables}
 import at.logic.language.hol.{HOLVar, Formula, HOLExpression, Neg => HOLNeg}
 import at.logic.language.lambda.types.->
 import at.logic.utils.traits.Occurrence
@@ -202,11 +202,11 @@ object createContext {
 
     def apply(p: RobinsonResolutionProof): ResolutionProof[Clause] = {
       // TODO: refactor the following into Sequent.getFreeAndBoundVariables
-      val vars = p.root.occurrences.foldLeft( HashSet[Var]() )( (m, f) => m ++ f.freeVariables.asInstanceOf[Set[FOLVar]] )
+      val vars = p.root.occurrences.foldLeft( HashSet[FOLVar]() )( (m, f) => m ++ freeVariables(f.formula.asInstanceOf[FOLFormula]) )
       // TODO: should not be necessary to pass argument Ti() here.
       // we return an actual variant only if there are free variables, otherwise we return the parent proof as it does not change
       if (vars.isEmpty) p
-      else apply( p, Substitution( vars.map( v => (v, v.factory.createVar( FreshVariableSymbolFactory.getVariableSymbol, Ti()) ) ).toMap ).asInstanceOf[Substitution] )
+      else apply( p, Substitution( rename(vars, vars) ) )
     }
 
     def unapply(proof: ResolutionProof[Clause] with AppliedSubstitution) = if (proof.rule == VariantType) {
@@ -499,7 +499,7 @@ object Formatter {
     case Resolution(clause, p1, p2, occ1, occ2, subst) =>
       indent + "(" + ids(clause) +") Resolution(["+clause+"] aux1=["+ occ1.formula + "] aux2=["+occ2.formula + "] sub=" + subst + ")\n" +
         apply("  "+indent, p1, ids) + apply("  "+indent, p2, ids)
-    case Paramodulation(clause, p1, p2, occ1, occ2, subst) =>
+    case Paramodulation(clause, p1, p2, occ1, occ2, main, subst) =>
       indent + "(" + ids(clause) + ") Paramodulation(["+clause+"] aux1=["+ occ1.formula + "] aux2=["+occ2.formula + "])\n" +
         apply("  "+indent, p1, ids) + apply("  "+indent, p2, ids)
     case Factor(clause, p1, occs, sub) =>

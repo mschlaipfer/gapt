@@ -41,9 +41,8 @@ object LKskFOFactory extends FOFactory {
     val l = l_ancestors.head.skolem_label
     assert( l_ancestors.forall( a => a.skolem_label == l ) )
     new LabelledFormulaOccurrence(sub(formula).asInstanceOf[HOLFormula], l_ancestors, l.map( sub(_) ) )
-
-    def unapply(fo : LabelledFormulaOccurrence) = Some(fo.formula, fo.ancestors, fo.skolem_label)
   }
+
 
   def createOccurrence(formula: HOLFormula, ancestors: List[LabelledFormulaOccurrence]) : LabelledFormulaOccurrence = {
     val l = ancestors.head.skolem_label

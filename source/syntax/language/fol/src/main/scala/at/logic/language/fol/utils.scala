@@ -45,6 +45,15 @@ object rename {
   //def apply(v: FOLVar, blackList: List[FOLVar]) : FOLVar = renameLambda(v, blackList).asInstanceOf[FOLVar]
   def apply(v: FOLVar, blackList: List[FOLVar]) : FOLVar = new FOLVar(getRenaming(v.sym, blackList.map(v => v.sym)))
   def apply(c: FOLConst, blackList: List[FOLConst]) : FOLConst = renameLambda(c, blackList).asInstanceOf[FOLConst]
+
+  // renames a list of variables to pairwise distinct variables
+  // while avoiding names from blackList.
+  def apply(vs: Set[FOLVar], blackList: Set[FOLVar]) : Map[FOLVar,FOLVar] = {
+    val v_list = vs.toList
+    ( v_list zip 
+      v_list.foldLeft(Nil : List[FOLVar])( 
+        (res, v) => res :+ apply( v, (blackList ++ res).toList ) ) ).toMap
+  }
 }
 
 /** Returns whether t is a function. */

@@ -91,5 +91,11 @@ object ListSupport {
     case Nil => default
     case (x::_) => x
   }
+
+  def remove_doubles[T](l:List[T]) : List[T] = remove_doubles_(l.reverse).reverse
+  private def remove_doubles_[T](l:List[T]) : List[T] = l match {
+    case Nil => Nil
+    case x::xs => if (xs contains x) remove_doubles_(xs) else x::remove_doubles_(xs)
+  }
 }
 

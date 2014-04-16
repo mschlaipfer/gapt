@@ -15,13 +15,9 @@ import at.logic.algorithms.lksk.applySubstitution
 import at.logic.algorithms.lk.getCutAncestors
 import at.logic.calculi.lk.base.FSequent
 import at.logic.calculi.occurrences.factory
-<<<<<<< .working
 import at.logic.calculi.lksk.TypeSynonyms.{EmptyLabel, Label}
 import at.logic.language.lambda.symbols.StringSymbol
 import at.logic.language.lambda.types.FunctionType
-=======
-import at.logic.algorithms.hlk._
->>>>>>> .merge-right.r1940
 
 
 object LKtoLKskc extends Logger {
@@ -88,19 +84,11 @@ object LKtoLKskc extends Logger {
         val newaux = r._2(a)
         val args = newaux.skolem_label.toList
         m.formula match {
-<<<<<<< .working
           case AllVar(HOLVar(_,alpha), _) =>
             val f = HOLConst(getFreshSkolemFunctionSymbol, FunctionType(alpha, args.map(_.exptype)))
             info( "Using Skolem function symbol '" + f + "' for formula " + m.formula )
             val s = Function( f, args )
             val subst = Substitution( v, s )
-=======
-          case All(_, t) => t match { case ( (alpha -> To()) -> To()) =>
-            val f = getFreshSkolemFunctionSymbol
-            info( "Using Skolem function symbol '" + f + "' for formula " + this.f(m.formula) )
-            val s = Function( f, args, alpha )
-            val subst = Substitution[HOLExpression]( v, s )
->>>>>>> .merge-right.r1940
 //            info("Substitution="+subst+" End-sequent:"+this.f(r._1.root))
             val new_parent = applySubstitution( r._1, subst )
             val new_proof = ForallSkRightRule(new_parent._1, new_parent._2(newaux), m.formula, s)
@@ -129,19 +117,11 @@ object LKtoLKskc extends Logger {
         val newaux = r._2(a)
         val args = newaux.skolem_label.toList
         m.formula match {
-<<<<<<< .working
           case ExVar(HOLVar(_,alpha), _) =>
             val f = HOLConst(getFreshSkolemFunctionSymbol, FunctionType(alpha, args.map(_.exptype)))
             info( "Using Skolem function symbol '" + f + "' for formula " + m.formula )
             val s = Function( f, args )
             val subst = Substitution( v, s )
-=======
-          case Ex(_, t) => t match { case ( (alpha -> To()) -> To()) =>
-            val f = getFreshSkolemFunctionSymbol
-            info( "Using Skolem function symbol '" + f + "' for formula " + this.f(m.formula) )
-            val s = Function( f, args, alpha )
-            val subst = Substitution[HOLExpression]( v, s )
->>>>>>> .merge-right.r1940
             val new_parent = applySubstitution( r._1, subst )
             val new_proof = ExistsSkLeftRule(new_parent._1, new_parent._2(newaux), m.formula, s)
             //assert( new_proof.root.isInstanceOf[LabelledSequent] )

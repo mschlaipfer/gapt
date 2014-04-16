@@ -29,7 +29,7 @@ object RobinsonToLK {
     }
   }
 
-  def fol2hol(s: Substitution[FOLExpression]):Substitution[HOLExpression] = s.asInstanceOf[Substitution[HOLExpression]]
+  //def fol2hol(s: Substitution[FOLExpression]):Substitution[HOLExpression] = s.asInstanceOf[Substitution[HOLExpression]]
 
   // if the proof can be obtained from the CNF(-s) then we compute an LKProof of |- s
   def apply(resproof: RobinsonResolutionProof, s: FSequent): LKProof = {
@@ -94,7 +94,7 @@ object RobinsonToLK {
             else throw new Exception("Unexpected number of auxiliary formulas!")
 
           // obtain upper proof recursively and apply the current substitution to the resulted LK proof
-          var res = applySub(recConvert(p,seq,map), s)._1
+          var res = applySub(recConvert(p,seq,map,createAxiom), s)._1
 
           // create a contraction for each side, for each contracted formula with a._1 and a._2 (if exists)
           // note that sub must be applied to all formulas in the lk proof
@@ -103,25 +103,25 @@ object RobinsonToLK {
             // val leftAux = a(0) since we do not compare occurrences but only formulas and all formulas are identical in LK contraction, we can ignore this value
             // hasLeft = true
             res = leftContracted.foldLeft(res)((p, fo) => ContractionLeftRule(
-              p, s(fo.formula.asInstanceOf[FOLFormula]).asInstanceOf[HOLFormula]))
+              p, s(fo.formula)))
           }
           if (!rightContracted.isEmpty) {
             // val rightAux = if (hasLeft) a(1) else a(0)
             res = rightContracted.foldLeft(res)((p, fo) => ContractionRightRule(
-              p, s(fo.formula.asInstanceOf[FOLFormula]).asInstanceOf[HOLFormula]))
+              p, s(fo.formula)))
           }
           res
         }
-        case Variant(r, p, s) => applySub(recConvert(p, seq,map,createAxiom),fol2hol(s))._1 // the construction of an LK proof makes sure we create a tree out of the agraph
+        case Variant(r, p, s) => applySub(recConvert(p, seq,map,createAxiom), s)._1 // the construction of an LK proof makes sure we create a tree out of the agraph
         case Resolution(r, p1, p2, a1, a2, s) => {
-          val u1 = applySub(recConvert(p1, seq,map,createAxiom),fol2hol(s))._1
-          val u2 = applySub(recConvert(p2, seq,map,createAxiom),fol2hol(s))._1
+          val u1 = applySub(recConvert(p1, seq,map,createAxiom),s)._1
+          val u2 = applySub(recConvert(p2, seq,map,createAxiom),s)._1
           introduceContractions(CutRule(u1, u2, s(a1.formula.asInstanceOf[FOLFormula]).asInstanceOf[FOLFormula]),seq)
         }
         case Paramodulation(r, p1, p2, a1, a2, _, s) => {
 
-          val u1 = applySub(recConvert(p1, seq,map,createAxiom),fol2hol(s))._1
-          val u2 = applySub(recConvert(p2, seq,map,createAxiom),fol2hol(s))._1
+          val u1 = applySub(recConvert(p1, seq,map,createAxiom),s)._1
+          val u2 = applySub(recConvert(p2, seq,map,createAxiom),s)._1
 
           val Atom(_, s0 :: _) = a1.formula
           val s1 = s(s0.asInstanceOf[FOLExpression]).asInstanceOf[FOLTerm]
@@ -155,8 +155,8 @@ object RobinsonToLK {
           introduceContractions(retProof, seq)
         }
         // this case is applicable only if the proof is an instance of RobinsonProofWithInstance
-        case at.logic.calculi.resolution.instance.Instance(_,p,s) =>
-          applySub(recConvert(p, seq,map,createAxiom),fol2hol(s))._1
+        case Instance(_,p,s) =>
+          applySub(recConvert(p, seq,map,createAxiom),s)._1
       }
       map(proof.root.toFClause) = ret
       ret

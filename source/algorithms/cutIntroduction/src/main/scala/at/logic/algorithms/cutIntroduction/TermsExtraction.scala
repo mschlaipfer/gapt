@@ -26,22 +26,7 @@ object TermsExtraction {
 
   // If all the quantified formulas have only one quantifier, each list of
   // the list will have only one element
-<<<<<<< .working
-  // TODO: make this method use the apply for expansionTree by extracting this
-  // tree from the proof
-  def apply(proof: LKProof) : Map[FOLFormula, List[List[FOLTerm]]] = {
-    val es = proof.root
-    val formulas = es.antecedent ++ es.succedent
-    // Check if all formulas are prenex.
-    if( formulas.forall(f => isPrenex(f.formula.asInstanceOf[FOLFormula])) ) {
-      val map = extractTerms(proof)
-      map
-    }
-    else throw new TermsExtractionException("ERROR: Trying to extract the terms of a proof with non-prenex formulas: " + es.toString)
-  }
-=======
   def apply(proof: LKProof) : Map[FOLFormula, List[List[FOLTerm]]] = apply(extractExpansionTrees(proof))
->>>>>>> .merge-right.r1940
 
   // An expansion proof is a pair of expansion trees, one for each formula in
   // the antecedent and succedent of the end-sequent

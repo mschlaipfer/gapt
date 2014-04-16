@@ -64,11 +64,7 @@ object ComputeGrammars extends Logger {
 
   def apply(terms: List[FOLTerm], delta: DeltaVector) : List[Grammar] = {
     // TODO: when iterating for the case of multiple cuts, change this variable.
-<<<<<<< .working
-    val eigenvariable = FOLVar("α")
-=======
     val eigenvariable = "α"
->>>>>>> .merge-right.r1940
     
     //debug( "3rd version - computing delta-table" )
     val deltatable = new DeltaTable(terms, eigenvariable, delta)
@@ -79,18 +75,6 @@ object ComputeGrammars extends Logger {
     findValidGrammars(terms, deltatable, eigenvariable).sortWith((g1, g2) => g1.size < g2.size )
   }
 
-<<<<<<< .working
-  // Carbon copies of the apply methods that use findValidGrammars2.
-  // These exist so that the old and the new solution may be tested side by side.
-  // cutIntro in CutIntroduction.scala uses apply, cutIntro2, in addition to a more efficient version of improveSolution, uses apply2
- 
-  // Uses findValidGrammar2.
-  def apply2(terms: FlatTermSet) : List[Grammar] = apply2(terms.termset).map{ case g => g.flatterms = terms; g }
-
-  def apply2(terms: List[FOLTerm]) : List[Grammar] = {
-    // TODO: when iterating for the case of multiple cuts, change this variable.
-    val eigenvariable = FOLVar("α")
-=======
   /** Finds valid, minimum-size grammars based on a list of terms and a generalized delta table.
     * 
     *
@@ -99,7 +83,6 @@ object ComputeGrammars extends Logger {
     * @param eigenvariable The name of eigenvariables to introduce.
     */
   def findValidGrammars(terms: List[FOLTerm], deltatable: DeltaTable, eigenvariable: String) : List[Grammar] = {
->>>>>>> .merge-right.r1940
     
     //Helper functions for grammars
 

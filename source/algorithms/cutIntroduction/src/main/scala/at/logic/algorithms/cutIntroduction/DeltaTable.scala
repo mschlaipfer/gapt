@@ -80,7 +80,7 @@ class DeltaTable(terms: List[FOLTerm], eigenvariable: String, delta: DeltaVector
   // Fills the delta table with some terms
 
   // Initialize with empty decomposition
-  println( "initializing generalized delta-table (set-based)" )
+  trace( "initializing generalized delta-table (set-based)" )
   add(Set(), null, Nil)
 
 
@@ -153,10 +153,6 @@ class DeltaTable(terms: List[FOLTerm], eigenvariable: String, delta: DeltaVector
 
 
 
-
-
-
-
   /** Adds a decomposition (u,s), under the key s, to the delta table.
     * Specifically, s is the index and (u,T) is the key, where (u,S) is
     * a decomposition of T.
@@ -213,88 +209,3 @@ class DeltaTable(terms: List[FOLTerm], eigenvariable: String, delta: DeltaVector
   }
   */
 }
-<<<<<<< .working
-
-object delta {
-  // There must be a better way...
-  // TODO: this should go somewhere else?
-  def listEquals(lst1: List[FOLTerm], lst2: List[FOLTerm]) : Boolean = (lst1, lst2) match {
-    case (Nil, Nil) => true
-    case (hd1::tl1, hd2::tl2) => (hd1.syntaxEquals(hd2)) && listEquals(tl1, tl2)
-    case (_, _) => false
-  }
- 
-  // Delta difference
-  def apply(terms: List[FOLTerm], eigenvariable: FOLVar) : (FOLTerm, List[FOLTerm]) = terms.size match {
-    // IMPORTANT!!!!
-    // With this, the constant decomposition is not found. Without this, the constant decomposition is the only one found.
-    case 1 => return (eigenvariable, terms)
-    case _ => terms.head match {
-      // If the variables are reached
-      case FOLVar(_) | FOLConst(_) =>
-        // If all variables are equal
-        if ( terms.forall(t => t.syntaxEquals(terms.head)) ) { return (terms.head, Nil) }
-        // If there are different variables 
-        else { return (eigenvariable, terms) }
- 
-      // If the terms are functions
-      case Function(h, args) =>
-        // If all heads are the same
-        if ( terms.forall(t => t match {
-          case Function(h1, _) if h1 == h => true
-          case _ => false
-        }) ) {
-          // call delta recursively for every argument of every term
- 
-          // Compute a list of list of arguments
-          val allargs = terms.foldRight(List[List[FOLTerm]]()) ( (t, acc) => t match {
-              case Function(x, args) => args :: acc
-              case _ => throw new DeltaTableException("ERROR: Mal-formed terms list.")
-            })
- 
-          // The list above is a list of lists of arguments. Assume that each list
-          // of arguments has elements from 1 to n. A function should be called
-          // for a list of all elements in position i. If this was a matrix, this 
-          // is a function on the column of the matrix.
-          // By computing the transpose of this matrix, the columns are now the 
-          // rows, i.e., the inner lists. So we can just use fold to apply the
-          // function to every such list.
-          val listOfArgs = transpose(allargs)
-          val deltaOfArgs = listOfArgs.foldRight(List[(FOLTerm, List[FOLTerm])]()) ((a, acc) => delta(a, eigenvariable) :: acc)
-         
-          // A delta vector can be constructed only if the lists returned from the arguments are all the same
-          
-          // Get all non-empty sets of terms returned (we don't care about the empty ones).
-          val nonempty = deltaOfArgs.foldRight(List[List[FOLTerm]]()) ((x, acc) => x._2 match {
-            case Nil => acc
-            case t => t :: acc
-          })
- 
-          // If all the sets are empty
-          if (nonempty.length == 0) {
-            val newargs = deltaOfArgs.foldRight(List[FOLTerm]()) ((x, acc) => x._1 :: acc)
-            val u = Function(h, newargs)
-            (u, Nil) 
-          }
-          else {
-            // Check if they are the same
-            val first = nonempty.head
-            if (nonempty.forall(l => listEquals(l, first))) {
-              // All terms are the same
-              val newargs = deltaOfArgs.foldRight(List[FOLTerm]()) ((x, acc) => x._1 :: acc)
-              val u = Function(h, newargs)
-              (u, first)
-            }
-            // The terms returned from the arguments are different
-            else {
-              return (eigenvariable, terms)
-            }
-          }
-        }
-        // If head terms are different
-        else { return (eigenvariable, terms) }
-    }
-  }
-}
-=======
->>>>>>> .merge-right.r1940

@@ -13,35 +13,19 @@ import at.logic.calculi.occurrences._
 import at.logic.calculi.lk._
 import at.logic.language.hol.HOLFormula
 import at.logic.calculi.lk.base._
-<<<<<<< .working
-=======
-import at.logic.calculi.lk.base.types._
-import at.logic.calculi.lk.propositionalRules._
-import at.logic.calculi.lk.quantificationRules._
-import at.logic.calculi.lk.macroRules._
-import at.logic.language.lambda.symbols._
->>>>>>> .merge-right.r1940
 import at.logic.language.fol._
 import at.logic.algorithms.lk._
 import at.logic.algorithms.lk.statistics._
 import at.logic.algorithms.interpolation._
 import at.logic.algorithms.resolution._
-<<<<<<< .working
 import at.logic.calculi.resolution.FClause
-=======
 import at.logic.calculi.expansionTrees.{ExpansionTree, ExpansionSequent, toSequent, quantRulesNumber => quantRulesNumberET}
 import at.logic.transformations.herbrandExtraction.extractExpansionTrees
-import at.logic.calculi.resolution.base.FClause
->>>>>>> .merge-right.r1940
 import at.logic.utils.logging.Logger
-<<<<<<< .working
-import at.logic.calculi.expansionTrees.{ExpansionTree, toSequent}
-=======
 import at.logic.transformations.herbrandExtraction.extractExpansionTrees
 import at.logic.utils.executionModels.timeout._
 import at.logic.utils.constraint.{Constraint, NoConstraint, ExactBound, UpperBound}
 import Deltas._
->>>>>>> .merge-right.r1940
 
 class CutIntroException(msg: String) extends Exception(msg)
 class CutIntroUncompressibleException(msg: String) extends CutIntroException(msg)
@@ -184,17 +168,7 @@ object CutIntroduction extends Logger {
     println("\nMinimized cut formula: " + sanitizeVars(ehs.cutFormula) + "\n")
 
     smallestProof
-<<<<<<< .working
-      
-/* TODO: uncomment when fixed.
-    // Computing the interpolant (transform this into a separate function later)
-    
-    // A[s_i] forall i
-    val asi = s.map(t => cutFormula0.substitute(t))
-    val cutConj = And(asi)
-=======
   }
->>>>>>> .merge-right.r1940
 
   /** Performs cut introduction on an LK proof and returns 
     * an LK proof with cut if a cut formula can be found.
@@ -349,19 +323,8 @@ object CutIntroduction extends Logger {
     trace(g.s.toString())
     trace("===============================================================")
 
-<<<<<<< .working
-    smallestProof
-      
-/* TODO: uncomment when fixed.
-    // Computing the interpolant (transform this into a separate function later)
-    
-    // A[s_i] forall i
-    val asi = s.map(t => cutFormula0.substitute(t))
-    val cutConj = And(asi)
-=======
     val xFormulas = g.u.foldRight(List[FOLFormula]()) { case (term, acc) =>
       val freeVars = term.freeVariables
->>>>>>> .merge-right.r1940
 
       // Taking only the terms that contain alpha
       if( !freeVars.intersect(g.eigenvariables.toSet).isEmpty ) {
@@ -396,35 +359,13 @@ object CutIntroduction extends Logger {
         trace("   eigenvariables: " + g.eigenvariables)
         trace("---------------------------------------------")
 
-<<<<<<< .working
-  // seq is not used? What the hell???
-  def computeCanonicalSolution(seq: Sequent, g: Grammar) : FOLFormula = {
-   
-    val flatterms = g.flatterms
-
-    val xvar = FOLVar("x")
-    val xFormulas = g.u.foldRight(List[FOLFormula]()) { case (term, acc) =>
-      val freeVars = freeVariables(term)
-      // Taking only the terms that contain alpha
-      if( freeVars.contains(g.eigenvariable) ) {
-        val terms = flatterms.getTermTuple(term)
-        val f = flatterms.getFormula(term)
-        val xterms = terms.map(e => Substitution(g.eigenvariable, xvar)(e))
-        val fsubst = instantiateAll(f, xterms)
-        instantiateAll(f, xterms) :: acc
-=======
         val fsubst = f.instantiateAll(xterms)
         f.instantiateAll(xterms) :: acc
->>>>>>> .merge-right.r1940
       }
       else acc
     }
  
-<<<<<<< .working
-    AllVar(xvar, And(xFormulas))
-=======
     (0 to (g.eigenvariables.size-1)).reverse.toList.foldLeft(andN(xFormulas)){(f, n) => AllVar(FOLVar(new VariableStringSymbol(varName + "_" + n)), f)}
->>>>>>> .merge-right.r1940
   }
 
 
@@ -440,12 +381,6 @@ object CutIntroduction extends Logger {
     val grammar = ehs.grammar
     val flatterms = grammar.flatterms
     
-<<<<<<< .working
-    val alpha = FOLVar("α")
-    val cutLeft = instantiate(cutFormula, alpha)
-    val cutRight = grammar.s.foldRight(List[FOLFormula]()) { case (t, acc) =>
-      instantiate(cutFormula, t) :: acc
-=======
     //Instantiate the cut formula with α_0,...,α_n-1, where n is the number of alphas in the ehs's grammar.
     //partialCutLeft.last ist the all-quantified cut formula, partialCutLeft.head ist the cut formula, with its
     //whole initial quantifier block instantiated to α_0,...,α_n-1.
@@ -463,7 +398,6 @@ object CutIntroduction extends Logger {
     //Fully instantiate the cut formula with s[j=1...n][i] for all i.
     val cutRight = grammar.s.toList.foldRight(List[FOLFormula]()) { case (t, acc) =>
       (t.foldLeft(cutFormula){case (f, sval) => f.instantiate(sval)}) :: acc
->>>>>>> .merge-right.r1940
     }
 
     //leftBranch and rightBranch correspond to the left and right branches of the proof in the middle of
@@ -487,10 +421,6 @@ object CutIntroduction extends Logger {
     val proofLeft = prover.getLKProof(seq)
     val leftBranch = proofLeft match {
       case Some(proofLeft1) => 
-<<<<<<< .working
-        ForallRightRule(uPart(grammar.u.filter(t => freeVariables(t).contains(grammar.eigenvariable)), proofLeft1, flatterms), cutLeft, cutFormula, alpha)
-      case None => throw new CutIntroException("ERROR: propositional part is not provable.")
-=======
         val s1 = uPart(grammar.u.filter(t => !t.freeVariables.intersect(grammar.eigenvariables.toSet).isEmpty), proofLeft1, flatterms)
 
         trace("=======================")
@@ -504,7 +434,6 @@ object CutIntroduction extends Logger {
         ForallRightBlock(s1, cutFormula, alphas)
 
       case None => throw new CutIntroEHSUnprovableException("ERROR: propositional part is not provable.")
->>>>>>> .merge-right.r1940
     }
 
     val seq2 = FSequent(cutRight ++ ehs.antecedent, ehs.succedent)
@@ -523,17 +452,7 @@ object CutIntroduction extends Logger {
     val contractSucc = ehs.succedent.foldRight(contractAnt.asInstanceOf[LKProof]) { case (f, premise) => ContractionRightRule(premise, f) }
 
     // Instantiating constant terms from U
-<<<<<<< .working
-    val finalProof = uPart(grammar.u.filter(t => !freeVariables(t).contains(grammar.eigenvariable)), contractSucc, flatterms)
-
-    //trace( "cleaning structural rules" )
-    val r = Some(CleanStructuralRules(finalProof))
-    //trace( "done cleaning structural rules" )
-
-    r
-=======
     Some(uPart(grammar.u.filter(t => t.freeVariables.intersect(grammar.eigenvariables.toSet).isEmpty), contractSucc, flatterms))
->>>>>>> .merge-right.r1940
   }
 
   // Both methods bellow are responsible for generating the instances of 
@@ -615,20 +534,10 @@ object CutIntroduction extends Logger {
       //   newly generated instance through a contraction rule.
       if (first) {
         first = false
-<<<<<<< .working
-        val scf = instantiate(cf, t)
-        ForallLeftRule(p, scf, cf, t)
-=======
         newP
->>>>>>> .merge-right.r1940
       }
       else {
-<<<<<<< .working
-        val scf = instantiate(cf, t)
-        ContractionLeftRule(ForallLeftRule(p, scf, cf, t), cf)
-=======
         ContractionLeftRule(newP, cf)
->>>>>>> .merge-right.r1940
       }
     }
   }
@@ -642,15 +551,10 @@ object CutIntroduction extends Logger {
     val sanitizedVars = List[(String,String)](("x","x_0"),("y","x_1"),("z","x_2"),("u","x_3"),("v","x_4"),("w","x_5")).map(
       v => (FOLVar(new VariableStringSymbol(v._1)),FOLVar(new VariableStringSymbol(v._2))) )
 
-<<<<<<< .working
-    if (nonEmptyClauses.length == 0) { TopC }
-    else { And(nonEmptyClauses.map( c => Or(c.pos ++ c.neg.map( l => Neg(l) )) )) }
-=======
     sanitizedVars.foldLeft(f){(f, v) => f match {
       case AllVar(_, _) => replaceLeftmostBoundOccurenceOf(v._2, v._1,f)._2
       case _ => f
     }}
->>>>>>> .merge-right.r1940
   }
 }
 
@@ -658,14 +562,8 @@ class DefaultProver extends Prover {
   def getLKProof( seq : FSequent ) : Option[LKProof] =
     new LKProver(cleanStructuralRules=false).getLKProof( seq )
 
-<<<<<<< .working
-    if (nonEmptyClauses.length == 0) { TopC }
-    else { And(nonEmptyClauses.map( c => Or(c.pos.map(l => l._1) ++ c.neg.map( l => Neg(l._1) )) )) }
-  }
-=======
   override def isValid( seq : FSequent ) : Boolean =
     new MiniSATProver().isValid( seq )
->>>>>>> .merge-right.r1940
 
   override def isValid( f : HOLFormula ) : Boolean = {
     new MiniSATProver().isValid( f )

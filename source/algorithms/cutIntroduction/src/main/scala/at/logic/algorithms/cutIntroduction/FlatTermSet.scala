@@ -34,12 +34,8 @@ class FlatTermSetException(msg: String) extends Exception(msg)
 // TODO: change the name of the class (to what??)
 class FlatTermSet(terms: Map[FOLFormula, List[List[FOLTerm]]]) {
 
-<<<<<<< .working
   var formulaFunction = new HashMap[String, FOLFormula]
-=======
   // TODO: val (formulaFuncion, termset) = code that processes terms
-  var formulaFunction = new HashMap[ConstantStringSymbol, FOLFormula]
->>>>>>> .merge-right.r1940
   var termset : List[FOLTerm] = Nil
 
   terms.foreach{

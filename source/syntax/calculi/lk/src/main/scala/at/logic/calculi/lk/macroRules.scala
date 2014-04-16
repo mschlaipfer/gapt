@@ -7,7 +7,7 @@ package at.logic.calculi.lk
 import at.logic.calculi.occurrences._
 import at.logic.calculi.proofs._
 import at.logic.language.hol._
-import at.logic.language.fol.{Neg => FOLNeg, Or => FOLOr, And => FOLAnd, Imp => FOLImp, Atom => FOLAtom, AllVar => FOLAllVar, Equation => FOLEquation}
+import at.logic.language.fol.{Neg => FOLNeg, Or => FOLOr, And => FOLAnd, Imp => FOLImp, Atom => FOLAtom, AllVar => FOLAllVar, Equation => FOLEquation, instantiateAll}
 import at.logic.language.fol.{FOLVar, FOLTerm, FOLFormula}
 import at.logic.language.lambda.symbols._
 import at.logic.language.hol.logicSymbols._
@@ -128,9 +128,9 @@ object OrRightRule {
       */
     def apply (x: FOLTerm, y: FOLTerm, z: FOLTerm, s2: LKProof) : LKProof = {
 
-      val xv = FOLVar(VariableStringSymbol("x"))
-      val yv = FOLVar(VariableStringSymbol("y"))
-      val zv = FOLVar(VariableStringSymbol("z"))
+      val xv = FOLVar(StringSymbol("x"))
+      val yv = FOLVar(StringSymbol("y"))
+      val zv = FOLVar(StringSymbol("z"))
 
       //Forall xyz.(x = y ^ y = z -> x = z)
       val Trans = FOLAllVar(xv, FOLAllVar(yv, FOLAllVar(zv, FOLImp(FOLAnd(FOLEquation( xv, yv) , FOLEquation( yv, zv) ), FOLEquation( xv, zv)))))
@@ -178,7 +178,7 @@ object OrRightRule {
       * A[x1\term1,...,xN\termN] indeed occurs at the bottom of the proof s1.
       */
     def apply(s1: LKProof, main: FOLFormula, terms:List[FOLTerm]) : LKProof = {
-      val partiallyInstantiatedMains = (0 to terms.length).toList.reverse.map(n => main.instantiateAll(terms.take(n))).toList
+      val partiallyInstantiatedMains = (0 to terms.length).toList.reverse.map(n => instantiateAll(main, terms.take(n))).toList
 
       //partiallyInstantiatedMains.foreach(println)
 
@@ -218,7 +218,7 @@ object OrRightRule {
       * A[x1\y1,...,xN\yN] indeed occurs at the bottom of the proof s1.
       */
     def apply(s1: LKProof, main: FOLFormula, eigenvariables:List[FOLVar]) : LKProof = {
-      val partiallyInstantiatedMains = (0 to eigenvariables.length).toList.reverse.map(n => main.instantiateAll(eigenvariables.take(n))).toList
+      val partiallyInstantiatedMains = (0 to eigenvariables.length).toList.reverse.map(n => instantiateAll(main, eigenvariables.take(n))).toList
 
       //partiallyInstantiatedMains.foreach(println)
 

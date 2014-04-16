@@ -374,11 +374,11 @@ class QuantifierRuleHelper(polarity : Boolean) {
     case _ => throw new LKRuleCreationException("Main formula of a quantifier rule must start with a strong quantfier.")
   }
 
-  private[quantificationRules] def getPrinFormula(main: HOLFormula, aux_fo: FormulaOccurrence) = {
+  def getPrinFormula(main: HOLFormula, aux_fo: FormulaOccurrence) = {
     aux_fo.factory.createFormulaOccurrence(main, aux_fo::Nil)
   }
 
-  private[quantificationRules] def getSequent(s1: Sequent, aux_fo: FormulaOccurrence, prinFormula: FormulaOccurrence) = {
+  def getSequent(s1: Sequent, aux_fo: FormulaOccurrence, prinFormula: FormulaOccurrence) = {
     if (polarity == false) {
       //working on antecedent {
       val ant = createContext(s1.antecedent.filterNot(_ == aux_fo))
@@ -396,31 +396,39 @@ class QuantifierRuleHelper(polarity : Boolean) {
 }
 
   class StrongRuleHelper(polarity : Boolean) extends QuantifierRuleHelper(polarity) {
-    private[quantificationRules] def getTerms(s1: Sequent, term1oc: Occurrence, main: HOLFormula, eigen_var: HOLVar) = {
+    def getTerms(s1: Sequent, term1oc: Occurrence, main: HOLFormula, eigen_var: HOLVar) = {
       val foccs = if (polarity==false) s1.antecedent else s1.succedent
       foccs.find(_ == term1oc) match {
       case None => throw new LKRuleCreationException("Auxiliary formulas are not contained in the right part of the sequent")
       case Some(aux_fo) =>
         main match {
-          case All( sub, _ ) =>
-            // eigenvar condition
-            assert( ( s1.antecedent ++ (s1.succedent.filterNot(_ == aux_fo)) ).forall( fo => !fo.formula.freeVariables.contains( eigen_var ) ),
-              "Eigenvariable " + eigen_var.toStringSimple + " occurs in context " + s1.toStringSimple )
-            //This check does the following: if we conclude exists x.A[x] from A[t] then A[x\t] must be A[t].
-            //If it fails, you are doing something seriously wrong!
-            //In any case do NOT remove it without telling everyone!
-            assert( betaNormalize( App( sub, eigen_var ) ) == aux_fo.formula , "\n\nassert 2 in getTerms of String Quantifier Rule fails!\n\n")
-            aux_fo
+          case AllVar( x, sub ) =>
+          // eigenvar condition
+          assert( ( s1.antecedent ++ (s1.succedent.filterNot(_ == aux_fo)) ).forall( fo => !freeVariables(fo.formula).contains( eigen_var ) ),
+            "Eigenvariable " + eigen_var + " occurs in context " + s1 )
 
-          case Ex( sub, _ ) =>
-            // eigenvar condition
-            assert( ( (s1.antecedent.filterNot(_ == aux_fo)) ++ s1.succedent ).forall( fo => !fo.formula.freeVariables.contains( eigen_var ) ),
-              "Eigenvariable " + eigen_var.toStringSimple + " occurs in context " + s1.toStringSimple )
-            //This check does the following: if we conclude exists x.A[x] from A[t] then A[x\t] must be A[t].
-            //If it fails, you are doing something seriously wrong!
-            //In any case do NOT remove it without telling everyone!
-            assert( betaNormalize( App( sub, eigen_var ) ) == aux_fo.formula )
-            aux_fo
+          val back_substitiution = Substitution(x,eigen_var)
+
+          //This check does the following: if we conclude exists x.A[x] from A[t] then A[x\t] must be A[t].
+          //If it fails, you are doing something seriously wrong!
+          //In any case do NOT remove it without telling everyone!
+          //assert( betaNormalize( HOLApp( sub, eigen_var ) ) == aux_fo.formula , "assert 2 in getTerms of String Quantifier Rule fails!\n"+betaNormalize( HOLApp( sub, eigen_var ) )+" != "+aux_fo.formula)
+          assert( betaNormalize( back_substitiution(sub) ) == aux_fo.formula , "assert 2 in getTerms of String Quantifier Rule fails!\n"+betaNormalize( HOLApp( sub, eigen_var ) )+" != "+aux_fo.formula)
+          aux_fo
+
+        case ExVar( x, sub) =>
+          // eigenvar condition
+          assert( ( (s1.antecedent.filterNot(_ == aux_fo)) ++ s1.succedent ).forall( fo => !freeVariables(fo.formula).contains( eigen_var ) ),
+            "Eigenvariable " + eigen_var + " occurs in context " + s1 )
+
+          val back_substitiution = Substitution(x,eigen_var)
+
+          //This check does the following: if we conclude exists x.A[x] from A[t] then A[x\t] must be A[t].
+          //If it fails, you are doing something seriously wrong!
+          //In any case do NOT remove it without telling everyone!
+          //assert( betaNormalize( HOLApp( sub, eigen_var ) ) == aux_fo.formula )
+          assert( betaNormalize( back_substitiution(sub) ) == aux_fo.formula , "assert 2 in getTerms of String Quantifier Rule fails!\n"+betaNormalize( HOLApp( sub, eigen_var ) )+" != "+aux_fo.formula)
+          aux_fo
 
           case _ => throw new LKRuleCreationException("Main formula of a quantifier rule must start with a strong quantfier.")
         }
@@ -429,7 +437,7 @@ class QuantifierRuleHelper(polarity : Boolean) {
   }
 
   class WeakRuleHelper(polarity : Boolean) extends QuantifierRuleHelper(polarity) {
-    private[quantificationRules] def getTerms(s1: Sequent, term1oc: Occurrence, main: HOLFormula, term: HOLExpression) = {
+    def getTerms(s1: Sequent, term1oc: Occurrence, main: HOLFormula, term: HOLExpression) = {
       val foccs = if (polarity==false) s1.antecedent else s1.succedent
       foccs.find(_ == term1oc) match {
         case None => throw new LKRuleCreationException("Auxiliary formulas are not contained in the correct part of the sequent!")

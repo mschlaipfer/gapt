@@ -51,7 +51,6 @@ object LKskFOFactory extends FOFactory {
     new LabelledFormulaOccurrence(formula, ancestors, l)
   }
 
-<<<<<<< .working
   // when creating a main formula for a weak quantifier inference in LKsk, we may choose
   // whether to delete the term from the label, or not. If deletion is not desired,
   // term should be set to None.
@@ -60,17 +59,6 @@ object LKskFOFactory extends FOFactory {
     val newlabel = term match {
       case None => ancestor.skolem_label
       case Some(x) => ancestor.skolem_label - x
-=======
-
-
-  //private[lksk] 
-  object LKskFOFactory extends FOFactory {
-    override def createFormulaOccurrence(formula: HOLFormula, ancestors: Seq[FormulaOccurrence]): FormulaOccurrence = {
-      if (ancestors.forall(_.isInstanceOf[LabelledFormulaOccurrence]))
-        createOccurrence(formula, (ancestors.asInstanceOf[Seq[LabelledFormulaOccurrence]]).toList )
-      else //TODO: we can not check if the label is unchanged in unlabelled ancestors
-        throw new Exception("ancestors not labelled "+ancestors.filterNot(_.isInstanceOf[LabelledFormulaOccurrence]).mkString("(",",",")"))
->>>>>>> .merge-right.r1940
     }
     new LabelledFormulaOccurrence(formula, ancestor::Nil, newlabel )
   }
@@ -78,16 +66,7 @@ object LKskFOFactory extends FOFactory {
   def createInitialOccurrence(formula: HOLFormula, label: Label) =
     new LabelledFormulaOccurrence( formula, Nil, label )
 
-<<<<<<< .working
 }
-=======
-    def createOccurrence(formula: HOLFormula, ancestors: List[LabelledFormulaOccurrence]) : LabelledFormulaOccurrence = {
-      val l = ancestors.head.skolem_label
-      if(! ancestors.forall( a => a.skolem_label == l ))
-        throw new Exception("Error creating labelled formula occurrence: ancestor labels of "+l+" do not agree: "+ancestors.map(_.skolem_label).mkString(",") )
-      new LabelledFormulaOccurrence(formula, ancestors, l)
-    }
->>>>>>> .merge-right.r1940
 
 // TODO: instead of l_antecedent, use override val antecedent
 // does not work right now because Set is not covariant!

@@ -10,10 +10,8 @@ import at.logic.calculi.occurrences._
 import at.logic.calculi.proofs._
 import at.logic.language.hol._
 import at.logic.utils.ds.trees._
-<<<<<<< .working
 import at.logic.calculi.lk.base.{Sequent, FSequent, AuxiliaryFormulas, PrincipalFormulas, SubstitutionTerm}
 import at.logic.calculi.lk.{InitialRuleType, WeakeningLeftRuleType, WeakeningRightRuleType, Axiom => LKAxiom, _}
-=======
 import scala.collection.mutable.{Map,HashMap}
 import base._
 import base.LabelledFormulaOccurence.lfo2fo
@@ -24,7 +22,6 @@ import at.logic.calculi.lk.base._
 import at.logic.calculi.lk.propositionalRules.{InitialRuleType, WeakeningLeftRuleType, WeakeningRightRuleType}
 import at.logic.calculi.lk.propositionalRules.{Axiom => LKAxiom}
 import at.logic.calculi.lk.quantificationRules._
->>>>>>> .merge-right.r1940
 import at.logic.calculi.occurrences.FormulaOccurrence
 import at.logic.calculi.lk.base.types.FSequent
 import scala.Some

@@ -444,7 +444,6 @@ class LKTest extends SpecificationWithJUnit {
       ExistsRightRule(ax2, ax2.root.occurrences(0), expxba, a).root.occurrences(0).formula must_==(expxba)
       ExistsRightRule(ax2, ax2.root.occurrences(0), expxba, b).root.occurrences(0).formula must_==(expxba) must throwAn[Exception]()
     }
-<<<<<<< .working
 
     "work for first order proofs (1)" in {
       val List(a,b) = List("a","b") map (FOLConst(_))
@@ -490,8 +489,5 @@ class LKTest extends SpecificationWithJUnit {
       }
     }
 
-=======
-
->>>>>>> .merge-right.r1940
   }
 }

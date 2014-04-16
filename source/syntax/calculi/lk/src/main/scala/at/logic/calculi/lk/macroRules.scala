@@ -234,5 +234,4 @@ object OrRightRule {
       series._1
     }
   }
-}
 

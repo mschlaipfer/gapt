@@ -445,4 +445,3 @@ class QuantifierRuleHelper(polarity : Boolean) {
       }
     }
   }
-}

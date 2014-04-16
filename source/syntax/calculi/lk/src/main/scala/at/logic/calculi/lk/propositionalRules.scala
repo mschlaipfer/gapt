@@ -579,6 +579,8 @@ object AndRightRule {
         def aux = ((term1)::Nil)::(term2::Nil)::Nil
         def prin = prinFormula::Nil
         override def name = "\u2227:r"
+      }
+   }
 
     /** <pre>Merges two formulas A & B (marked by term1oc & term2oc in the
       * succedents of s1 & s2) into a conjunction A And B.

@@ -10,11 +10,7 @@ import at.logic.algorithms.lk.{applySubstitution => applySub, addWeakenings, Cle
 
 
 object RobinsonToLK {
-<<<<<<< .working
   type mapT = scala.collection.mutable.Map[FClause,LKProof]
-=======
-type mapT = scala.collection.mutable.Map[FClause,LKProof]
-
 
   //encapsulates a memo table s.t. subsequent runs of PCNF are not computed multiple times for the same c
   private class PCNFMemoTable(val endsequent : FSequent) {
@@ -34,7 +30,6 @@ type mapT = scala.collection.mutable.Map[FClause,LKProof]
   }
 
   def fol2hol(s: Substitution[FOLExpression]):Substitution[HOLExpression] = s.asInstanceOf[Substitution[HOLExpression]]
->>>>>>> .merge-right.r1940
 
   // if the proof can be obtained from the CNF(-s) then we compute an LKProof of |- s
   def apply(resproof: RobinsonResolutionProof, s: FSequent): LKProof = {
@@ -75,18 +70,6 @@ type mapT = scala.collection.mutable.Map[FClause,LKProof]
     p2
   }
 
-<<<<<<< .working
-  private def recConvert(proof: RobinsonResolutionProof, seq: FSequent, map: mapT): LKProof = 
-  if (map.contains(proof.root.toFClause)) { 
-    CloneLKProof(map(proof.root.toFClause))
-  } else {
-    val ret = proof match {
-    case InitialClause(cls) => if (seq.antecedent.isEmpty && seq.succedent.isEmpty)
-      Axiom(cls.negative.map(_.formula), cls.positive.map(_.formula))
-      // use projections
-      else PCNF(seq, cls.toFClause)
-    case Factor(r, p, a, s) => {
-=======
   private def recConvert(proof: RobinsonResolutionProof, seq: FSequent, map: mapT, createAxiom : FClause => LKProof): LKProof = {
     if (map.contains(proof.root.toFClause)) {
       CloneLKProof(map(proof.root.toFClause))
@@ -98,14 +81,7 @@ type mapT = scala.collection.mutable.Map[FClause,LKProof]
         // use projections
         //else PCNF(seq, cls.toFClause)
           createAxiom(cls.toFClause)
->>>>>>> .merge-right.r1940
-
         case Factor(r, p, a, s) => {
-
-<<<<<<< .working
-      // obtain upper proof recursively and apply the current substitution to the resulted LK proof
-      var res = applySub(recConvert(p,seq,map), s)._1
-=======
           // obtain the set of removed occurrences for each side
           val (leftContracted, rightContracted) =
             if (a.size ==1)
@@ -116,35 +92,10 @@ type mapT = scala.collection.mutable.Map[FClause,LKProof]
               if (p.root.antecedent.contains(a(0).head)) (a(0).tail, a(1).tail)
               else (a(1).tail, a(0).tail)
             else throw new Exception("Unexpected number of auxiliary formulas!")
->>>>>>> .merge-right.r1940
 
-<<<<<<< .working
-      // create a contraction for each side, for each contracted formula with a._1 and a._2 (if exists)
-      // note that sub must be applied to all formulas in the lk proof
-      if (!leftContracted.isEmpty) {
-        res = leftContracted.foldLeft(res)((p, fo) => ContractionLeftRule(p, s(fo.formula.asInstanceOf[FOLFormula])))
-      }
-      if (!rightContracted.isEmpty) {
-        res = rightContracted.foldLeft(res)((p, fo) => ContractionRightRule(p, s(fo.formula.asInstanceOf[FOLFormula])))
-      }
-      res
-    }
-    case Variant(r, p, s) => applySub(recConvert(p, seq,map), s)._1 // the construction of an LK proof makes sure we create a tree out of the agraph
-    case Resolution(r, p1, p2, a1, a2, s) => {
-      val u1 = applySub(recConvert(p1, seq,map), s)._1
-      val u2 = applySub(recConvert(p2, seq,map), s)._1
-      introduceContractions(CutRule(u1, u2, s(a1.formula.asInstanceOf[FOLFormula])), seq)
-    }
-    case Paramodulation(r, p1, p2, a1, a2, s) => {
-=======
           // obtain upper proof recursively and apply the current substitution to the resulted LK proof
-          var res = applySub(recConvert(p,seq,map,createAxiom),fol2hol(s))._1
->>>>>>> .merge-right.r1940
+          var res = applySub(recConvert(p,seq,map), s)._1
 
-<<<<<<< .working
-      val u1 = applySub(recConvert(p1, seq,map), s)._1
-      val u2 = applySub(recConvert(p2, seq,map), s)._1
-=======
           // create a contraction for each side, for each contracted formula with a._1 and a._2 (if exists)
           // note that sub must be applied to all formulas in the lk proof
           // var hasLeft = false
@@ -168,26 +119,10 @@ type mapT = scala.collection.mutable.Map[FClause,LKProof]
           introduceContractions(CutRule(u1, u2, s(a1.formula.asInstanceOf[FOLFormula]).asInstanceOf[FOLFormula]),seq)
         }
         case Paramodulation(r, p1, p2, a1, a2, _, s) => {
->>>>>>> .merge-right.r1940
 
           val u1 = applySub(recConvert(p1, seq,map,createAxiom),fol2hol(s))._1
           val u2 = applySub(recConvert(p2, seq,map,createAxiom),fol2hol(s))._1
 
-<<<<<<< .working
-      // locate principal formula
-      val lo = r.antecedent.find(_.ancestors.contains(a2))
-      val ro = r.succedent.find(_.ancestors.contains(a2))
-      // left rule
-      val retProof = (if (ro == None) {
-        val lof = lo.get.formula.asInstanceOf[FOLFormula]
-        // locate aux formulae
-        val aux1 = u1.root.succedent.find(_.formula == s(a1.formula.asInstanceOf[FOLFormula])).get
-        val aux2 = u2.root.antecedent.find(_.formula == s(a2.formula.asInstanceOf[FOLFormula])).get
-        // rule 1
-        if (isRule1(lof, aux2.formula.asInstanceOf[FOLFormula], s1)) EquationLeft1Rule(u1, u2, aux1, aux2, lof)
-        // rule 2
-        else EquationLeft2Rule(u1, u2, aux1, aux2, lof)
-=======
           val Atom(_, s0 :: _) = a1.formula
           val s1 = s(s0.asInstanceOf[FOLExpression]).asInstanceOf[FOLTerm]
 
@@ -222,32 +157,10 @@ type mapT = scala.collection.mutable.Map[FClause,LKProof]
         // this case is applicable only if the proof is an instance of RobinsonProofWithInstance
         case at.logic.calculi.resolution.instance.Instance(_,p,s) =>
           applySub(recConvert(p, seq,map,createAxiom),fol2hol(s))._1
->>>>>>> .merge-right.r1940
       }
-<<<<<<< .working
-      // right rule
-      else {
-        val rof = ro.get.formula.asInstanceOf[FOLFormula]
-        // locate aux formulae
-
-        val aux1 = u1.root.succedent.find(_.formula == s(a1.formula.asInstanceOf[FOLFormula])).get
-        val aux2 = u2.root.succedent.find(_.formula == s(a2.formula.asInstanceOf[FOLFormula])).get
-        // rule 1
-        if (isRule1(rof, aux2.formula.asInstanceOf[FOLFormula], s1)) EquationRight1Rule(u1, u2, aux1, aux2, rof)
-        // rule 2
-        else EquationRight2Rule(u1, u2, aux1, aux2, rof)
-      })
-      introduceContractions(retProof, seq)
-=======
       map(proof.root.toFClause) = ret
       ret
->>>>>>> .merge-right.r1940
     }
-<<<<<<< .working
-    // this case is applicable only if the proof is an instance of RobinsonProofWithInstance
-    case Instance(_,p,s) => applySub(recConvert(p, seq,map), s)._1
-=======
->>>>>>> .merge-right.r1940
   }
 
   // in order to distinguish between rule 1 and rule 2 in equation rules we search for the substituted formula in the obtained one

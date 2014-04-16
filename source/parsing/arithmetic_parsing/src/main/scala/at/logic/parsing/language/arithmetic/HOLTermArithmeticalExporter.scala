@@ -13,6 +13,12 @@ import at.logic.language.fol
 import at.logic.parsing.OutputExporter
 import at.logic.parsing.language.HOLTermExporter
 
+// FIXME: bad import, we don't want to import
+// something from transformations here.
+import at.logic.transformations.ceres.struct.ClauseSetSymbol
+import at.logic.transformations.ceres.struct.TypeSynonyms.CutConfiguration
+
+
 trait HOLTermArithmeticalExporter extends OutputExporter with HOLTermExporter {
   def exportFunction(t: HOLExpression): Unit = t match {
     case TopC => getOutput.write("\\top")

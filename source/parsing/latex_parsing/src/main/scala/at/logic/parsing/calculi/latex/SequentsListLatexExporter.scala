@@ -13,6 +13,8 @@ import at.logic.parsing.ExportingException
 import at.logic.calculi.lk.base._
 import at.logic.parsing.language.latex.HOLTermLatexExporter
 import at.logic.calculi.lksk.{LabelledFormulaOccurrence, LabelledSequent}
+import at.logic.language.lambda._
+import scala.Tuple2
 
 
 trait SequentsListLatexExporter extends HOLTermLatexExporter {
@@ -73,12 +75,6 @@ trait SequentsListLatexExporter extends HOLTermLatexExporter {
     this
   }
 
-  private def getFSVars(fs:FSequent) : Set[Var] = fs.formulas.toSet.flatMap(getVars)
-  private def getVars(l:LambdaExpression) : Set[Var] = l match {
-    case Var(_,_) => Set(l.asInstanceOf[Var])
-    case Abs(x,t) => getVars(t) + x
-    case App(s,t) => getVars(s) ++ getVars(t)
-  }
 
   def printTypes(l: List[FSequent]) = {
     val (vmap, cmap) = getTypes(l)
@@ -111,9 +107,9 @@ trait SequentsListLatexExporter extends HOLTermLatexExporter {
   }
 
   def typeToString(t:TA, outermost : Boolean = true) : String = t match {
-    case Ti() => "i"
-    case To() => "o"
-    case Tindex() => "w"
+    case Ti => "i"
+    case To => "o"
+    case Tindex => "w"
     case t1 -> t2 =>
       typeToString_(t1) +
       " > " +
@@ -121,9 +117,9 @@ trait SequentsListLatexExporter extends HOLTermLatexExporter {
   }
 
   def typeToString_(t:TA) : String = t match {
-    case Ti() => "i"
-    case To() => "o"
-    case Tindex() => "w"
+    case Ti => "i"
+    case To => "o"
+    case Tindex => "w"
     case t1 -> t2 =>
       ("(") +
         typeToString_(t1) +
@@ -133,9 +129,9 @@ trait SequentsListLatexExporter extends HOLTermLatexExporter {
   }
 
   private def getTypes(l:List[FSequent]) = {
-    val allvars = l.foldLeft(Set[Var]())((rec,fs) => rec ++ getFSVars(fs))
-    val vars = allvars.filter(_.name.isInstanceOf[VariableSymbolA])
-    val consts = allvars.filter(x => x.name.isInstanceOf[ConstantSymbolA] && !x.name.isInstanceOf[LogicalSymbolsA])
+
+    val vars = l.foldLeft(Set[Var]())((rec,fs) => rec ++ fs.formulas.toSet.flatMap(getVars.apply))
+    val consts = l.foldLeft(Set[Const]())((rec,fs) => rec ++ fs.formulas.toSet.flatMap(getConsts.apply))
     val svars = vars.map(_.name.toString())
     val cvars = consts.map(_.name.toString())
     if (cvars.exists(svars.contains(_)) || svars.exists(cvars.contains(_)))

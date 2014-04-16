@@ -1,27 +1,14 @@
 package at.logic.algorithms.rewriting
 
 import at.logic.calculi.lk.base._
-import at.logic.calculi.lk.base.types.FSequent
 import at.logic.calculi.occurrences.FormulaOccurrence
 import at.logic.language.fol
 import at.logic.language.hol._
-import at.logic.language.lambda.substitutions.Substitution
 import at.logic.language.lambda.symbols.SymbolA
-import at.logic.language.lambda.typedLambdaCalculus.{Abs, App, Var, LambdaExpression}
-import at.logic.algorithms.matching.hol.NaiveIncompleteMatchingAlgorithm
+import at.logic.language.lambda.{Abs, App, Var, LambdaExpression}
+import at.logic.algorithms.matching.NaiveIncompleteMatchingAlgorithm
 import at.logic.language.fol.FOLFormula
-import at.logic.calculi.lk.propositionalRules._
-import scala.Some
-import scala.Some
-import scala.Some
-import scala.Some
-import scala.Some
-import scala.Some
-import scala.Some
-import scala.Some
-import scala.Some
-import scala.Some
-import scala.Some
+import at.logic.calculi.lk._
 import scala.Some
 import at.logic.calculi.lk.quantificationRules.{ExistsRightRule, ExistsLeftRule, ForallRightRule, ForallLeftRule}
 import at.logic.calculi.lk.equationalRules.{EquationRight2Rule, EquationRight1Rule, EquationLeft2Rule, EquationLeft1Rule}

@@ -40,7 +40,6 @@ object containsQuantifier {
     case And(x,y) => containsQuantifier(x) || containsQuantifier(y)
     case Or(x,y) => containsQuantifier(x) || containsQuantifier(y)
     case Imp(x,y) => containsQuantifier(x) || containsQuantifier(y)
-    case HArray(x,y) => containsQuantifier(x) || containsQuantifier(y)
     case Neg(x) => containsQuantifier(x)
     case ExVar(x,f) => true
     case AllVar(x,f) => true
@@ -95,5 +94,21 @@ object isLogicalSymbol {
   def apply(e: HOLExpression) : Boolean = e match {
     case x : HOLConst => x.sym.isInstanceOf[LogicalSymbolA]
     case _ => false
+  }
+}
+
+/**
+ * the logical complexity of this formula, i.e. the number of logical connectives and atoms
+ * starting from the root of the formula. The inner structure of atoms is not counted.
+ **/
+object lcomp {
+  def apply(formula: HOLFormula) : Int = formula match {
+    case Atom(_, _) => 1
+    case Neg(f) => lcomp(f) + 1
+    case And(f,g) => lcomp(f) + lcomp(g) + 1
+    case Or(f,g) => lcomp(f) + lcomp(g) + 1
+    case Imp(f,g) => lcomp(f) + lcomp(g) + 1
+    case ExVar(x,f) => lcomp(f) + 1
+    case AllVar(x,f) => lcomp(f) + 1
   }
 }

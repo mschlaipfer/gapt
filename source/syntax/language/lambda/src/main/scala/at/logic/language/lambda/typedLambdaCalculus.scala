@@ -40,7 +40,6 @@ class Var(val sym: SymbolA, val exptype: TA) extends LambdaExpression {
     case _ => false
   }
 
-<<<<<<< .working
   // Alpha-equality
   // Two free variables are *not* alpha-equivalent if they don't have the same
   // name and type or if they are not in the substitution list because of a
@@ -49,19 +48,6 @@ class Var(val sym: SymbolA, val exptype: TA) extends LambdaExpression {
     case Var(n, t) if !subs.contains(this) => (n == name && t == exptype)
     case v: Var if subs(this).syntaxEquals(v) => true 
     case _ => false
-=======
-  class VariableNameGenerator(gen : () => String) extends VariableGenerator {
-    def apply(a : Var) : Var = apply(a, Set[String]())
-    //generates the blacklist from blacklist_exp
-    def apply(a: Var, blacklist_exps : Seq[LambdaExpression]) : Var =
-      apply(a, blacklist_exps.flatMap(_.symbols.map(_.toString)).toSet)
-    //override this method if you want to change the functionality
-    def apply(a : Var, blacklist : Set[String]) : Var = {
-      var name : String = gen()
-      while (blacklist.contains(name)) name = gen()
-      a.factory.createVar(VariableStringSymbol(name), a.exptype)
-    }
->>>>>>> .merge-right.r1940
   }
     
   // Printing

@@ -78,19 +78,3 @@ object HArraySymbol extends LogicalSymbolA {
   def toCode = "HArraySymbol"
 }
 
-<<<<<<< .working
-=======
-  case class ConstantStringSymbol( val string : String ) extends ConstantSymbolA with StringSymbol
-  {
-    def toCode = "ConstantStringSymbol( \"" + string + "\" )"
-  }
-
-  object ImplicitConverters {
-    implicit def stringToVarConstSymbol(s: String): SymbolA = {
-      val chr = s.charAt(0)
-      if (chr.isUpper || chr.equals('a') || chr.equals('b') || chr.equals('c')) new ConstantStringSymbol( s )
-      else new VariableStringSymbol( s )
-    }
-  }
-}
->>>>>>> .merge-right.r1940

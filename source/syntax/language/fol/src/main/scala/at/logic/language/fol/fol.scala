@@ -17,9 +17,6 @@ import at.logic.language.hol.logicSymbols._
  * @author ?
  * @version ?
  */
-/* TODO we need to separate fol expression into FOLExpression which refers  only to valid fol expressions and to
-FOLComponent which contains the fol factory but refers to possibly invalid fol expressions.
- */
 
 trait FOLExpression extends HOLExpression {
   /**
@@ -57,38 +54,7 @@ trait FOLExpression extends HOLExpression {
       throw new Exception("toString: expression is not FOL: " + r)
     }
 
-<<<<<<< .working
     override def factory : FactoryA = FOLFactory
-=======
-  /**
-   * This is an identity function for FOL construction, in that this
-   *function takes a FOL statement, and outputs the statement as it was written/coded. Old
-   *comment for this function was written as follows:
-   * this function outputs the string which creates
-   * an object like this. can be used to create
-   * tests based on bugs.
-   *
-   The method has no parameters other then the object which is to be written as a string
-   @param  this  The method has no parameters other then the object which is to be written as a string
-   *
-   @return A String illustrating the construction of the given FOL expression
-   *
-   */
-    def toCode : String = this match {
-      case FOLVar(x) => "FOLVar( " + x.toCode + " )"
-      case FOLConst(x) => "FOLConst( " + x.toCode + " )"
-      case Atom(x, args) => "Atom( " + x.toCode + ", " + args.foldLeft( "Nil" )( (s, a) => a.toCode + "::" + s ) + ")"
-      case Function(x, args) => "Function( " + x.toCode + ", " + args.foldLeft( "Nil" )( (s, a) => a.toCode + "::" + s ) + ")"
-      case And(x,y) => "And(" + x.toCode + ", " + y.toCode + ")"
-      case Or(x,y) => "Or(" + x.toCode + ", " + y.toCode + ")"
-      case Imp(x,y) => "Imp(" + x.toCode + ", " + y.toCode + ")"
-      case Neg(x) => "Neg(" + x.toCode + ")"
-      case ExVar(x,f) => "ExVar(" + x.toCode + ", " + f.toCode + ")"
-      case AllVar(x,f) => "AllVar(" + x.toCode + ", " + f.toCode + ")"
-    }
-  }
->>>>>>> .merge-right.r1940
-
 }
 
 trait FOLFormula extends FOLExpression with HOLFormula
@@ -108,50 +74,10 @@ object Equation {
     val eq = left.factory.createConnective(EqSymbol).asInstanceOf[FOLExpression]
     FOLApp(FOLApp(eq, left),right).asInstanceOf[FOLFormula]
   }
-<<<<<<< .working
   def unapply(expression: FOLExpression) = expression match {
       case FOLApp(FOLApp(EqC,left),right) => Some( left.asInstanceOf[FOLTerm],right.asInstanceOf[FOLTerm] )
       case _ => None
-=======
-
-  // Distribute Ors over Ands
-  def distribute : FOLFormula = this match {
-    case Atom(_,_) => this
-    //case Function(_,_) => this
-    // Negation has only atomic scope
-    case Neg(Atom(_,_)) => this
-    //case Neg(Function(_,_)) => this
-    case And(f1, f2) => And(f1.distribute, f2.distribute)
-    case Or(f1, And(f2,f3)) => And(Or(f1,f2).distribute, Or(f1,f3).distribute)
-    case Or(And(f1,f2), f3) => And(Or(f1,f3).distribute, Or(f2,f3).distribute)
-    case Or(f1, f2) => Or(f1.distribute, f2.distribute)
-    case _ => {
-      throw new Exception("ERROR: Unexpected case while distributing Ors over Ands.")
-    }
->>>>>>> .merge-right.r1940
   }
-<<<<<<< .working
-=======
-
-  // Transforms a formula to conjunctive normal form
-  // 1. Transform to negation normal form
-  // 2. Distribute Ors over Ands
-  // OBS: works for propositional formulas only
-  // TODO: tests for this
-  def toCNF : FOLFormula = this.toNNF.distribute
-
-  def numOfAtoms : Int = this match {
-    case Atom(_,_) => 1
-    case Function(_,_) => 1
-    case Imp(f1,f2) => f1.numOfAtoms + f2.numOfAtoms
-    case And(f1,f2) => f1.numOfAtoms + f2.numOfAtoms
-    case Or(f1,f2) => f1.numOfAtoms + f2.numOfAtoms
-    case ExVar(x,f) => f.numOfAtoms
-    case AllVar(x,f) => f.numOfAtoms
-    case Neg(f) => f.numOfAtoms
-    case _ => throw new Exception("ERROR: Unexpected case while counting the number of atoms.")
-  }
->>>>>>> .merge-right.r1940
 }
 
 // FOL atom of the form P(t_1,...,t_n)
@@ -233,17 +159,8 @@ object Neg {
     val neg = sub.factory.createConnective(NegSymbol).asInstanceOf[FOLExpression]
     FOLApp(neg, sub).asInstanceOf[FOLFormula]
   }
-<<<<<<< .working
   def unapply(expression: FOLExpression) = expression match {
     case FOLApp(NegC,sub) => Some( (sub.asInstanceOf[FOLFormula]) )
-=======
-}
-
-object Neg {
-  def apply(sub: FOLFormula) = App(NegC,sub).asInstanceOf[FOLFormula]
-  def unapply(expression: LambdaExpression) = expression match {
-    case App(NegC,sub:FOLFormula) => Some( sub )
->>>>>>> .merge-right.r1940
     case _ => None
   }
 }
@@ -253,18 +170,12 @@ object And {
     case Nil => TopC
     case f::fs => fs.foldLeft(f)( (d, f) => And(d, f) )
   }
-<<<<<<< .working
   def apply(left: FOLFormula, right: FOLFormula) = {
     val and = left.factory.createConnective(AndSymbol).asInstanceOf[FOLExpression]
     FOLApp(FOLApp(and, left), right).asInstanceOf[FOLFormula]
   }
   def unapply(expression: FOLExpression) = expression match {
     case FOLApp(FOLApp(AndC,left),right) => Some( (left.asInstanceOf[FOLFormula],right.asInstanceOf[FOLFormula]) )
-=======
-  def apply(left: FOLFormula, right: FOLFormula) = (App(App(AndC,left),right)).asInstanceOf[FOLFormula]
-  def unapply(expression: LambdaExpression) = expression match {
-    case App(App(AndC,left:FOLFormula),right:FOLFormula) => Some( (left,right) )
->>>>>>> .merge-right.r1940
     case _ => None
   }
 }
@@ -274,35 +185,23 @@ object Or {
       case Nil => BottomC
       case f::fs => fs.foldLeft(f)( (d, f) => Or(d, f) )
     }
-<<<<<<< .working
   def apply(left: FOLFormula, right: FOLFormula) = {
     val or = left.factory.createConnective(OrSymbol).asInstanceOf[FOLExpression]
     FOLApp(FOLApp(or, left), right).asInstanceOf[FOLFormula]
   }
   def unapply(expression: FOLExpression) = expression match {
     case FOLApp(FOLApp(OrC,left),right) => Some( (left.asInstanceOf[FOLFormula],right.asInstanceOf[FOLFormula]) )
-=======
-  def apply(left: FOLFormula, right: FOLFormula) = App(App(OrC,left),right).asInstanceOf[FOLFormula]
-  def unapply(expression: LambdaExpression) = expression match {
-    case App(App(OrC,left:FOLFormula),right:FOLFormula) => Some( (left,right) )
->>>>>>> .merge-right.r1940
     case _ => None
   }
 }
 
 object Imp {
-<<<<<<< .working
   def apply(left: FOLFormula, right: FOLFormula) = {
     val imp = left.factory.createConnective(ImpSymbol).asInstanceOf[FOLExpression]
     FOLApp(FOLApp(imp, left), right).asInstanceOf[FOLFormula]
   }
   def unapply(expression: FOLExpression) = expression match {
       case FOLApp(FOLApp(ImpC,left),right) => Some( (left.asInstanceOf[FOLFormula],right.asInstanceOf[FOLFormula]) )
-=======
-  def apply(left: FOLFormula, right: FOLFormula) = App(App(ImpC,left),right).asInstanceOf[FOLFormula]
-  def unapply(expression: LambdaExpression) = expression match {
-      case App(App(ImpC,left:FOLFormula),right:FOLFormula) => Some( (left,right) )
->>>>>>> .merge-right.r1940
       case _ => None
   }
 }
@@ -363,34 +262,3 @@ object AllVar {
   }
 }
 
-<<<<<<< .working
-=======
-object getFreeVariablesFOL {
-  def apply( f: FOLFormula ) = f.freeVariables.asInstanceOf[Set[FOLVar]]
-}
-
-object getVariablesFOL {
-  def apply( f: FOLFormula ) = (f.freeVariables ++ f.boundVariables).asInstanceOf[Set[FOLVar]]
-}
-
-object FOLSubstitution
-{
-  def apply(f: FOLFormula, map: Map[FOLVar, FOLTerm]) : FOLFormula = {
-    val sub = Substitution(map.asInstanceOf[Map[Var, FOLExpression]])
-      sub( f.asInstanceOf[FOLExpression]
-         ).asInstanceOf[FOLFormula]
-  }
-
-  def apply(t: FOLTerm, map: Map[FOLVar, FOLTerm]) : FOLTerm = { 
-    val sub = Substitution(map.asInstanceOf[Map[Var, FOLTerm]])
-      sub( t )  
-  }
-
-  def apply(f: FOLFormula, x: FOLVar, t: FOLTerm) : FOLFormula =
-    apply( f, Map((x, t)) )
-
-  def apply(f: FOLTerm, x: FOLVar, t: FOLTerm) : FOLTerm =
-    apply( f, Map((x, t)) )
-
-}
->>>>>>> .merge-right.r1940

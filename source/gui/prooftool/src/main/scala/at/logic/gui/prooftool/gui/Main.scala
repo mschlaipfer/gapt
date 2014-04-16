@@ -31,18 +31,11 @@ import at.logic.transformations.ceres.clauseSets.{StandardClauseSet, renameCLsym
 import at.logic.transformations.ceres.projections.{Projections, DeleteTautology, DeleteRedundantSequents}
 import at.logic.transformations.ceres.struct.{structToExpressionTree, StructCreators}
 import at.logic.transformations.ceres.{UnfoldProjectionTerm, ProjectionTermCreators}
-<<<<<<< .working
 import at.logic.transformations.herbrandExtraction.extractExpansionTrees
+import at.logic.transformations.skolemization.skolemize
+import java.io.{BufferedWriter => JBufferedWriter, FileWriter => JFileWriter, ByteArrayInputStream, InputStreamReader, File, FileOutputStream}
 import at.logic.transformations.skolemization.lksk.LKtoLKskc
-import at.logic.transformations.skolemization.skolemize
-=======
-import at.logic.algorithms.shlk.{applySchemaSubstitution2, applySchemaSubstitution}
->>>>>>> .merge-right.r1940
 import at.logic.utils.ds.trees.Tree
-<<<<<<< .working
-=======
-import at.logic.transformations.herbrandExtraction.extractExpansionTrees
-import at.logic.transformations.skolemization.skolemize
 import at.logic.transformations.ceres.clauseSchema.{resolutionProofSchemaDB, InstantiateResSchema}
 import at.logic.transformations.ceres.ACNF.ACNF
 import at.logic.calculi.slk.SchemaProofDB
@@ -50,25 +43,12 @@ import at.logic.calculi.proofs.Proof
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 import java.awt.Color
->>>>>>> .merge-right.r1940
 
-<<<<<<< .working
 import java.awt.event.{KeyEvent, ActionEvent => JActionEvent}
-import java.io.{BufferedWriter => JBufferedWriter, FileWriter => JFileWriter, ByteArrayInputStream, InputStreamReader, File, FileOutputStream}
-import javax.swing.SwingUtilities
-import javax.swing.filechooser.FileFilter
-import javax.swing.KeyStroke
-import scala.swing.BorderPanel._
-import scala.swing.Dialog.Message
-import scala.swing.Swing.EmptyIcon
 import scala.swing._
-import scala.swing.event.Key
 import com.itextpdf.text.{Document, Rectangle => PdfRectangle}
 import com.itextpdf.text.pdf.PdfWriter
 
-=======
-
->>>>>>> .merge-right.r1940
 object Main extends SimpleSwingApplication {
   val body = new MyScrollPane
   val db = new FileParser
@@ -645,6 +625,17 @@ object Main extends SimpleSwingApplication {
           case UnLoaded => this.enabled = false
         }
       }
+
+      contents += new MenuItem(Action("Extract Cut-Formulas") { extractCutFormulas() }) {
+        border = customBorder
+        enabled = false
+        listenTo(ProofToolPublisher)
+        reactions += {
+          case Loaded => this.enabled = true
+          case UnLoaded => this.enabled = false
+        }
+      }
+
       contents += new MenuItem(Action("Mark Ω-Ancestors") { markOmegaAncestors() }) {
         border = customBorder
         enabled = false
@@ -664,15 +655,12 @@ object Main extends SimpleSwingApplication {
         }
       }
       contents += new Separator
-<<<<<<< .working
       contents += new Separator
       contents += new Separator
       contents += new Separator
+
       /* FixedFOccs does not exist anymore. I don't know what should be the correct parameter for this function.
       contents += new MenuItem(Action("Mark Cut- & Ω-Ancestors") { markCutOmegaAncestors(FixedFOccs.foccs) }) {
-=======
-      contents += new MenuItem(Action("Extract Cut-Formulas") { extractCutFormulas() }) {
->>>>>>> .merge-right.r1940
         border = customBorder
         enabled = false
         listenTo(ProofToolPublisher)
@@ -943,7 +931,6 @@ object Main extends SimpleSwingApplication {
         body.contents = new Launcher(Some(("Proof", all3)), defaultFontSize)
         ProofToolPublisher.publish(EnableMenus)
       }) { border = customBorder }
-<<<<<<< .working
       contents += new MenuItem(Action("Nested Expansion Tree") {
         val p = HOLVar("p", Ti -> To)
         val a = HOLVar("a", Ti)
@@ -1107,8 +1094,6 @@ object Main extends SimpleSwingApplication {
         body.contents = new Launcher(Some(("Expansion Tree", et)), 12)
         ProofToolPublisher.publish(EnableMenus)
       }) { border = customBorder }
-=======
->>>>>>> .merge-right.r1940
     }
   }
 
@@ -1422,32 +1407,19 @@ object Main extends SimpleSwingApplication {
       body.cursor = new java.awt.Cursor(java.awt.Cursor.WAIT_CURSOR)
       val number = if (input.size > 10) input.dropRight(10).toInt else input.toInt
       body.getContent.getData.get match {
-        case (name: String, p: LKProof) => errorMessage("Cannot compute instance")
+        case (name: String, p: LKProof) => 
         /* FIXME: I think this should unfold the proof?? I don't know which
          * method is the correct one here... it was applySchemaSubstitution and
          * applySchemaSubstitution2.
-          val proof = try { // This is a hack! In the future these two functions should be merged.
-<<<<<<< .working
+         */
+          vat proof = try { // This is a hack! In the future these two functions should be merged.
             SchemaSubstitution((name, number)::Nil)
-=======
-            applySchemaSubstitution2(name, number,  List())
->>>>>>> .merge-right.r1940
           } catch {
-<<<<<<< .working
-            case e: UnfoldException => SchemaSubstitution((name, number)::Nil)
-=======
-            case e: UnfoldException => applySchemaSubstitution(name, number)
->>>>>>> .merge-right.r1940
+            errorMessage("Cannot compute instance")
           }
           db.addProofs((name + "↓" + number, proof)::Nil)
-<<<<<<< .working
-          body.contents = new Launcher(Some(name + "↓" + number, proof), 12)
-        */
-        case (name: String, pt: Tree[_]) if db.getTermTrees.find(p => name == p._1 && p._2 == db.TermType.ProjectionTerm) != None =>
-=======
           body.contents = new Launcher(Some(name + "↓" + number, proof), defaultFontSize)
         case (name: String, pt: Tree[_]) if db.getTermTrees.exists(p => name == p._1 && p._2 == db.TermType.ProjectionTerm) =>
->>>>>>> .merge-right.r1940
           val (term,list) = UnfoldProjectionTerm(name,number)
           val gterm_name = name.replace("_step","").replace("_base","")  + "↓" + number
           db.addTermTree( gterm_name, term )

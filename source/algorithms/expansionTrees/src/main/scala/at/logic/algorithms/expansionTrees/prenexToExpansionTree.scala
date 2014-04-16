@@ -37,18 +37,18 @@ object prenexToExpansionTree {
         }
     }
     
-    WeakQuantifier(f, children)
+    WeakQuantifier(f, children).asInstanceOf[ExpansionTree]
   }
 
   def apply_(f: FOLFormula, sub: Substitution) : ExpansionTree = f match {
     case AllVar(v, _) =>
       val t = sub.folmap(v)
       val newf = instantiate(f, t.asInstanceOf[FOLTerm])
-      WeakQuantifier(f, List(Pair(apply_(newf, sub), t)))
+      WeakQuantifier(f, List(Pair(apply_(newf, sub), t))).asInstanceOf[ExpansionTree]
     case ExVar(v, _) => 
       val t = sub.folmap(v)
       val newf = instantiate(f, t.asInstanceOf[FOLTerm])
-      WeakQuantifier(f, List(Pair(apply_(newf, sub), t)))
+      WeakQuantifier(f, List(Pair(apply_(newf, sub), t))).asInstanceOf[ExpansionTree]
     case _ => qFreeToExpansionTree(f)
   }
   

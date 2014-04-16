@@ -1,18 +1,11 @@
 
 package at.logic.calculi.expansionTrees
 
-<<<<<<< .working
-import at.logic.language.hol.{Atom => AtomHOL, And => AndHOL, Or => OrHOL, Imp => ImpHOL, _}
-=======
 import at.logic.language.hol.{Atom => AtomHOL, And => AndHOL, Or => OrHOL, Imp => ImpHOL, Neg => NegHOL, AllVar => AllVarHOL, ExVar => ExVarHOL, _}
->>>>>>> .merge-right.r1940
 import at.logic.utils.ds.trees._
-<<<<<<< .working
-=======
 import at.logic.language.lambda.substitutions._
 import at.logic.algorithms.matching.hol._
 import at.logic.language.hol.logicSymbols._
->>>>>>> .merge-right.r1940
 import at.logic.calculi.lk.base._
 import at.logic.calculi.occurrences._
 import at.logic.calculi.lk.base.types.FSequent
@@ -381,9 +374,7 @@ object qFreeToExpansionTree {
   }
 }
 
-<<<<<<< .working
-=======
-// Builds an expansion tree given a *prenex* formula and 
+// Builds an expansion tree given a *prenex* formula and
 // its instances (or substitutions) using only weak quantifiers. 
 //
 // NOTE: initially, this could be implemented for non-prenex formulas. 
@@ -738,4 +729,3 @@ object coerceFormulaToET {
 }
 */
 
->>>>>>> .merge-right.r1940

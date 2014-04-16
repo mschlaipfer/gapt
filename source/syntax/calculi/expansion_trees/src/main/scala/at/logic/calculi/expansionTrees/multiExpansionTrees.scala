@@ -1,12 +1,7 @@
 
 package at.logic.calculi.expansionTrees
 
-<<<<<<< .working
-import at.logic.language.hol.{Atom => AtomHOL, And => AndHOL, Or => OrHOL, Imp => ImpHOL, _}
-=======
-import at.logic.language.hol._
-import at.logic.language.hol.{Atom => AtomHOL, And => AndHOL, Or => OrHOL, Imp => ImpHOL, Neg => NegHOL}
->>>>>>> .merge-right.r1940
+import at.logic.language.hol.{Atom => AtomHOL, And => AndHOL, Or => OrHOL, Imp => ImpHOL, Neg => NegHOL, _}
 import at.logic.utils.ds.trees._
 
 /**

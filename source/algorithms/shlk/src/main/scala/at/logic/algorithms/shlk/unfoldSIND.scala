@@ -1,4 +1,5 @@
 package at.logic.algorithms.shlk
+
 import at.logic.calculi.slk._
 import at.logic.language.schema._
 import at.logic.calculi.occurrences._
@@ -596,7 +597,7 @@ object CloneLKProof2 {
 object defineremove {def apply(form:SchemaFormula,rewriterules:List[Pair[SchemaFormula,SchemaFormula]]):SchemaFormula  =  rewriterules.foldLeft(Pair(true,form))((f,p)=> if (AtomMatch(f._2,p._1)&& f._1) Pair(false,cloneMySol(p._2,rewriterules)) else f)._2}
 object rewriterulereplace {def apply(p:Pair[SchemaFormula,SchemaFormula]):Pair[SchemaFormula,SchemaFormula]  =  if (AtomMatch(p._1)){
   val pairone:SchemaFormula = {p._1 match{ case Atom(x,y) => y case _ => List()}}.tail.foldLeft(Pair(0,p._2))((pairppair,t)=> (pairppair._1+1,genterm(pairppair._1,pairppair._2,t)))._2
-  Pair(p._1 match{ case Atom(x,y) => Atom(x, List(y.head) ++ y.tail.foldLeft(Pair(0,List().asInstanceOf[List[SchemaExpression]]))((pair,t) => (pair._1 +1, pair._2.asInstanceOf[List[SchemaExpression]]:+ SchemaConst(SymbolA("!"+pair._1+"!" ),Ti) ) )._2 )
+  Pair(p._1 match{ case Atom(x,y) => Atom(x, List(y.head) ++ y.tail.foldLeft(Pair(0,List().asInstanceOf[List[SchemaExpression]]))((pair,t) => (pair._1 +1, pair._2.asInstanceOf[List[SchemaExpression]]:+ SchemaConst(("!"+pair._1+"!" ),Ti) ) )._2 )
   case x => x},pairone) }
 else p}
 object iterateOnFormula {
@@ -642,27 +643,26 @@ object genterm {
       case _ => throw new Exception("ERROR in unfolding missing formula !\n" + p.toString + "\n")
     }
   }
-  def apply( ii: Int,p:SchemaExpression,t:SchemaExpression): SchemaExpression = {
+  def apply( ii: Int, p:SchemaExpression, t:SchemaExpression): SchemaExpression = {
     t match {
-      case Function(SymbolA("schS"),l,Tindex) => Function(SymbolA("schS"),l,Tindex)
-      case SchemaVar(SymbolA("k"),Tindex) => SchemaVar(SymbolA("k"),Tindex)
-      case Function(SymbolA(n),l,Tindex) => Function(SymbolA(n),l,Tindex)
-      case Function(SymbolA(n),l,Ti)  => p match {
-        case Function(SymbolA(ni),li,Ti) if n == ni && l.length == li.length &&
+      case Function(head,l,Tindex) => t
+      case SchemaVar(name,Tindex) if name == "k" => t
+      case Function(head,l,Ti)  => p match {
+        case Function(headi,li,Ti) if head.name == headi.name && l.length == li.length &&
          l.zip(li).foldLeft(true,true)((b,pair) => if(equalterms(pair._1,pair._2)&&b._2) b else (b._1,false) )._1  => SchemaConst(SymbolA("!"+ii+"!" ),Ti)
-        case Function(SymbolA(ni),li,Ti) => Function(SymbolA(ni),li.map(x => apply(ii,x,t)),Ti)
+        case Function(headi,li,Ti) => Function(head, li.map(x => apply(ii,x,t)), Ti)
         case _ => p
       }
-      case SchemaVar(SymbolA(n),->(Tindex,Ti)) => p match {
-        case Function(SymbolA(ni),li,Ti) if  ni == n  => Function(SymbolA("!"+ii+"!" ),li,Ti)
+      case SchemaVar(head,->(Tindex,Ti)) => p match {
+        case Function(headi,li,Ti) if  headi == head  => Function(SchemaConst("!"+ii+"!", FunctionType(Ti, li.map(_.exptype))),li,Ti)
         case _ => p
       }
-      case SchemaVar(SymbolA(n),Ti)  => p match {
-        case SchemaVar(SymbolA(n2),Ti) if  n2 == n  => SchemaConst(SymbolA("!"+ii+"!" ),Ti)
+      case SchemaVar(head,Ti)  => p match {
+        case SchemaVar(head2,Ti) if  head2 == head  => SchemaConst("!"+ii+"!", Ti)
         case _ => p
       }
-      case SchemaConst(SymbolA(n),tt)  =>  p match {
-        case SchemaConst(SymbolA(n2),t2) if  tt == t2  && n2 == n => SchemaConst(SymbolA("!"+ii+"!" ),Ti)
+      case SchemaConst(head,tt)  =>  p match {
+        case SchemaConst(head2,t2) if  tt == t2  && head2 == head => SchemaConst("!"+ii+"!", Ti)
         case _ => p
       }
       case SchemaAbs(x, tt) => p match {case SchemaAbs(x2, t2) if x.compare(x2) == 0 && equalterms(tt,t2) => apply(ii,t2,t)}

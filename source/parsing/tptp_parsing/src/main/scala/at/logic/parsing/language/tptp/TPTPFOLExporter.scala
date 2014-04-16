@@ -12,8 +12,6 @@ import at.logic.calculi.lk.base.FSequent
 import scala.collection.immutable.HashMap
 
 object TPTPFOLExporter extends at.logic.utils.logging.Logger {
-<<<<<<< .working
-=======
   // FIXME: this should not be here!
   def hol2fol(f: HOLFormula) : FOLFormula = 
   {
@@ -21,7 +19,6 @@ object TPTPFOLExporter extends at.logic.utils.logging.Logger {
     val iid = new {var idd = 0; def nextId = {idd = idd+1; idd}}
     convertHolToFol(f)
   } 
->>>>>>> .merge-right.r1940
 
   // convert a named list of clauses to a CNF refutation problem.
   // TODO: have to give a different name because of erasure :-(
@@ -51,10 +48,6 @@ object TPTPFOLExporter extends at.logic.utils.logging.Logger {
     tptp( f )( map )
   }
 
-<<<<<<< .working
-  def getFreeVarRenaming( f: FOLFormula ) = {
-    freeVariables(f).zipWithIndex.foldLeft( new HashMap[FOLVar, String] )( (m, p) =>
-=======
   def exportFormula( f: FOLFormula ) = {
     val map = getVarRenaming( f )
     trace("var renaming: " + map)
@@ -63,7 +56,6 @@ object TPTPFOLExporter extends at.logic.utils.logging.Logger {
 
   def getVarRenaming( f: FOLFormula ) = {
     getVariablesFOL( f ).toList.zipWithIndex.foldLeft( new HashMap[FOLVar, String] )( (m, p) =>
->>>>>>> .merge-right.r1940
       m + (p._1 -> ("X" + p._2.toString) )
     )
   }
@@ -94,13 +86,8 @@ object TPTPFOLExporter extends at.logic.utils.logging.Logger {
   }
 
   def tptp( t: FOLTerm )(implicit s_map: Map[FOLVar, String]) : String = t match {
-<<<<<<< .working
-    case v: FOLVar => s_map( v )
-    case FOLConst(c) => single_quote( c )
-=======
     case FOLConst(c) => single_quote( c.toString )
     case x : FOLVar => s_map( x )
->>>>>>> .merge-right.r1940
     case Function(x, args) => handleAtom( x, args )
   }
 

@@ -153,6 +153,30 @@ object ExistsRightRule extends WeakRuleHelper(true) {
     }
   }
 
+    /** <pre>Constructs a proof ending with an ExistsRight rule.
+    *
+    * The rule:
+    *   (rest of s1)
+    *  sL |- sR, A[term/x]
+    * -------------------- (ExistsRight)
+    * sL |- sR, Exists x.A
+    * </pre>
+    *
+    * @param s1 The top proof with (sL, A[term/x] |- sR) as the bottommost sequent.
+    * @param aux The formula A[term/x], in which a term is to be existentially quantified.
+    * @param main The resulting (Exists x.A), with some (not necessarily all) instances of term replaced by a newly introduced variable.
+    * @param term The term to be existentially quantified & whose substitution into the main formula yields the auxiliary formula.
+    * @return An LK Proof ending with the new inference.
+    */
+  def apply(s1: LKProof, aux: HOLFormula, main: HOLFormula, term: HOLExpression) : LKProof = {
+    s1.root.succedent.filter( x => x.formula == aux ).toList match {
+      case (x::_) => apply( s1, x, main, term )
+      case _ => //throw new LKRuleCreationException("No matching formula occurrence found for application of the rule with the given auxiliary formula")
+        throw new LKUnaryRuleCreationException("ex:r", s1, aux::Nil)
+
+    }
+  }
+
   /** <pre>Constructs a proof ending with an ExistsRight rule.
     *
     * The rule:

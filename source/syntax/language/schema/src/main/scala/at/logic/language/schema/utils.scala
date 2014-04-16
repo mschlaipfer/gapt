@@ -5,7 +5,7 @@
 
 package at.logic.language.schema
 
-import at.logic.language.hol.{freeVariables => freeVariablesHOL}
+import at.logic.language.hol.{freeVariables => freeVariablesHOL, HOLFormula}
 
 object freeVariables {
   def apply(e: SchemaExpression) : List[SchemaVar] = freeVariablesHOL(e).asInstanceOf[List[SchemaVar]]
@@ -15,6 +15,12 @@ object isAtom {
   def apply(f: SchemaFormula) : Boolean = f match {
     case Atom(_,_) => true
     case IndexedPredicate(_,_) => true
+    case _ => false
+  }
+}
+object isSAtom{
+  def apply(f:SchemaFormula): Boolean = f match {
+    case sAtom(_,_) => true
     case _ => false
   }
 }

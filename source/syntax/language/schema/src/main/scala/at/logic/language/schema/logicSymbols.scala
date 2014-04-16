@@ -39,6 +39,15 @@ case object BiggerThanSymbol extends SymbolA {
   }*/
 }
 
+case object simSymbol extends SymbolA {
+  def unique = "simSymbol"
+  override def toString = "~"
+  def toCode = "simSymbol"
+  /* def compare(that: SymbolA) = that match {
+  case a: SymbolA => unique.compare( a.unique )
+}*/
+}
+
 case object LessThanSymbol extends SymbolA {
   def unique = "LessThanSymbol"
   override def toString = "<"

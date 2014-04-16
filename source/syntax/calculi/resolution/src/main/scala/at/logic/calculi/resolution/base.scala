@@ -7,7 +7,7 @@ package at.logic.calculi.resolution
 
 import at.logic.calculi.occurrences._
 import at.logic.calculi.proofs._
-import at.logic.calculi.lk.base.{Sequent, createContext => lkCreateContext}
+import at.logic.calculi.lk.base.{Sequent, FSequent, createContext => lkCreateContext}
 import at.logic.calculi.lksk.LabelledFormulaOccurrence
 import at.logic.calculi.lksk.TypeSynonyms.Label
 import at.logic.language.hol._

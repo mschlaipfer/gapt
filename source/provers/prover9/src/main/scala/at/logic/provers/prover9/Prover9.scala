@@ -54,6 +54,7 @@ object Prover9 extends at.logic.utils.logging.Logger {
   // path "in" to its standard input.
   private def exec( prog: String, in: String ) =
   {
+    // FIXME this line throws an exception if tptp_to_ladr is not installed!
     val p = Runtime.getRuntime.exec( prog )
 
     val out = new OutputStreamWriter( p.getOutputStream )

@@ -18,6 +18,7 @@ import at.logic.calculi.occurrences.factory
 import at.logic.calculi.lksk.TypeSynonyms.{EmptyLabel, Label}
 import at.logic.language.lambda.symbols.StringSymbol
 import at.logic.language.lambda.types.FunctionType
+import at.logic.algorithms.llk.HybridLatexExporter
 
 
 object LKtoLKskc extends Logger {
@@ -39,8 +40,8 @@ object LKtoLKskc extends Logger {
 
   private def f(f:HOLExpression) : String = HybridLatexExporter.getFormulaString(f,true, false)
   private def f(s:Sequent) : String =
-    s.antecedent.map( { case LabelledFormulaOccurence(formula,_,l) => f(formula) + ":label"+l.map(f).mkString("{",",","}")  } ).mkString(";")+ " :- " +
-      s.succedent.map( { case LabelledFormulaOccurence(formula,_,l) => f(formula) + ":label"+l.map(f).mkString("{",",","}")  } ).mkString(";")
+    s.antecedent.map( { case LabelledFormulaOccurrence(formula,_,l) => f(formula) + ":label"+l.map(f).mkString("{",",","}")  } ).mkString(";")+ " :- " +
+      s.succedent.map( { case LabelledFormulaOccurrence(formula,_,l) => f(formula) + ":label"+l.map(f).mkString("{",",","}")  } ).mkString(";")
 
   // TODO: refactor this method! There is redundancy w.r.t. the symmetric rules
   // like ForallLeft, ExistsRight etc. For an example, see algorithms.lk.substitution

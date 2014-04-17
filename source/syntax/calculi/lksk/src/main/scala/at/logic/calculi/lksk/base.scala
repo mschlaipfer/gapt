@@ -26,6 +26,9 @@ class LabelledFormulaOccurrence (override val formula: HOLFormula,
   override def toString: String = formula.toString + " (label: " + skolem_label.toString + ")"
 
 }
+object LabelledFormulaOccurrence {
+  def unapply(fo : LabelledFormulaOccurrence) = Some(fo.formula, fo.ancestors, fo.skolem_label)
+}
 
 object LKskFOFactory extends FOFactory {
   override def createFormulaOccurrence(formula: HOLFormula, ancestors: Seq[FormulaOccurrence]): FormulaOccurrence = {

@@ -36,9 +36,9 @@ class ExtendedHerbrandSequent(seq: Sequent, g: Grammar, cf: FOLFormula = null) e
   // FormulaOccurrence to HOLFormula to FOLFormula and Seq to List...
   
   // Propositional formulas on the left
-  val prop_l : List[FOLFormula] = seq.antecedent.filter(x => !x.formula.containsQuantifier).map(x => x.formula.asInstanceOf[FOLFormula]).toList
+  val prop_l : List[FOLFormula] = seq.antecedent.filter(x => !containsQuantifier(x.formula.asInstanceOf[FOLFormula])).map(x => x.formula.asInstanceOf[FOLFormula]).toList
   // Propositional formulas on the right
-  val prop_r : List[FOLFormula] = seq.succedent.filter(x => !x.formula.containsQuantifier).map(x => x.formula.asInstanceOf[FOLFormula]).toList
+  val prop_r : List[FOLFormula] = seq.succedent.filter(x => !containsQuantifier(x.formula.asInstanceOf[FOLFormula])).map(x => x.formula.asInstanceOf[FOLFormula]).toList
   
   // Instanciated (previously univ. quantified) formulas on the left
   val inst_l : List[FOLFormula] = grammar.u.foldRight(List[FOLFormula]()) { case (term, acc) =>
@@ -60,7 +60,7 @@ class ExtendedHerbrandSequent(seq: Sequent, g: Grammar, cf: FOLFormula = null) e
   }
 
   // Separating the formulas that contain/don't contain eigenvariables
-  def varFree(f : FOLFormula) = f.freeVariables.intersect(g.eigenvariables.toSet).isEmpty
+  def varFree(f : FOLFormula) = freeVariables(f).intersect(g.eigenvariables).isEmpty
   val antecedent = prop_l ++ inst_l.filter(varFree)
   val antecedent_alpha = inst_l.filter(x => !varFree(x))
   val succedent = prop_r ++ inst_r.filter(varFree)

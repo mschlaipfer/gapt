@@ -7,7 +7,7 @@ package at.logic.language.fol
 import at.logic.language.lambda.types._
 import at.logic.language.lambda.symbols.getRenaming
 import at.logic.language.lambda.{freeVariables => freeVariablesLambda, rename => renameLambda}
-import at.logic.language.hol.{isPrenex => isPrenexHOL, containsQuantifier => containsQuantifierHOL, getMatrix => getMatrixHOL}
+import at.logic.language.hol.{isPrenex => isPrenexHOL, containsQuantifier => containsQuantifierHOL, getMatrix => getMatrixHOL, lcomp => lcompHOL}
 
 // Returns a list *without duplicates* of the free variables in the expression.
 // There is no guarantee on the ordering of the list.
@@ -366,6 +366,10 @@ object isEigenvariable {
     case Array(eigenvariable, n) => n.forall(Character.isDigit)
     case _ => false
   }
+}
+
+object lcomp {
+  def apply(f: FOLFormula) = lcompHOL(f) 
 }
 
 object Utils {

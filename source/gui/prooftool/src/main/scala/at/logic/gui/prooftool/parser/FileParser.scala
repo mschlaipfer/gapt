@@ -17,7 +17,7 @@ import at.logic.parsing.calculi.xml.SimpleXMLProofParser
 import at.logic.parsing.ParsingException
 import at.logic.calculi.proofs.TreeProof
 import at.logic.calculi.lk.base.{LKProof, FSequent}
-import at.logic.parsing.shlk_parsing.{SCHOLParser, sFOParser,sFOParserCNT}
+import at.logic.parsing.shlk_parsing.{sFOParser,sFOParserCNT}
 import at.logic.utils.ds.trees.{LeafTree, BinaryTree, Tree}
 import at.logic.language.hol.HOLExpression
 import at.logic.gui.prooftool.gui.{DrawSequent, Main}
@@ -27,6 +27,7 @@ import at.logic.language.schema.dbTRS
 import at.logic.transformations.ceres.clauseSchema._
 import at.logic.calculi.slk.SchemaProofDB
 import at.logic.calculi.proofs.Proof
+import at.logic.algorithms.shlk.SCHOLParser
 
 class FileParser {
 

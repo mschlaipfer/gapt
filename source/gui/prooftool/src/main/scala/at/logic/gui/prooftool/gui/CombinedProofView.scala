@@ -1,6 +1,6 @@
 package at.logic.gui.prooftool.gui
 
-import at.logic.calculi.treeProofs.TreeProof
+import at.logic.calculi.proofs.TreeProof
 import scala.swing._
 import java.awt.Dimension
 import at.logic.calculi.lk.base.{LKProof, Sequent}
@@ -11,7 +11,6 @@ import scala.swing.Reactions.Reaction
  * Provides a combination of DrawProof and SunburstTrees with a SingleInferenceViewer
  */
 
-/*
 class CombinedProofView[T](proof : TreeProof[T], fSize : Int) extends BorderPanel {
   //draw proof
   //val drawproof = new DrawProof(proof, fSize, Set(), Set(), Set(), "")
@@ -115,4 +114,3 @@ class CombinedSequentProofView[T <: Sequent](proof : TreeProof[T], fSize : Int) 
 
 
 }
-   */

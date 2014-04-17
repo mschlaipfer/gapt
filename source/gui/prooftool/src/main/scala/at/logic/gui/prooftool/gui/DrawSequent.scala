@@ -24,16 +24,16 @@ import java.awt.image.BufferedImage
 import swing._
 import event.{MouseClicked, MouseEntered, MouseExited, WindowDeactivated}
 import java.awt.event.MouseEvent
-import at.logic.language.lambda.types.Definitions._
 import at.logic.language.schema.IntZero
 import at.logic.utils.latex.nameToLatexString
 import collection.mutable
 import at.logic.gui.prooftool.parser.{ShowOnly, ChangeFormulaColor, ChangeSequentColor, ProofToolPublisher}
+import at.logic.language.lambda.Var
 
 object DrawSequent {
   implicit val factory = defaultFormulaOccurrenceFactory
   implicit def fo2occ(f:HOLFormula) = factory.createFormulaOccurrence(f, Seq[FormulaOccurrence]())
-  implicit def fseq2seq(s : types.FSequent) = Sequent(s._1 map fo2occ, s._2 map fo2occ  )
+  implicit def fseq2seq(s : FSequent) = Sequent(s._1 map fo2occ, s._2 map fo2occ  )
 
   //used by DrawClList
   def apply(seq: Sequent, ft: Font, str: String): FlowPanel = if (! str.isEmpty) {
@@ -105,7 +105,7 @@ object DrawSequent {
     s
   }
 
-  def formulaToLatexString(t: LambdaExpression, outermost : Boolean=true): String = t match {
+  def formulaToLatexString(t: HOLExpression, outermost : Boolean=true): String = t match {
     case Neg(f) => """\neg """ + formulaToLatexString(f, false)
     case And(f1,f2) => "(" + formulaToLatexString(f1, false) + """ \wedge """ + formulaToLatexString(f2, false) + ")"
     case Or(f1,f2) => "(" + formulaToLatexString(f1, false) + """ \vee """ + formulaToLatexString(f2, false) + ")"
@@ -160,8 +160,8 @@ object DrawSequent {
     val cl = name.asInstanceOf[ClauseSetSymbol]
       "cl^{" + cl.name +",(" + cl.cut_occs._1.foldLeft( "" )( (s, f) => s + {if (s != "") ", " else ""} + formulaToLatexString(f) ) + " | " +
         cl.cut_occs._2.foldLeft( "" )( (s, f) => s + {if (s != "") ", " else ""} + formulaToLatexString(f, false) ) + ")}"
-    } else if (t.asInstanceOf[Var].isBound) "z_{" + t.asInstanceOf[Var].dbIndex.get + "}" // This line is added for debugging reasons!!!
-    else if (t.exptype == ind->ind)
+    }
+    else if (t.exptype == Tindex -> Tindex)
       "\\textbf {" + name.toString + "}"
     else  name.toString
     case Function(name, args, _) =>
@@ -181,9 +181,9 @@ object DrawSequent {
     case z : IntConst => n.toString
     case IntZero() => n.toString
     case v : IntVar => if (n > 0)
-      v.toStringSimple + "+" + n.toString
+      v.toPrettyString + "+" + n.toString //FIXME: needed to change from StringSimple to PrettyString, but that looks definitely different
     else
-      v.toStringSimple()
+      v.toPrettyString //FIXME: needed to change from StringSimple to PrettyString, but that looks definitely different
     case Succ(s) => parseIntegerTerm( s, n + 1 )
     case _ => throw new Exception("Error in parseIntegerTerm(..) in gui")
   }

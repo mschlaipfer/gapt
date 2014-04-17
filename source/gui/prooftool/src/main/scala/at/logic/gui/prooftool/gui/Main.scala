@@ -48,6 +48,13 @@ import java.awt.event.{KeyEvent, ActionEvent => JActionEvent}
 import scala.swing._
 import com.itextpdf.text.{Document, Rectangle => PdfRectangle}
 import com.itextpdf.text.pdf.PdfWriter
+import scala.swing.BorderPanel.Position
+import scala.swing.event.Key
+import javax.swing.{SwingUtilities, KeyStroke}
+import scala.swing.Swing.EmptyIcon
+import scala.swing.Dialog.Message
+import javax.swing.filechooser.FileFilter
+import at.logic.algorithms.shlk.applySchemaSubstitution2
 
 object Main extends SimpleSwingApplication {
   val body = new MyScrollPane
@@ -1412,13 +1419,13 @@ object Main extends SimpleSwingApplication {
          * method is the correct one here... it was applySchemaSubstitution and
          * applySchemaSubstitution2.
          */
-          vat proof = try { // This is a hack! In the future these two functions should be merged.
-            SchemaSubstitution((name, number)::Nil)
+          try { // This is a hack! In the future these two functions should be merged.
+            val proof : LKProof =  applySchemaSubstitution2(name, number, List())
+            db.addProofs((name + "↓" + number, proof)::Nil)
+            body.contents = new Launcher(Some(name + "↓" + number, proof), defaultFontSize)
           } catch {
-            errorMessage("Cannot compute instance")
+            case _ => errorMessage("Cannot compute instance")
           }
-          db.addProofs((name + "↓" + number, proof)::Nil)
-          body.contents = new Launcher(Some(name + "↓" + number, proof), defaultFontSize)
         case (name: String, pt: Tree[_]) if db.getTermTrees.exists(p => name == p._1 && p._2 == db.TermType.ProjectionTerm) =>
           val (term,list) = UnfoldProjectionTerm(name,number)
           val gterm_name = name.replace("_step","").replace("_base","")  + "↓" + number

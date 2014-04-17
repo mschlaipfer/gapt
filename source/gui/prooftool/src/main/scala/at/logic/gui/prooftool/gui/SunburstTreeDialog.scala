@@ -8,7 +8,7 @@ package at.logic.gui.prooftool.gui
  */
 
 import scala.swing._
-import at.logic.calculi.treeProofs.TreeProof
+import at.logic.calculi.proofs.TreeProof
 import scala.swing.event.{Key, KeyPressed, UIElementResized}
 import at.logic.calculi.lk.base.LKProof
 import ch.randelshofer.tree.sunburst.SunburstNode

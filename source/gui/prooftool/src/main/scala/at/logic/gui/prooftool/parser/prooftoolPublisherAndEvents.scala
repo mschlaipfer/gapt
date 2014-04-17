@@ -31,4 +31,4 @@ case class ShowProof(proof: TreeProof[_]) extends Event
 
 case class ChangeSequentColor(seqList: Sequent, color: Color, reset: Boolean) extends Event
 case class ChangeFormulaColor(occurrences : Set[FormulaOccurrence], color: Color, reset: Boolean) extends Event
-case class ShowOnly(formulas : Set[FormulaOccurrence], reset: Boolean) extends Event>>>>>>> .merge-right.r1940
+case class ShowOnly(formulas : Set[FormulaOccurrence], reset: Boolean) extends Event

@@ -2,20 +2,17 @@ package at.logic.gui.prooftool.gui
 
 import scala.swing.{Action, BorderPanel}
 import java.awt.event.{ActionEvent, MouseMotionListener}
-import at.logic.calculi.treeProofs.TreeProof
+import at.logic.calculi.proofs.TreeProof
 import ch.randelshofer.tree._
 import at.logic.utils.ds.trees.{BinaryTree, UnaryTree, LeafTree}
 import javax.swing.event.ChangeListener
 import java.awt.Color
 import at.logic.calculi.lk.base.{Sequent, AuxiliaryFormulas, LKProof, PrincipalFormulas}
-import at.logic.algorithms.hlk.HybridLatexExporter.{fsequentString, getFormulaString}
-import at.logic.calculi.lk.propositionalRules._
-import at.logic.calculi.lk.quantificationRules.{ExistsLeftRuleType, ForallRightRuleType, ExistsRightRuleType, ForallLeftRuleType}
+import at.logic.algorithms.llk.HybridLatexExporter.{fsequentString, getFormulaString}
 import at.logic.calculi.lksk.{ExistsSkLeftRuleType, ForallSkRightRuleType, ExistsSkRightRuleType, ForallSkLeftRuleType}
-import at.logic.calculi.lk.equationalRules.{EquationRight2RuleType, EquationRight1RuleType, EquationLeft2RuleType, EquationLeft1RuleType}
+import at.logic.calculi.lk._
 import at.logic.parsing.calculi.xml.{BinaryRuleType, UnaryRuleType, NullaryRuleType}
-import at.logic.calculi.lk.base.types.FSequent
-import scala.Exception
+import at.logic.calculi.lk.base._
 import at.logic.gui.prooftool.parser.{ChangeSequentColor, ProofToolPublisher}
 
 /**

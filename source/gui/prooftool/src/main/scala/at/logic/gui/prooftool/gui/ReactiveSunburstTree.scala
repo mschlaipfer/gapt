@@ -3,7 +3,7 @@ package at.logic.gui.prooftool.gui
 import ch.randelshofer.tree.sunburst.{SunburstNode, SunburstTree, SunburstView, SunburstModel}
 import ch.randelshofer.tree.{NodeInfo, TreeNode}
 import scala.swing.Publisher
-import at.logic.calculi.treeProofs.TreeProof
+import at.logic.calculi.proofs.TreeProof
 import scala.swing.event.Event
 
 /**

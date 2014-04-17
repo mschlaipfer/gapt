@@ -1,7 +1,7 @@
 package at.logic.gui.prooftool.gui
 
 import scala.swing._
-import at.logic.calculi.agraphProofs.{BinaryAGraphProof, UnaryAGraphProof, AGraphProof}
+import at.logic.calculi.proofs.{BinaryAGraphProof, UnaryAGraphProof, AGraphProof}
 import at.logic.calculi.lk.base._
 import java.awt.{Color, Font}
 import scala.swing.BorderPanel.Position

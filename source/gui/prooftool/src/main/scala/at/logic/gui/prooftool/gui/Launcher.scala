@@ -21,7 +21,7 @@ import scala.swing._
 import event.{MouseWheelMoved, MouseReleased, MouseDragged}
 import at.logic.gui.prooftool.parser.{UnLoaded, Loaded, ProofToolPublisher, StructPublisher}
 import at.logic.utils.ds.trees.Tree
-import at.logic.calculi.treeProofs.TreeProof
+import at.logic.calculi.proofs.TreeProof
 import at.logic.calculi.expansionTrees.ExpansionSequent
 import at.logic.language.hol.HOLFormula
 import at.logic.calculi.proofs.Proof

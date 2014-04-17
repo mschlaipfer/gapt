@@ -66,6 +66,8 @@ case class RefutationReachedCommand[V <: Sequent]() extends ResultCommand[V] {
       None
     }
   }
+
+  override def toString = "RefutationReachedCommand"
 }
 
 

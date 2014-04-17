@@ -156,14 +156,16 @@ object DrawSequent {
       }
     case vi: indexedFOVar => vi.name.toString + "_{" + formulaToLatexString(vi.index, false) + "}"
     case vi: indexedOmegaVar => vi.name.toString + "_{" + formulaToLatexString(vi.index, false) + "}"
-    case HOLVar(name, _) => if (name.isInstanceOf[ClauseSetSymbol]) { //parse cl variables to display cut-configuration.
-    val cl = name.asInstanceOf[ClauseSetSymbol]
+    case v:HOLVar  if (v.sym.isInstanceOf[ClauseSetSymbol])  => {
+    //parse cl variables to display cut-configuration.
+    val cl = v.sym.asInstanceOf[ClauseSetSymbol]
       "cl^{" + cl.name +",(" + cl.cut_occs._1.foldLeft( "" )( (s, f) => s + {if (s != "") ", " else ""} + formulaToLatexString(f) ) + " | " +
         cl.cut_occs._2.foldLeft( "" )( (s, f) => s + {if (s != "") ", " else ""} + formulaToLatexString(f, false) ) + ")}"
     }
-    else if (t.exptype == Tindex -> Tindex)
+    case HOLVar(name,_) if t.exptype == Tindex -> Tindex =>
       "\\textbf {" + name.toString + "}"
-    else  name.toString
+    case HOLVar(name,_) =>  name
+    case HOLConst(name,_) => name
     case Function(name, args, _) =>
       if (name.toString == "EXP")
         args.last.asInstanceOf[IntVar].name + "^{" + parseIntegerTerm(args.head.asInstanceOf[IntegerTerm], 0) + "}"

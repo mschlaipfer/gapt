@@ -5,7 +5,16 @@ import at.logic.provers.atp.commands.robinson.ParamodulationCommand
 import org.specs2.mutable._
 import at.logic.calculi.resolution.robinson._
 import at.logic.language.fol.FOLFormula
+import org.junit.runner.RunWith
+import org.specs2.runner.JUnitRunner
+import at.logic.calculi.lk.base.FSequent
+import at.logic.parsing.language.prover9.Prover9TermParser.parseFormula
+import at.logic.calculi.resolution.{ResolutionProof, Clause}
+import at.logic.provers.atp.commands.sequents._
+import at.logic.provers.atp.commands.base._
 
+
+@RunWith(classOf[JUnitRunner])
 class RobinsonTest extends SpecificationWithJUnit {
   "ParamodulationCommand" should  {
     "applying paramodulation command on two res.proofs" in {
@@ -25,3 +34,4 @@ class RobinsonTest extends SpecificationWithJUnit {
     }
   }
 }
+

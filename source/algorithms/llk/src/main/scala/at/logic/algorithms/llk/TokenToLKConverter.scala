@@ -759,7 +759,6 @@ trait TokenToLKConverter {
       NaiveIncompleteMatchingAlgorithm.holMatch(x._1,link)(Nil) match {
         case None => Nil
         case Some(sub) =>
-          println("Substitution: "+sub)
           applySubstitution(x._2, sub)._1 :: Nil
       }
     }

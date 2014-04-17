@@ -132,7 +132,12 @@ case class Prover9InitCommand(override val clauses: Iterable[FSequent]) extends 
 
     tptpIS.close()
 
-    List((state, cmnds ++ List(RefutationReachedCommand[Clause]) ))
+    val l = List((state, cmnds ++ List(RefutationReachedCommand[Clause]) ))
+    println("Parsed proof to:")
+    for (cmd <- l(0)._2) {
+      println("  cmd  : "+cmd)
+    }
+    l
   }
 
   private def returnAndPrint[T](x:T) = {/*println("Scheduling P9 Command:"+x);*/ x }

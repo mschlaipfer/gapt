@@ -40,13 +40,21 @@ case class SetTargetClause2[V <: Sequent](val clause: Clause) extends DataComman
   def apply(state: State, data: Any) = List((state += new Tuple2("targetClause", clause.toFSequent), data))
 }
 
+case object PrintStateCommand extends DataCommand[Clause] {
+  def apply(state: State, data: Any) : Iterable[(State,Any)] = {
+    println("state: "+state)
+    println("data:"+data)
+    List((state,data))
+  }
+}
+
 
 case class ReplayCommand(parentIds: Iterable[String], id: String, cls: FSequent) extends DataCommand[Clause] {
   def apply(state: State, data: Any) = {
     import Stream.cons
-    //println("\nReplayCommand")
+    println("\nReplayCommand")
     //get guided clauses mapping from id to resolution proof of id
-    //println("\nTarget clause :"+id+"\nfrom "+parentIds.toList)
+    println("\nTarget clause :"+id+"\nfrom "+parentIds.toList)
     val gmap = state("gmap").asInstanceOf[MMap[String,ResolutionProof[Clause]]]
     //println("\nData="+data)
     //println("\nTarget clause="+cls)
@@ -65,11 +73,15 @@ case class ReplayCommand(parentIds: Iterable[String], id: String, cls: FSequent)
 
     def stream1:  Stream[Command[Clause]] = cons(SequentsMacroCommand[Clause](
       SimpleRefinementGetCommand[Clause],
-      List(VariantsCommand, DeterministicAndCommand[Clause](
-        List(ApplyOnAllPolarizedLiteralPairsCommand[Clause], ResolveCommand(FOLUnificationAlgorithm), FactorCommand(FOLUnificationAlgorithm)),
-        List(ParamodulationCommand(FOLUnificationAlgorithm))),
+      List(VariantsCommand,
+        DeterministicAndCommand[Clause]( (
+          List(ApplyOnAllPolarizedLiteralPairsCommand[Clause], ResolveCommand(FOLUnificationAlgorithm), FactorCommand(FOLUnificationAlgorithm)),
+          List(ParamodulationCommand(FOLUnificationAlgorithm))
+          )
+        ),
         SimpleForwardSubsumptionCommand[Clause](StillmanSubsumptionAlgorithmFOL),
         SimpleBackwardSubsumptionCommand[Clause](StillmanSubsumptionAlgorithmFOL),
+        PrintStateCommand,
         InsertResolventCommand[Clause]),
       RefutationReachedCommand[Clause]), stream1)
       //RefutationReachedCommand is replaced by SubsumedTargedReachedCommand

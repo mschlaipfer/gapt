@@ -202,7 +202,7 @@ object XMLExporter {
     case ExistsLeftRuleType => ExistsLeftRule.unapply(proof).get._4.formula match {
       case ExVar(x, f) => x.exptype match {
         case Ti => "existsl"
-        case _ => "existsl2"
+        case _  => "existsl2"
       }
     }
     case ExistsRightRuleType =>ExistsRightRule.unapply(proof).get._4.formula match {

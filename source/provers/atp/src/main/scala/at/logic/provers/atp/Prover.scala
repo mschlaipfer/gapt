@@ -79,7 +79,7 @@ trait Prover[V <: Sequent] extends at.logic.utils.logging.Logger {
 
   private[Prover] def myFun(c: Configuration[ResolutionProof[V]]): Iterable[Configuration[ResolutionProof[V]]] = {
     val conf = c.asInstanceOf[MyConfiguration]
-//    Console.println("debug -- command: " + Console.RED + conf.commands.head.getClass + Console.RESET +", data: " + conf.data + ", next Command: " + conf.commands.tail.head.getClass)
+    //Console.println("debug -- command: " + Console.RED + conf.commands.head.getClass + Console.RESET +", data: " + conf.data + ", next Command: " + conf.commands.tail.head.getClass)
     if (conf.commands.isEmpty) {
       println("\nconf.commands.isEmpty !\n")
       List()

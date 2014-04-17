@@ -136,9 +136,7 @@ class HybridLatexParserTest extends SpecificationWithJUnit {
     }
 
     "load the tape3 proof from file" in {
-      skipped("fails somewhere")
       try {
-        println("n-TAPE TEST")
         val r = HybridLatexParser.parseFile("target" + separator + "test-classes" + separator + "tape3.llk")
         val p = HybridLatexParser.createLKProof(r)
         p.proofs.length must be_>(0)

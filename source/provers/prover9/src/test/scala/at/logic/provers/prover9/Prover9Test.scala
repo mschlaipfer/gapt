@@ -27,6 +27,11 @@ import org.mockito.Matchers._
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
 import org.specs2.runner.JUnitRunner
+import at.logic.parsing.language.prover9.Prover9TermParser.parseFormula
+import at.logic.provers.prover9.commands.Prover9InitCommand
+import scala.Some
+import at.logic.provers.atp.commands.sequents.SetTargetClause
+import at.logic.provers.atp.commands.base.SetStreamCommand
 
 private class MyParser(str: String) extends StringReader(str) with SimpleResolutionParserFOL
 
@@ -47,6 +52,41 @@ class Prover9Test extends SpecificationWithJUnit {
   }
 
   def getRefutation2(ls: Iterable[FSequent]) = MyProver.refute(Stream(SetTargetClause(FSequent(List(),List())), Prover9InitCommand(ls), SetStreamCommand())).next
+
+
+  "replay" should {
+    "work on the tape-in clause set" in {
+      skipped("replay does not terminate anymore")
+      val formulas = List(
+        "f(X+Y)=0",
+        "f(Y+X)=1",
+        "f(X + Z0) = 0",
+        "f(((X + Z0) + 1) + Z1) = 0",
+        "f(X + Z0) = 1",
+        "f(((X + Z0) + 1) + Z1) = 1"
+      ).map(parseFormula)
+
+      val c1 = FSequent(Nil, List(formulas(0), formulas(1)))
+      val c2 = FSequent(List(formulas(2), formulas(3)),Nil)
+      val c3 = FSequent(List(formulas(4), formulas(5)),Nil)
+
+      val ls = List(c1,c2,c3)
+
+      val prover = new Prover[Clause] {}
+
+      prover.refute(Stream(
+        SetTargetClause(FSequent(List(),List())),
+        Prover9InitCommand(ls),
+        SetStreamCommand()
+      )).next must beLike {
+        case Some(a) if a.asInstanceOf[ResolutionProof[Clause]].root syntacticMultisetEquals (FSequent(List(),List())) =>
+          ok
+        case _ =>
+          ko
+      }
+    }
+  }
+
 
   "Prover9 within ATP" should {
     /*"prove (with para) SKKx = Ix : { :- f(a,x) = x; :- f(f(f(b,x),y),z) = f(f(x,z), f(y,z)); :- f(f(c,x),y) = x; f(f(f(b,c),c),x) = f(a,x) :- }" in {

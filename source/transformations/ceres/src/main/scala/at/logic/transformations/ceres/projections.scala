@@ -11,48 +11,54 @@ import at.logic.language.hol._
 import at.logic.calculi.lk._
 import at.logic.calculi.lk.base.{LKProof,Sequent,PrincipalFormulas}
 import scala.collection.immutable.HashSet
+import at.logic.language.lambda.types._
+import at.logic.language.lambda.symbols._
+import at.logic.language.lambda.{rename,freeVariables}
+import at.logic.calculi.lksk.{ExistsSkLeftRule, ForallSkRightRule, ExistsSkRightRule, ForallSkLeftRule, 
+                              WeakeningLeftRule => WeakeningSkLeftRule, WeakeningRightRule => WeakeningSkRightRule,
+                              Axiom => AxiomSk, LabelledFormulaOccurrence}
+import at.logic.calculi.lksk.TypeSynonyms._
 
-object Projections {
-  
-  def reflexivity_projection( proof:LKProof, t : TA = Ti()) : LKProof = {
+case class ProjectionException(message : String, original_proof: LKProof, new_proofs : List[LKProof], nested : Exception)
+  extends Exception(message, nested) { }
+
+object Projections extends at.logic.utils.logging.Logger {
+ 
+  def reflexivity_projection( proof:LKProof, t : TA = Ti) : LKProof = {
     //TODO: in case of fol, fol equality is not used
     //TODO: lksk is not handled
     val es = proof.root.toFSequent()
     val x = es.formulas.headOption match {
-      case Some(f) => f.factory.createVar(VariableStringSymbol("x"), t)
-      case None => HOLVar(VariableStringSymbol("x"), t)
+      case Some(f) => f.factory.createVar(StringSymbol("x"), t)
+      case None => HOLVar(StringSymbol("x"), t)
     }
 
     var count = 0
-    val gen= new VariableNameGenerator(() => { count = count +1; "x_{"+count+"}" })
-    val x_ = gen(x, es.formulas).asInstanceOf[HOLVar]
+    val x_ = rename(x, es.formulas.flatMap(freeVariables(_)).toList).asInstanceOf[HOLVar]
     val ax : LKProof = Axiom(Nil, List(Equation(x_,x_)))
     val left = es.antecedent.foldLeft(ax)( (p, f) => WeakeningLeftRule(p,f))
     val right = es.succedent.foldLeft(left)( (p, f) => WeakeningRightRule(p,f))
     right
   }
 
-  def lksk_reflexivity_projection( proof:LKProof, t : TA = Ti()) : LKProof = {
-    import at.logic.calculi.lksk
-    import lksk.base.TypeSynonyms.EmptyLabel
+  def lksk_reflexivity_projection( proof:LKProof, t : TA = Ti) : LKProof = {
 
     //TODO: in case of fol, fol equality is not used
     val es = proof.root.toFSequent()
     val x = es.formulas.headOption match {
-      case Some(f) => f.factory.createVar(VariableStringSymbol("x"), t)
-      case None => HOLVar(VariableStringSymbol("x"), t)
+      case Some(f) => f.factory.createVar(StringSymbol("x"), t)
+      case None => HOLVar(StringSymbol("x"), t)
     }
 
     var count = 0
-    val gen= new VariableNameGenerator(() => { count = count +1; "x_{"+count+"}" })
-    val x_ = gen(x, es.formulas).asInstanceOf[HOLVar]
-    val (ax,_) = lksk.Axiom.createDefault(
+    val x_ = rename(x, es.formulas.flatMap(freeVariables(_)).toList).asInstanceOf[HOLVar]
+    val (ax,_) = AxiomSk.createDefault(
       FSequent(Nil, List(Equation(x_,x_))),
       (List(), List(EmptyLabel()))
     )
     require(ax.root.occurrences.size == 1, "Couldn't create reflexivity!")
-    val left = es.antecedent.foldLeft(ax)( (p, f) => WeakeningLeftRule(p,f))
-    val right = es.succedent.foldLeft(left)( (p, f) => WeakeningRightRule(p,f))
+    val left = es.antecedent.foldLeft(ax)( (p, f) => WeakeningSkLeftRule.createDefault(p,f,EmptyLabel()))
+    val right = es.succedent.foldLeft(left)( (p, f) => WeakeningSkRightRule.createDefault(p,f,EmptyLabel()))
     require(right.root.occurrences.size == es.formulas.size + 1, "Size of end-sequent is wrong!")
     right
   }
@@ -68,12 +74,12 @@ object Projections {
     proof match {
       case Axiom(s) => Set(Axiom(s))
 
-      case lksk.ExistsSkLeftRule(p,_,a,m,v) => handleLKSKStrongQuantRule( proof, p, a, m, v, lksk.ExistsSkLeftRule.apply, pred )
-      case lksk.ForallSkRightRule(p,_,a,m,v) => handleLKSKStrongQuantRule( proof, p, a, m, v, lksk.ForallSkRightRule.apply, pred )
-      case lksk.ExistsSkRightRule(p,_,a,m,t) => handleLKSKWeakQuantRule( proof, p, a, m, t, lksk.ExistsSkRightRule.apply, pred )
-      case lksk.ForallSkLeftRule(p,_,a,m,t) => handleLKSKWeakQuantRule( proof, p, a, m, t, lksk.ForallSkLeftRule.apply, pred )
-      case lksk.WeakeningLeftRule(p,_, m) => handleLKSKWeakeningRule( proof, p, m, lksk.WeakeningLeftRule.createDefault, pred )
-      case lksk.WeakeningRightRule(p,_, m) => handleLKSKWeakeningRule( proof, p, m, lksk.WeakeningRightRule.createDefault, pred )
+      case ExistsSkLeftRule(p,_,a,m,v) => handleLKSKStrongQuantRule( proof, p, a, m, v, ExistsSkLeftRule.apply, pred )
+      case ForallSkRightRule(p,_,a,m,v) => handleLKSKStrongQuantRule( proof, p, a, m, v, ForallSkRightRule.apply, pred )
+      case ExistsSkRightRule(p,_,a,m,t) => handleLKSKWeakQuantRule( proof, p, a, m, t, ExistsSkRightRule.apply, pred )
+      case ForallSkLeftRule(p,_,a,m,t) => handleLKSKWeakQuantRule( proof, p, a, m, t, ForallSkLeftRule.apply, pred )
+      case WeakeningSkLeftRule(p,_, m) => handleLKSKWeakeningRule( proof, p, m, WeakeningSkLeftRule.createDefault, pred )
+      case WeakeningSkRightRule(p,_, m) => handleLKSKWeakeningRule( proof, p, m, WeakeningSkRightRule.createDefault, pred )
 
       case ForallRightRule(p,_, a, m, v) => handleStrongQuantRule( proof, p, a, m, v, ForallRightRule.apply, pred )
       case ExistsLeftRule(p,_, a, m, v) => handleStrongQuantRule( proof, p, a, m, v, ExistsLeftRule.apply, pred )
@@ -155,7 +161,7 @@ object Projections {
 
   //picks 2 occurrences from the same list s.t. ac1 != ac2, where formulas and skolem label agree
   def pick2(aux1 : FormulaOccurrence, aux2 : FormulaOccurrence, candidates : Seq[FormulaOccurrence]) = {
-    debug(3,"Picking "+aux1+" and "+aux2+" from "+candidates.mkString("{",",","}"))
+    debug("Picking "+aux1+" and "+aux2+" from "+candidates.mkString("{",",","}"))
     val (ac1, candidates2) = pick1(aux1, candidates)
     require(! candidates2.contains(ac1), "Occurrence of "+ac1+" may not be contained in "+candidates2)
     val (ac2,_) = pick1(aux2, candidates2 )
@@ -164,7 +170,7 @@ object Projections {
   }
 
   def pickrule(p: LKProof, s:List[Sequent], aux : List[FormulaOccurrence]) : List[FormulaOccurrence] = {
-    debug(3,"Pick for rule: "+p.name)
+    debug("Pick for rule: "+p.name)
     p.rule match {
       //Unary rules
       case WeakeningLeftRuleType =>
@@ -316,14 +322,14 @@ object Projections {
     val wl = s.map( p => esancs._1.foldLeft( p )( (p, fo) => fo match {
         case locc : LabelledFormulaOccurrence =>
           //in lksk we must add the correct label
-          lksk.WeakeningLeftRule.createDefault(p, locc.formula, locc.skolem_label)
+          WeakeningSkLeftRule.createDefault(p, locc.formula, locc.skolem_label)
         case _ =>
           WeakeningLeftRule( p, fo.formula )
       }) )
     wl.map( p => esancs._2.foldLeft( p )( (p, fo) => fo match {
       case locc : LabelledFormulaOccurrence =>
         //in lksk we must add the correct label
-        lksk.WeakeningRightRule.createDefault(p, locc.formula, locc.skolem_label)
+        WeakeningSkRightRule.createDefault(p, locc.formula, locc.skolem_label)
       case _ =>
         WeakeningRightRule( p, fo.formula )
     } ) )

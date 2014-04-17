@@ -13,6 +13,7 @@ import at.logic.language.schema.IndexedPredicate
 import at.logic.language.lambda.types.{To, Tindex}
 import at.logic.language.hol.{HOLExpression, HOLApp, HOLConst, HOLFormula}
 import scala.collection.immutable.HashSet
+import scala.annotation.tailrec
 
 object StandardClauseSet {
   def normalize(struct:Struct):Struct = struct match {

@@ -504,15 +504,21 @@ trait Struct {
     }
 
     //the original version:
-//    def handleSchemaProofLink( so: Sequent , name: String, indices: List[IntegerTerm], cut_occs: CutOccurrenceConfiguration) = {
-//      val schema = SchemaProofDB.get( name )
-//      val sym = new ClauseSetSymbol( name,
-//        cutOccConfigToCutConfig( so, cut_occs.filter( occ => (so.antecedent ++ so.succedent).contains(occ)),
-//                                 schema.seq, schema.vars, indices) )
-//      val atom = IndexedPredicate( sym, indices )
-//      A( toOccurrence( atom, so ) )
-//    }
+    def handleSchemaProofLink( so: Sequent , name: String, indices: List[IntegerTerm], cut_occs: TypeSynonyms.CutOccurrenceConfiguration) = {
+      val schema = SchemaProofDB.get( name )
+      val sym = new ClauseSetSymbol( name,
+        cutOccConfigToCutConfig( so, cut_occs.filter( occ => (so.antecedent ++ so.succedent).contains(occ)),
+                                 schema.seq, schema.vars, indices) )
+      val atom = IndexedPredicate( sym, indices )
+      A( toOccurrence( atom, so ) )
+    }
 
+    // Daniel: I quote gui/prooftool/src/main/scala/at/logic/gui/prooftool/gui/Main.scala:
+    // "FixedFOccs does not exist anymore. I don't know what should be the correct parameter for this function."
+    // I don't know what the correct code is for the "new version" below, hence I replace it by
+    // the "original version" above which does not reference FixedFOccs.
+
+    /*
     //the new version: TODO:remove it!
     def handleSchemaProofLink( so: Sequent , name: String, indices: List[IntegerTerm], cut_occs: TypeSynonyms.CutOccurrenceConfiguration) = {
       val root = SchemaProofDB.get( name ).rec.root
@@ -527,7 +533,7 @@ trait Struct {
               new ClauseSetSymbol( name, cutOccConfigToCutConfig.applyRCC( so, cut_occs.filter( occ => (so.antecedent ++ so.succedent).contains(occ))))
       val atom = IndexedPredicate( sym, indices )
       A( toOccurrence( atom, so ) )
-    }
+    }*/
 
     def handleLabelledAxiom( lso: LabelledSequent , cut_occs: Set[FormulaOccurrence] ) = {
       val left = lso.l_antecedent.toList.head

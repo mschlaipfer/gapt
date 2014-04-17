@@ -3,19 +3,26 @@
  *
  */
 
-package at.logic.cli
+package at.logic.cli.GAPScalaInteractiveShellLibrary
 
+import at.logic.algorithms.cutIntroduction._
+import at.logic.algorithms.cutIntroduction.Deltas._
 import at.logic.algorithms.fol.hol2fol._
-import at.logic.algorithms.hlk.{LKProofParser, SchemaFormulaParser}
+import at.logic.algorithms.fol.recreateWithFactory
+import at.logic.algorithms.expansionTrees.compressQuantifiers
+import at.logic.algorithms.hlk.{ExtendedProofDatabase, LKProofParser, SchemaFormulaParser, HybridLatexParser}
 import at.logic.algorithms.interpolation._
-import at.logic.algorithms.lk._
+import at.logic.algorithms.lk.{deleteTautologies => deleteTaut, _}
+import at.logic.algorithms.lk.statistics._
+import at.logic.algorithms.lksk.applySubstitution
+import at.logic.algorithms.llk.HybridLatexExporter
 import at.logic.algorithms.resolution._
-import at.logic.algorithms.rewriting.NameReplacement
+import at.logic.algorithms.rewriting.{NameReplacement, DefinitionElimination}
 import at.logic.algorithms.shlk._
 import at.logic.algorithms.subsumption._
 import at.logic.algorithms.unification.fol.FOLUnificationAlgorithm
 
-import at.logic.calculi.expansionTrees.ExpansionTree
+import at.logic.calculi.expansionTrees.{ExpansionTree, ExpansionSequent}
 import at.logic.calculi.expansionTrees.multi.MultiExpansionTree
 import at.logic.calculi.lk._
 import at.logic.calculi.lk.base._
@@ -23,86 +30,65 @@ import at.logic.calculi.lksk.{ExistsSkLeftRule, ExistsSkRightRule, ForallSkLeftR
 import at.logic.calculi.occurrences.{FormulaOccurrence, defaultFormulaOccurrenceFactory}
 import at.logic.calculi.resolution._
 import at.logic.calculi.resolution.robinson._
+import at.logic.calculi.slk.SchemaProofDB
 
-import at.logic.algorithms.matching._
-import at.logic.language.fol
-import at.logic.language.fol.{FOLFormula, FOLExpression, FOLTerm, FOLVar, freeVariables => FOLfreeVariables, Or => FOLOr, Neg => FOLNeg, AllVar => FOLAllVar, ExVar => FOLExVar, Substitution => FOLSubstitution}
-import at.logic.language.hol.{Substitution => HOLSubstitution, BetaReduction => HOLBetaReduction, _}
+import at.logic.gui.prooftool.gui.Main
+
+import at.logic.language.fol.{Atom => FOLAtom, And => FOLAnd, Or => FOLOr, Imp => FOLImp, Neg => FOLNeg, AllVar => FOLAllVar, ExVar => FOLExVar, Substitution => FOLSubstitution, freeVariables => FOLfreeVariables, _}
+import at.logic.language.hol.{Substitution => HOLSubstitution, BetaReduction => HOLBetaReduction, containsQuantifier => containsQuantifierHOL, _}
 import at.logic.language.hol.logicSymbols._
 import at.logic.language.lambda.symbols._
-import at.logic.language.lambda.{Var, LambdaExpression}
 import at.logic.language.lambda.types._
-import at.logic.language.schema
+import at.logic.language.schema.{Atom => SchemaAtom, ExVar => SchemaExVar, AllVar => SchemaAllVar, _}
 
 import at.logic.parsing.calculi.latex._
 import at.logic.parsing.calculi.simple.SimpleResolutionParserFOL
 import at.logic.parsing.calculus.xml._
-import at.logic.parsing.ivy.{IvyParser, IvyResolutionProof}
 import at.logic.parsing.ivy.conversion.IvyToRobinson
-import at.logic.parsing.ivy.{Resolution => IvyResolution, Paramodulation => IvyParamodulation, Propositional => IvyPropositional, Instantiate => IvyInstantiate, InitialClause => IvyInitialClause}
+import at.logic.parsing.ivy.{InitialClause => IvyInitialClause, Instantiate => IvyInstantiate, Propositional => IvyPropositional, Resolution => IvyResolution, IvyParser, IvyResolutionProof}
 import at.logic.parsing.language.arithmetic.HOLTermArithmeticalExporter
+import at.logic.parsing.language.hlk.HLKHOLParser
 import at.logic.parsing.language.prover9._
 import at.logic.parsing.language.simple._
+import at.logic.parsing.language.tptp.TPTPFOLExporter
 import at.logic.parsing.language.xml.XMLParser._
+import at.logic.parsing.language.xml.ProofDatabase
 import at.logic.parsing.lisp.SExpressionParser
-import at.logic.parsing.readers._
-import at.logic.parsing.writers._
+import at.logic.parsing.readers.StringReader
+import at.logic.parsing.readers.XMLReaders._
+import at.logic.parsing.shlk_parsing.{sFOParser, sFOParserCNT}
+import at.logic.parsing.veriT._
+import at.logic.parsing.writers.FileWriter
 
 import at.logic.provers.atp.Prover
+import at.logic.provers.atp.commands.base._
+import at.logic.provers.atp.commands.logical.DeterministicAndCommand
+import at.logic.provers.atp.commands.refinements.base.SequentsMacroCommand
+import at.logic.provers.atp.commands.refinements.simple.SimpleRefinementGetCommand
+import at.logic.provers.atp.commands.robinson._
+import at.logic.provers.atp.commands.sequents._
+import at.logic.provers.atp.commands.ui._
+import at.logic.provers.minisat.MiniSAT
 import at.logic.provers.prover9.Prover9
+import at.logic.provers.prover9.commands.Prover9InitCommand
 
-import at.logic.transformations.skolemization.skolemize
-
-import java.io.{File, FileReader, FileInputStream, InputStreamReader, FileWriter => JFileWriter, BufferedWriter=>JBufferedWriter}
-import java.io.IOException
-import java.util.zip.GZIPInputStream
-
-import scala.collection.mutable.{Map => MMap}
-import at.logic.language.lambda.{App => LambdaApp, Abs => LambdaAbs}
-import at.logic.algorithms.lk.statistics._
-import at.logic.calculi.slk.SchemaProofDB
-import at.logic.transformations.ceres.struct.{Struct, StructCreators}
-import at.logic.transformations.skolemization.lksk.LKtoLKskc
+import at.logic.transformations.ceres.ACNF._
+import at.logic.transformations.ceres.clauseSchema._
+import at.logic.transformations.ceres.clauseSets.StandardClauseSet._
 import at.logic.transformations.ceres.clauseSets.SimplifyStruct
 import at.logic.transformations.ceres.projections.Projections
-import at.logic.parsing.veriT.{VeriTExporter, VeriTParser}
-import at.logic.algorithms.hlk.{ExtendedProofDatabase, HybridLatexParser}
-import at.logic.parsing.language.hlk.HLKHOLParser
-import at.logic.parsing.shlk_parsing.{sFOParser, sFOParserCNT}
-import at.logic.calculi.expansionTrees.ExpansionSequent
+import at.logic.transformations.ceres.struct._
+import at.logic.transformations.herbrandExtraction.{extractExpansionTrees => extractET}
+import at.logic.transformations.skolemization.lksk.LKtoLKskc
+import at.logic.transformations.skolemization.skolemize
+
 import at.logic.utils.constraint.Constraint
-import at.logic.provers.minisat.MiniSAT
-import at.logic.provers.atp.commands.base._
-import at.logic.provers.atp.commands.robinson._
-import at.logic.provers.atp.commands.logical._
-import at.logic.provers.atp.commands.sequents._
-import at.logic.provers.atp.commands.refinements.base._
-import at.logic.provers.prover9.commands._
-import at.logic.provers.atp.commands.refinements.simple._
-import at.logic.provers.atp.commands.ui.{PromptTerminal, getTwoClausesFromUICommand}
-import at.logic.algorithms.llk.HybridLatexExporter
-import at.logic.algorithms.fol.recreateWithFactory
-import at.logic.algorithms.subsumption._
-import at.logic.algorithms.expansionTrees.compressQuantifiers
-import at.logic.parsing.language.xml.ProofDatabase
-import at.logic.algorithms.rewriting.DefinitionElimination
+import at.logic.utils.executionModels.ndStream.{NDStream, Configuration}
 
-
-
-//import at.logic.transformations.ceres.ACNF.getInstantiationsOfTheIndexedFOVars
-//import at.logic.transformations.ceres.ACNF.ConvertCutsToHOLFormulasInResProof
-
-import at.logic.transformations.ceres.ACNF.{ACNF, renameIndexedVarInProjection}
-import at.logic.language.fol.FOLConst
-import at.logic.algorithms.lk.{deleteTautologies => deleteTaut}
-
-package GAPScalaInteractiveShellLibrary {
-
-import at.logic.parsing.language.tptp.TPTPFOLExporter
-import at.logic.parsing.readers.XMLReaders.XMLReader
-import at.logic.gui.prooftool.gui.Main
-import at.logic.language.lambda.Const
-
+import java.io.IOException
+import java.io.{File, FileReader, FileInputStream, InputStreamReader, FileWriter => JFileWriter, BufferedWriter=>JBufferedWriter}
+import java.util.zip.GZIPInputStream
+import scala.collection.mutable.{Map => MMap}
 
 object printProofStats {
   def apply(p: LKProof) = {
@@ -168,7 +154,7 @@ object buildACNF {
   def apply(ref: LKProof, projs: Set[LKProof], es: FSequent) = ACNF(ref, projs, es)
 }
 
-/** ****************** Proof loaders *************************/
+/******************** Proof loaders *************************/
 
 object loadProofs {
   def apply(file: String) =
@@ -336,19 +322,19 @@ object loadProver9LKProof {
       fs.succedent.exists(x => containsStrongQuantifiers(x.asInstanceOf[FOLFormula], true))
 
   def containsStrongQuantifiers(f: FOLFormula, pol: Boolean): Boolean = f match {
-    case fol.Atom(_, _) => false
-    case fol.And(s, t) => containsStrongQuantifiers(s, pol) || containsStrongQuantifiers(t, pol)
-    case fol.Or(s, t) => containsStrongQuantifiers(s, pol) || containsStrongQuantifiers(t, pol)
-    case fol.Imp(s, t) => containsStrongQuantifiers(s, !pol) || containsStrongQuantifiers(t, pol)
-    case fol.Neg(s) => containsStrongQuantifiers(s, !pol)
-    case fol.AllVar(x, s) => if (pol == true) true else containsStrongQuantifiers(s, pol)
-    case fol.ExVar(x, s) => if (pol == false) true else containsStrongQuantifiers(s, pol)
+    case FOLAtom(_, _) => false
+    case FOLAnd(s, t) => containsStrongQuantifiers(s, pol) || containsStrongQuantifiers(t, pol)
+    case FOLOr(s, t) => containsStrongQuantifiers(s, pol) || containsStrongQuantifiers(t, pol)
+    case FOLImp(s, t) => containsStrongQuantifiers(s, !pol) || containsStrongQuantifiers(t, pol)
+    case FOLNeg(s) => containsStrongQuantifiers(s, !pol)
+    case FOLAllVar(x, s) => if (pol == true) true else containsStrongQuantifiers(s, pol)
+    case FOLExVar(x, s) => if (pol == false) true else containsStrongQuantifiers(s, pol)
     case _ => throw new Exception("Unhandled case!")
   }
 
 }
 
-/** ***********************************************************/
+/*************************************************************/
 
 object createHOLExpression {
   def apply(s: String) = (new StringReader(s) with SimpleHOLParser {}).getTerm()
@@ -585,17 +571,7 @@ object parse {
 }
 
 
-/** ************************* Cut introduction algorithm **********************************/
-
-import at.logic.algorithms.cutIntroduction.{Grammar,
-ComputeGrammars,
-ExtendedHerbrandSequent,
-CutIntroduction,
-FlatTermSet,
-TermsExtraction,
-MinimizeSolution}
-import at.logic.algorithms.cutIntroduction.DeltaVector
-import at.logic.algorithms.cutIntroduction.Deltas._
+/*************************** Cut introduction algorithm **********************************/
 
 object extractTerms {
   def apply(p: LKProof) = {
@@ -679,7 +655,7 @@ object cutIntro {
     CutIntroduction.applyStat(ep, delta, prover)._1.get
 }
 
-/** ***************************************************************************************/
+/*****************************************************************************************/
 
 object toClauses {
   def apply(f: HOLFormula) = CNFp(f)
@@ -858,7 +834,7 @@ object ntape {
     println("Converting to LKskc")
     val selp = LKtoLKskc(regularize(elp)._1)
     println("Extracting struct")
-    val struct = extractStruct(selp, x => containsQuantifier(x))
+    val struct = extractStruct(selp, x => containsQuantifierHOL(x))
     val (full, fol, hol, csyms) = css(struct)
     println("Simplifying clauseset")
     val ax1 = FSequent(Nil, List(parse hlkformula "var x:i; const < : i>i>o; const 1 : i; const + : i>i>i; x<x+1"))
@@ -918,7 +894,7 @@ object ntape {
     val es = proof.root.toFSequent
     val pref = Projections.lksk_reflexivity_projection(proof)
     println("Calculated projection to reflexivity: " + pref.root.toFSequent().diff(proof.root.toFSequent()))
-    val proj = pref :: (Projections(proof, x => containsQuantifier(x)).toList)
+    val proj = pref :: (Projections(proof, x => containsQuantifierHOL(x)).toList)
     println("Total projections size: " + proj.size)
     val pproj = proj.map(x => (x.root.toFSequent.diff(es), x))
     val still = StillmanSubsumptionAlgorithmHOL
@@ -940,9 +916,7 @@ object ntape {
   })
 
   def sub_mising(p: LKProof, sub: HOLSubstitution) = {
-    import at.logic.calculi.lksk._
-    import at.logic.algorithms.lksk
-    val (s, _) = lksk.applySubstitution(p, sub)
+    val (s, _) = applySubstitution(p, sub)
     val w = hasWeakHOLRule(s).toList
     val winf = w.map(_ match {
       case ForallSkLeftRule(_, _, a, m, e) => (a, m, e)
@@ -1113,10 +1087,10 @@ object css {
     (fcmap, removeSubsumed(fol).sorted(FSequentOrdering), extractHOL(l).toSet.toList.sorted(FSequentOrdering))
   }
 
-  type FOLConstantsMap = Map[String, LambdaExpression]
+  type FOLConstantsMap = Map[String, FOLExpression]
 
   def extractFOL(l: List[FSequent]): (FOLConstantsMap, List[FSequent]) = {
-    val map = MMap[LambdaExpression, String]()
+    val map = MMap[FOLExpression, String]()
     val counter = new {
       private var state = 0;
 
@@ -1131,7 +1105,7 @@ object css {
       case e: Exception => Nil
     })
 
-    val rmap = map.foldLeft(Map[String, LambdaExpression]())((m, pair) => {
+    val rmap = map.foldLeft(Map[String, FOLExpression]())((m, pair) => {
       require(!m.isDefinedAt(pair._2), "No duplicate constant assignment allowed during hol2fol conversion!")
       m + ((pair._2, pair._1))
     })
@@ -1156,20 +1130,20 @@ object css {
     })
 
 
-  def extractSymbolTable(l: LambdaExpression): Symboltable = l match {
-    case Var(sym, ta) =>
+  def extractSymbolTable(l: HOLExpression): Symboltable = l match {
+    case HOLVar(sym, ta) =>
       val (vt, ct) = emptysmboltable
       (vt + ((ta, Set(sym))), ct)
-    case v:Const if v.sym.isInstanceOf[LogicalSymbolA] =>
+    case v:HOLConst if v.sym.isInstanceOf[LogicalSymbolA] =>
       emptysmboltable
-    case Const(sym, ta) =>
+    case HOLConst(sym, ta) =>
       val (vt, ct) = emptysmboltable
       (vt, ct + ((ta, Set(sym))))
-    case LambdaApp(s, t) =>
+    case HOLApp(s, t) =>
       val (vt1, ct1) = extractSymbolTable(s)
       val (vt2, ct2) = extractSymbolTable(t)
       (vt1 ++ vt2, ct1 ++ ct2)
-    case LambdaAbs(x, t) =>
+    case HOLAbs(x, t) =>
       val (vt1, ct1) = extractSymbolTable(x)
       val (vt2, ct2) = extractSymbolTable(t)
       (vt1 ++ vt2, ct1 ++ ct2)
@@ -1190,7 +1164,6 @@ object sequent {
 
 //unfolding a proof for a concrete instance
 object unfoldProof {
-  import schema._
 
   def apply(name: String, i: Int): LKProof = {
     applySchemaSubstitution2(name, i, List())
@@ -1325,171 +1298,171 @@ object tbillc {
       r5
     }
 
+}
+
+
+object philsci {
+  def apply() : (LKProof,
+    LKProof) = {
+    val p1= parse fol "B"
+    val p2= parse fol "A"
+    val q = parse fol "C"
+    val r1 = Axiom(p1 ::Nil,p1::Nil)
+    val r1_ = Axiom(p1::Nil,p1::Nil)
+    val r2 = Axiom(p2::Nil,p2::Nil)
+    val r3 = Axiom(q::Nil,q::Nil)
+    val r4 = OrLeftRule(r2,r1, r2.root.antecedent(0), r1.root.antecedent(0) )
+    val r5 = NegLeftRule(r4, r4.root.succedent(1))
+    val r6 = ImpRightRule(r5, r5.root.antecedent(1), r5.root.succedent(0))
+
+    val r7 = NegLeftRule(r1_, r1_.root.succedent(0))
+    val r8 = NegRightRule(r7, r7.root.antecedent(0))
+    val r9 = WeakeningLeftRule(r3, p2)
+    val
+
+    r10 = ImpLeftRule(r8,r9,r8.root.succedent(0), r9.root.antecedent(1))
+    val r11 = CutRule(r6, r10, r6.root.succedent(0),r10.root.antecedent(2))
+
+    val proj = Projections(r11).toList
+    val acnf1 = CutRule(proj(0), proj(1), proj(0).root.succedent(1), proj(1).root.antecedent(0))
+    val acnf2 = ContractionLeftRule(acnf1, acnf1.root.antecedent(2), acnf1.root.antecedent(4))
+    val acnf3 = ContractionRightRule(acnf2, acnf2.root.succedent(1), acnf2.root.succedent(2))
+    val acnf4 =ContractionLeftRule(acnf3, acnf3.root.antecedent(0), acnf3.root.antecedent(3))
+    val acnf5 = ContractionLeftRule(acnf4, acnf4.root.antecedent(0), acnf4.root.antecedent(1))
+
+    (r11, acnf5)
   }
 
+}
 
-  object philsci {
-    def apply() : (LKProof,
-      LKProof) = {
-      val p1= parse fol "B"
-      val p2= parse fol "A"
-      val q = parse fol "C"
-      val r1 = Axiom(p1 ::Nil,p1::Nil)
-      val r1_ = Axiom(p1::Nil,p1::Nil)
-      val r2 = Axiom(p2::Nil,p2::Nil)
-      val r3 = Axiom(q::Nil,q::Nil)
-      val r4 = OrLeftRule(r2,r1, r2.root.antecedent(0), r1.root.antecedent(0) )
-      val r5 = NegLeftRule(r4, r4.root.succedent(1))
-      val r6 = ImpRightRule(r5, r5.root.antecedent(1), r5.root.succedent(0))
+object equation_example {
+  def apply : (LKProof, FOLSubstitution) = {
+    val List(
+    uv,fuu,fuv,ab,fab) = List("u = v",
+      "f(u)=f(u)", "f(u)=f(v)", "a=b", "f(a)=f(b)") map (Prover9TermParserLadrStyle.parseFormula)
+    val List(uy,xy,ay) = List("(all y (u = y -> f(u) = f(y)))",
+      "(all x all y (x = y -> f(x) = f(y)))",
+      "(all y (a = y -> f(a) = f(y)))") map (Prover9TermParserLadrStyle
+      .parseFormula)
+    val List(u,v) = List("u","v").map(s => FOLVar(s))
 
-      val r7 = NegLeftRule(r1_, r1_.root.succedent(0))
-      val r8 = NegRightRule(r7, r7.root.antecedent(0))
-      val r9 = WeakeningLeftRule(r3, p2)
-      val
+    val List(a,b) = List("a","b").map(s => FOLConst(s))
+    val ax1 = Axiom(List(uv),List(uv))
+    val ax2 = Axiom(List(),List(fuu))
+    val ax3 = Axiom(List(ab),List(ab))
+    val ax4 = Axiom(List(fab),List(fab))
 
-      r10 = ImpLeftRule(r8,r9,r8.root.succedent(0), r9.root.antecedent(1))
-      val r11 = CutRule(r6, r10, r6.root.succedent(0),r10.root.antecedent(2))
+    val i1 = EquationRight1Rule(ax1,ax2,ax1.root.succedent(0),ax2.root.succedent(0), fuv)
 
-      val proj = Projections(r11).toList
-      val acnf1 = CutRule(proj(0), proj(1), proj(0).root.succedent(1), proj(1).root.antecedent(0))
-      val acnf2 = ContractionLeftRule(acnf1, acnf1.root.antecedent(2), acnf1.root.antecedent(4))
-      val acnf3 = ContractionRightRule(acnf2, acnf2.root.succedent(1), acnf2.root.succedent(2))
-      val acnf4 =ContractionLeftRule(acnf3, acnf3.root.antecedent(0), acnf3.root.antecedent(3))
-      val acnf5 = ContractionLeftRule(acnf4, acnf4.root.antecedent(0), acnf4.root.antecedent(1))
+    val i2 = ImpRightRule(i1, i1.root.antecedent(0),i1.root.succedent(0))
+    println(i2.root)
+    val i3 = ForallRightRule(i2, i2.root.succedent(0), uy, v )
+    val i4 = ForallRightRule(i3, i3.root.succedent(0), xy, u )
 
-      (r11, acnf5)
-    }
+    val i5 = ImpLeftRule(ax3,ax4,ax3.root.succedent(0),ax4.root.antecedent(0))
+    val i6 = ForallLeftRule(i5, i5.root.antecedent(1),ay, b)
+    val i7 = ForallLeftRule(i6, i6.root.antecedent(1), xy, a)
 
-  }
-
-  object equation_example {
-    def apply : (LKProof, FOLSubstitution) = {
-      val List(
-      uv,fuu,fuv,ab,fab) = List("u = v",
-        "f(u)=f(u)", "f(u)=f(v)", "a=b", "f(a)=f(b)") map (Prover9TermParserLadrStyle.parseFormula)
-      val List(uy,xy,ay) = List("(all y (u = y -> f(u) = f(y)))",
-        "(all x all y (x = y -> f(x) = f(y)))",
-        "(all y (a = y -> f(a) = f(y)))") map (Prover9TermParserLadrStyle
-        .parseFormula)
-      val List(u,v) = List("u","v").map(s => FOLVar(s))
-
-      val List(a,b) = List("a","b").map(s => FOLConst(s))
-      val ax1 = Axiom(List(uv),List(uv))
-      val ax2 = Axiom(List(),List(fuu))
-      val ax3 = Axiom(List(ab),List(ab))
-      val ax4 = Axiom(List(fab),List(fab))
-
-      val i1 = EquationRight1Rule(ax1,ax2,ax1.root.succedent(0),ax2.root.succedent(0), fuv)
-
-      val i2 = ImpRightRule(i1, i1.root.antecedent(0),i1.root.succedent(0))
-      println(i2.root)
-      val i3 = ForallRightRule(i2, i2.root.succedent(0), uy, v )
-      val i4 = ForallRightRule(i3, i3.root.succedent(0), xy, u )
-
-      val i5 = ImpLeftRule(ax3,ax4,ax3.root.succedent(0),ax4.root.antecedent(0))
-      val i6 = ForallLeftRule(i5, i5.root.antecedent(1),ay, b)
-      val i7 = ForallLeftRule(i6, i6.root.antecedent(1), xy, a)
-
-      val es = CutRule(i4,i7,i4.root.succedent(0),i7.root.antecedent(1))
-      val sub = FOLSubstitution((u,b)::Nil)
-      (es, sub)
-    }
-  }
-
-
-  object help {
-    def apply() = {
-      val msg =
-
-        """
-          | Available commands:
-          |
-          | Parsing:
-          |   parse.fol: String => FOLFormula - example: "Forall x Imp P(x,f(x)) Exists y P(x,y)"
-          |   parse.hol: String => HOLExpression
-          |   parse.slk: String => Map[String, Pair[LKProof, LKProof]]
-          |   parse.lisp: String => List[SExpression]
-          |   parse hlkexp: String => HOLExpression - example: "var x,y: i>o; (\\ x => (\\y => (x=y) ))"
-          |   parse hlkformula: String => HOLFormula -  example: "const P : i>o; const Q : i>i>o; var x,y:i; (all x (P(x) -> (exists y Q(x,y) )))"
-          |
-          | File Input/Output:
-          |   loadProofDB: String => ProofDatabase - load proofdatabase from xml file
-          |   loadProofs: String => List[(String, LKProof)] - load proofs from xml file as name/value pairs
-          |   loadProver9Proof: String => (RobinsonResolutionProof, FSequent) - load a proof in the ivy proof checker format and extract its endsequent
-          |   loadProver9LKProof: String => LKProof - load a proof in the ivy proof checker format and convert it to a LK Proof
-          |   loadHLK : String => LKProof - load a proof in the HLK 2 format from given filename
-          |   loadVeriTProof : String => ExpansionSequent - loads a veriT proof in the form of an expansion proof.
-          |   exportXML: List[Proof], List[String], String => Unit
-          |   exportTPTP: List[Proof], List[String], String => Unit
-          |
-          | Automated Deduction:
-          |   refuteFOL: Seq[Clause] => Option[ResolutionProof[Clause]] - call internal resolution prover TAP
-          |   refuteFOLI: Seq[Clause] => Option[ResolutionProof[Clause]] - simple interactive refutation
-          |   prover9: List[Sequent],Seq[Clause] => Option[ResolutionProof[Clause]] - call prover9
-          |   prover9: String => Option[ResolutionProof[Clause]] - call prover9 on given Ladr file
-          |   prover9.refuteTPTP:  String => Option[ResolutionProof[Clause]] - call prover9 on given TPTP file
-          |   prover9.getProof:  FSequent => Option[LKProof] - prove a sequent with prover9
-          |   proveProp: FSequent => Option[LKProof] - tableau-like proof search for propositional logic
-          |   toClauses: HOLFormula => Set[FClause] - the clause set representation of the given formula
-          |   miniSATsolve: HOLFormula => Option[Interpretation] - obtain a model for a quantifier-free formula using MiniSAT
-          |   miniSATprove: HOLFormula => Boolean - check if a quantifier-free formula is valid using MiniSAT
-          |
-          | Proof Theory:
-          |   skolemize: LKProof => LKProof - skolemize the input proof
-          |   extractInterpolant: ( LKProof, Set[FormulaOccurrence], Set[FormulaOccurrence] ) => HOLFormula - extract propositional Craig interpolant
-          |   extractHerbrandSequent: LKProof => Sequent - extract the Herbrand sequent from a proof without quantified cuts.
-          |   extractExpansionTrees: LKProof => ExpansionSequent - extract the expansion trees of all formulas in the end sequent from a skolemized proof.
-          |   compressExpansionTree: ExpansionTree => MultiExpansionTree - compress the quantifiers in the tree using vectors for the terms.
-          |
-          | Cut-Elimination by Resolution:
-          |   extractStruct: LKProof => Struct
-          |   structToClausesList: Struct => List[Sequent]
-          |   structToLabelledClausesList: Struct => List[LabelledSequent]
-          |
-          | Proof Schemata:
-          |   parse.slk: String => Map[String, Pair[LKProof, LKProof]]
-          |   unfoldProof: (String, Int) => LKProof
-          |
-          | Cut-Introduction:
-          |   cutIntro: (LKProof,Constraint[Int]) => Option[LKProof] - performs cut introduction with an arbitrary number quantifiers. The second argument can be "NoConstraint, ExactBound(n), UpperBound(n)"
-          |   extractTerms: LKProof => FlatTermSet - extract the witnesses of the existential quantifiers of the end-sequent of a proof
-          |   computeGrammars: FlatTermSet => List[Grammar] - computes all the grammars of a given list of terms (returns a list ordered by symbolic complexity)
-          |   seeNFirstGrammars: List[Grammar], Int => Unit - prints the first n grammars from a list
-          |   generateExtendedHerbrandSequent: Sequent, Grammar => ExtendedHerbrandSequent - generates the Extended Herbrand Sequent from an end-sequent of a proof and a grammar
-          |   computeCanonicalSolution: Sequent, Grammar => FOLFormula - computes the canonical solution for the cut-introduction problem
-          |   minimizeSolution: ExtendedHerbrandSequent => ExtendedHerbrandSequent - minimizes the solution associated with the extended Herbrand sequent returning another Herbrand sequent with this minimal solution
-          |   buildProofWithCut: ExtendedHerbrandSequent => LKProof - builds a proof with one cut based on the extended Herbrand sequent
-          |
-          | Visualization:
-          |   prooftool: LKProof => Unit - visualize proof in prooftool
-          |
-          | Uncategorized:
-          |   hol2fol: HOLExpression => FOLExpression
-          |   hol2fol: HOLFormula => FOLFormula
-          |   regularize: LKProof => LKProof - regularize the given LK proof
-          |   rename: (LambaExpression, Map[String, (Int,String)]) => LambdaExpression - use map from oldname to (arity, newname) to rename constants in a given LambdaExpressions
-          |   rename: (RobinsonResolutionProof, Map[String, (Int,String)]) => RobinsonResolutionProof - the same for resolution proofs
-          |   printProofStats: LKProof => Unit
-          |   loadIvyProof: String => RobinsonResolutionProof - load a proof in the ivy proof checker format (buggy)
-          |   lkTolksk: LKProof => LKProof
-          |   createHOLExpression: String => HOLExpression (Forall x1: (i -> (i -> i)) a(x1: (i -> (i -> i)), x2: i, c1: (i -> i)))
-          |   fsequent2sequent: FSequent => Sequent
-          |   deleteTautologies: List[FSequent] => List[FSequent]
-          |   removeDuplicates: List[FSequent] => List[FSequent]
-          |   unitResolve: List[FSequent] => List[FSequent]
-          |   removeSubsumed: List[FSequent] => List[FSequent]
-          |   writeLatex: List[FSequent], String => Unit
-          |   writeLabelledSequentListLatex: List[LabelledSequent], String => Unit
-          |
-          | General:
-          |   help    : this help text
-          |   copying : print redistribution conditions
-          |   license : print the text of GNU General Public License
-        """.stripMargin
-
-        println(msg)
-
-
-    }
+    val es = CutRule(i4,i7,i4.root.succedent(0),i7.root.antecedent(1))
+    val sub = FOLSubstitution((u,b)::Nil)
+    (es, sub)
   }
 }
+
+
+object help {
+  def apply() = {
+    val msg =
+
+      """
+        | Available commands:
+        |
+        | Parsing:
+        |   parse.fol: String => FOLFormula - example: "Forall x Imp P(x,f(x)) Exists y P(x,y)"
+        |   parse.hol: String => HOLExpression
+        |   parse.slk: String => Map[String, Pair[LKProof, LKProof]]
+        |   parse.lisp: String => List[SExpression]
+        |   parse hlkexp: String => HOLExpression - example: "var x,y: i>o; (\\ x => (\\y => (x=y) ))"
+        |   parse hlkformula: String => HOLFormula -  example: "const P : i>o; const Q : i>i>o; var x,y:i; (all x (P(x) -> (exists y Q(x,y) )))"
+        |
+        | File Input/Output:
+        |   loadProofDB: String => ProofDatabase - load proofdatabase from xml file
+        |   loadProofs: String => List[(String, LKProof)] - load proofs from xml file as name/value pairs
+        |   loadProver9Proof: String => (RobinsonResolutionProof, FSequent) - load a proof in the ivy proof checker format and extract its endsequent
+        |   loadProver9LKProof: String => LKProof - load a proof in the ivy proof checker format and convert it to a LK Proof
+        |   loadHLK : String => LKProof - load a proof in the HLK 2 format from given filename
+        |   loadVeriTProof : String => ExpansionSequent - loads a veriT proof in the form of an expansion proof.
+        |   exportXML: List[Proof], List[String], String => Unit
+        |   exportTPTP: List[Proof], List[String], String => Unit
+        |
+        | Automated Deduction:
+        |   refuteFOL: Seq[Clause] => Option[ResolutionProof[Clause]] - call internal resolution prover TAP
+        |   refuteFOLI: Seq[Clause] => Option[ResolutionProof[Clause]] - simple interactive refutation
+        |   prover9: List[Sequent],Seq[Clause] => Option[ResolutionProof[Clause]] - call prover9
+        |   prover9: String => Option[ResolutionProof[Clause]] - call prover9 on given Ladr file
+        |   prover9.refuteTPTP:  String => Option[ResolutionProof[Clause]] - call prover9 on given TPTP file
+        |   prover9.getProof:  FSequent => Option[LKProof] - prove a sequent with prover9
+        |   proveProp: FSequent => Option[LKProof] - tableau-like proof search for propositional logic
+        |   toClauses: HOLFormula => Set[FClause] - the clause set representation of the given formula
+        |   miniSATsolve: HOLFormula => Option[Interpretation] - obtain a model for a quantifier-free formula using MiniSAT
+        |   miniSATprove: HOLFormula => Boolean - check if a quantifier-free formula is valid using MiniSAT
+        |
+        | Proof Theory:
+        |   skolemize: LKProof => LKProof - skolemize the input proof
+        |   extractInterpolant: ( LKProof, Set[FormulaOccurrence], Set[FormulaOccurrence] ) => HOLFormula - extract propositional Craig interpolant
+        |   extractHerbrandSequent: LKProof => Sequent - extract the Herbrand sequent from a proof without quantified cuts.
+        |   extractExpansionTrees: LKProof => ExpansionSequent - extract the expansion trees of all formulas in the end sequent from a skolemized proof.
+        |   compressExpansionTree: ExpansionTree => MultiExpansionTree - compress the quantifiers in the tree using vectors for the terms.
+        |
+        | Cut-Elimination by Resolution:
+        |   extractStruct: LKProof => Struct
+        |   structToClausesList: Struct => List[Sequent]
+        |   structToLabelledClausesList: Struct => List[LabelledSequent]
+        |
+        | Proof Schemata:
+        |   parse.slk: String => Map[String, Pair[LKProof, LKProof]]
+        |   unfoldProof: (String, Int) => LKProof
+        |
+        | Cut-Introduction:
+        |   cutIntro: (LKProof,Constraint[Int]) => Option[LKProof] - performs cut introduction with an arbitrary number quantifiers. The second argument can be "NoConstraint, ExactBound(n), UpperBound(n)"
+        |   extractTerms: LKProof => FlatTermSet - extract the witnesses of the existential quantifiers of the end-sequent of a proof
+        |   computeGrammars: FlatTermSet => List[Grammar] - computes all the grammars of a given list of terms (returns a list ordered by symbolic complexity)
+        |   seeNFirstGrammars: List[Grammar], Int => Unit - prints the first n grammars from a list
+        |   generateExtendedHerbrandSequent: Sequent, Grammar => ExtendedHerbrandSequent - generates the Extended Herbrand Sequent from an end-sequent of a proof and a grammar
+        |   computeCanonicalSolution: Sequent, Grammar => FOLFormula - computes the canonical solution for the cut-introduction problem
+        |   minimizeSolution: ExtendedHerbrandSequent => ExtendedHerbrandSequent - minimizes the solution associated with the extended Herbrand sequent returning another Herbrand sequent with this minimal solution
+        |   buildProofWithCut: ExtendedHerbrandSequent => LKProof - builds a proof with one cut based on the extended Herbrand sequent
+        |
+        | Visualization:
+        |   prooftool: LKProof => Unit - visualize proof in prooftool
+        |
+        | Uncategorized:
+        |   hol2fol: HOLExpression => FOLExpression
+        |   hol2fol: HOLFormula => FOLFormula
+        |   regularize: LKProof => LKProof - regularize the given LK proof
+        |   rename: (LambaExpression, Map[String, (Int,String)]) => LambdaExpression - use map from oldname to (arity, newname) to rename constants in a given LambdaExpressions
+        |   rename: (RobinsonResolutionProof, Map[String, (Int,String)]) => RobinsonResolutionProof - the same for resolution proofs
+        |   printProofStats: LKProof => Unit
+        |   loadIvyProof: String => RobinsonResolutionProof - load a proof in the ivy proof checker format (buggy)
+        |   lkTolksk: LKProof => LKProof
+        |   createHOLExpression: String => HOLExpression (Forall x1: (i -> (i -> i)) a(x1: (i -> (i -> i)), x2: i, c1: (i -> i)))
+        |   fsequent2sequent: FSequent => Sequent
+        |   deleteTautologies: List[FSequent] => List[FSequent]
+        |   removeDuplicates: List[FSequent] => List[FSequent]
+        |   unitResolve: List[FSequent] => List[FSequent]
+        |   removeSubsumed: List[FSequent] => List[FSequent]
+        |   writeLatex: List[FSequent], String => Unit
+        |   writeLabelledSequentListLatex: List[LabelledSequent], String => Unit
+        |
+        | General:
+        |   help    : this help text
+        |   copying : print redistribution conditions
+        |   license : print the text of GNU General Public License
+      """.stripMargin
+
+      println(msg)
+
+
+  }
+}
+

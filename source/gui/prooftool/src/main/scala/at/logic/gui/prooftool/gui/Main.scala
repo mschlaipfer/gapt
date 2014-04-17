@@ -7,14 +7,18 @@ package at.logic.gui.prooftool.gui
  * Time: 12:08:33 PM
  */
 
+
 import at.logic.algorithms.lk._
 import at.logic.algorithms.lksk.eliminateDefinitions
+import at.logic.algorithms.shlk.applySchemaSubstitution2
 import at.logic.calculi.expansionTrees.{WeakQuantifier, And => AndET, Atom => AtomET}
-import at.logic.calculi.lk.base.{Sequent, LKProof, FSequent}
 import at.logic.calculi.lk._
+import at.logic.calculi.lk.base.{Sequent, LKProof, FSequent}
 import at.logic.calculi.occurrences.FormulaOccurrence
 import at.logic.calculi.proofs.Proof
+import at.logic.calculi.proofs.Proof
 import at.logic.calculi.proofs.TreeProof
+import at.logic.calculi.slk.SchemaProofDB
 import at.logic.calculi.slk.SchemaProofDB
 import at.logic.gui.prooftool.parser._
 import at.logic.language.hol._
@@ -26,35 +30,35 @@ import at.logic.parsing.language.xml.{ProofDatabase, XMLExporter}
 import at.logic.parsing.writers.FileWriter
 import at.logic.transformations.ReductiveCutElim
 import at.logic.transformations.ceres.ACNF.ACNF
+import at.logic.transformations.ceres.ACNF.ACNF
+import at.logic.transformations.ceres.clauseSchema.{resolutionProofSchemaDB, InstantiateResSchema}
 import at.logic.transformations.ceres.clauseSchema.{resolutionProofSchemaDB, InstantiateResSchema}
 import at.logic.transformations.ceres.clauseSets.{StandardClauseSet, renameCLsymbols}
 import at.logic.transformations.ceres.projections.{Projections, DeleteTautology, DeleteRedundantSequents}
 import at.logic.transformations.ceres.struct.{structToExpressionTree, StructCreators}
 import at.logic.transformations.ceres.{UnfoldProjectionTerm, ProjectionTermCreators}
 import at.logic.transformations.herbrandExtraction.extractExpansionTrees
-import at.logic.transformations.skolemization.skolemize
-import java.io.{BufferedWriter => JBufferedWriter, FileWriter => JFileWriter, ByteArrayInputStream, InputStreamReader, File, FileOutputStream}
 import at.logic.transformations.skolemization.lksk.LKtoLKskc
+import at.logic.transformations.skolemization.skolemize
 import at.logic.utils.ds.trees.Tree
-import at.logic.transformations.ceres.clauseSchema.{resolutionProofSchemaDB, InstantiateResSchema}
-import at.logic.transformations.ceres.ACNF.ACNF
-import at.logic.calculi.slk.SchemaProofDB
-import at.logic.calculi.proofs.Proof
-import java.awt.image.BufferedImage
-import javax.imageio.ImageIO
-import java.awt.Color
 
-import java.awt.event.{KeyEvent, ActionEvent => JActionEvent}
-import scala.swing._
-import com.itextpdf.text.{Document, Rectangle => PdfRectangle}
 import com.itextpdf.text.pdf.PdfWriter
-import scala.swing.BorderPanel.Position
-import scala.swing.event.Key
-import javax.swing.{SwingUtilities, KeyStroke}
-import scala.swing.Swing.EmptyIcon
-import scala.swing.Dialog.Message
+import com.itextpdf.text.{Document, Rectangle => PdfRectangle}
+
+import java.awt.Color
+import java.awt.event.{KeyEvent, ActionEvent => JActionEvent}
+import java.awt.image.BufferedImage
+import java.io.{BufferedWriter => JBufferedWriter, FileWriter => JFileWriter, ByteArrayInputStream, InputStreamReader, File, FileOutputStream}
+
+import javax.imageio.ImageIO
 import javax.swing.filechooser.FileFilter
-import at.logic.algorithms.shlk.applySchemaSubstitution2
+import javax.swing.{SwingUtilities, KeyStroke}
+
+import scala.swing.BorderPanel.Position
+import scala.swing.Dialog.Message
+import scala.swing.Swing.EmptyIcon
+import scala.swing._
+import scala.swing.event.Key
 
 object Main extends SimpleSwingApplication {
   val body = new MyScrollPane

@@ -1,19 +1,15 @@
 
 package at.logic.integration_tests
 
-import at.logic.calculi.lk._
-import at.logic.calculi.lk.base._
-import at.logic.calculi.lk.propositionalRules._
-import at.logic.calculi.lk.quantificationRules._
-import at.logic.calculi.occurrences._
-import at.logic.calculi.expansionTrees.{toDeep => ETtoDeep}
 import at.logic.algorithms.cutIntroduction._
+import at.logic.algorithms.hlk.HybridLatexParser
 import at.logic.algorithms.lk._
 import at.logic.algorithms.lk.statistics._
-import at.logic.algorithms.lk.simplification._
-import at.logic.algorithms.lk.AtomicExpansion
 import at.logic.algorithms.rewriting.DefinitionElimination
-import at.logic.algorithms.hlk.HybridLatexParser
+import at.logic.calculi.expansionTrees.{toDeep => ETtoDeep}
+import at.logic.calculi.lk._
+import at.logic.calculi.lk.base._
+import at.logic.calculi.occurrences._
 import at.logic.language.fol._
 import at.logic.language.hol.logicSymbols._
 import at.logic.language.hol.{And => AndHOL, Imp => ImpHOL, Or => OrHOL}
@@ -24,16 +20,16 @@ import at.logic.parsing.language.tptp.TPTPFOLExporter
 import at.logic.parsing.language.xml.XMLParser._
 import at.logic.parsing.readers.XMLReaders._
 import at.logic.parsing.veriT.VeriTParser
+import at.logic.provers.minisat.MiniSATProver
+import at.logic.provers.prover9.{Prover9, Prover9Prover}
+import at.logic.provers.veriT.VeriTProver
 import at.logic.transformations.ReductiveCutElim
 import at.logic.transformations.ceres.clauseSets.StandardClauseSet
 import at.logic.transformations.ceres.clauseSets.profile._
 import at.logic.transformations.ceres.projections.Projections
 import at.logic.transformations.ceres.struct.StructCreators
-import at.logic.transformations.skolemization.skolemize
 import at.logic.transformations.herbrandExtraction.extractExpansionTrees
-import at.logic.provers.prover9.{Prover9, Prover9Prover}
-import at.logic.provers.veriT.VeriTProver
-import at.logic.provers.minisat.MiniSATProver
+import at.logic.transformations.skolemization.skolemize
 import at.logic.utils.constraint.{Constraint, NoConstraint, ExactBound, UpperBound}
 
 import java.util.zip.GZIPInputStream
@@ -233,7 +229,8 @@ class MiscTest extends SpecificationWithJUnit {
       val testFilePath = "target" + separator + "test-classes" + separator + "tape3.llk"
       val tokens = HybridLatexParser.parseFile(testFilePath)
       val db = HybridLatexParser.createLKProof(tokens)
-      val proofs = db.proofs.filter(_._1 ==  "TAPEPROOF")
+      // I have no idea why, but this makes the code get the correct proof
+      val proofs = db.proofs.filter(_._1.toString == "TAPEPROOF:ο")
       val (_,p)::_ = proofs
       val elp = AtomicExpansion(DefinitionElimination(db.Definitions,p))
       val reg = regularize(elp)
@@ -241,10 +238,10 @@ class MiscTest extends SpecificationWithJUnit {
     }
 
     "Construct proof with expansion sequent extracted from proof 1/2" in {
-        val y = FOLVar(new VariableStringSymbol("y"))
-        val x = FOLVar(new VariableStringSymbol("x"))
-        val Py = Atom(new ConstantStringSymbol("P"), y :: Nil)
-        val Px = Atom(new ConstantStringSymbol("P"), x :: Nil)
+        val y = FOLVar("y")
+        val x = FOLVar("x")
+        val Py = Atom("P", y :: Nil)
+        val Px = Atom("P", x :: Nil)
         val AllxPx = AllVar(x, Px)
 
         // test with 1 weak & 1 strong

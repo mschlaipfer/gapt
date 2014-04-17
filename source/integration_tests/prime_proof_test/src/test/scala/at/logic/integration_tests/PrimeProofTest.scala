@@ -3,9 +3,8 @@ package at.logic.integration_tests
 
 import at.logic.algorithms.fol.hol2fol._
 import at.logic.algorithms.lk._
-import at.logic.algorithms.lk.statistics._
-import at.logic.algorithms.lk.simplification._
 import at.logic.algorithms.lk.eliminateDefinitions
+import at.logic.algorithms.lk.statistics._
 import at.logic.algorithms.subsumption._
 import at.logic.calculi.expansionTrees.{toDeep, ExpansionSequent}
 import at.logic.calculi.lk._
@@ -21,9 +20,7 @@ import at.logic.parsing.language.arithmetic.HOLTermArithmeticalExporter
 import at.logic.parsing.language.tptp.TPTPFOLExporter
 import at.logic.parsing.language.xml.XMLParser._
 import at.logic.parsing.readers.XMLReaders._
-import at.logic.parsing.calculus.xml.saveXML
 import at.logic.parsing.writers.FileWriter
-import at.logic.parsing.calculi.latex.SequentsListLatexExporter
 import at.logic.provers.prover9._
 import at.logic.provers.veriT.VeriTProver
 import at.logic.transformations.ceres.clauseSets.StandardClauseSet

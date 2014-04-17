@@ -41,7 +41,7 @@ class SchemaProof(val name: String, val vars: List[IntVar], val seq: FSequent, v
 
 object SchemaProofDB extends Iterable[(String, SchemaProof)] with TraversableOnce[(String, SchemaProof)] {
   val proofs = new scala.collection.mutable.HashMap[String, SchemaProof]
-  val LinkTerms = new scala.collection.mutable.HashMap[String, List[HOLExpression]]
+  val LinkTerms = new scala.collection.mutable.HashMap[String, List[SchemaExpression]]
 
   def clear = { proofs.clear;  LinkTerms.clear;}
 
@@ -61,7 +61,7 @@ object SchemaProofDB extends Iterable[(String, SchemaProof)] with TraversableOnc
   }
 
   def put(proof: SchemaProof) = proofs.put(proof.name, proof)
-  def putLinkTerms(name: String,linkparams:  List[HOLExpression]) = LinkTerms.put(name, linkparams)
+  def putLinkTerms(name: String,linkparams:  List[SchemaExpression]) = LinkTerms.put(name, linkparams)
   def iterator = proofs.iterator
 }
 

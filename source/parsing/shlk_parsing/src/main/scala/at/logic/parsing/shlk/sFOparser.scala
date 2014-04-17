@@ -13,7 +13,7 @@ import scala.Tuple2
 import at.logic.language.lambda.symbols.StringSymbol
 import at.logic.language.lambda.types.{To, FunctionType, Tindex, Ti}
 import at.logic.calculi.lk._
-import at.logic.algorithms.lk.solvePropositional
+import at.logic.algorithms.lk.solve
 
 object sFOParser {
 
@@ -705,7 +705,7 @@ object sFOParser {
       }
 
       def autoprop: Parser[LKProof] = "autoprop(" ~ sequent ~ ")" ^^ {
-        case "autoprop(" ~ seq ~ ")" => solvePropositional.autoProp(seq.toFSequent())
+        case "autoprop(" ~ seq ~ ")" => solve.solvePropositional(seq.toFSequent(), throwOnError=true).get
       }
       
       def termDefL1: Parser[LKProof] = "termDefL1(" ~ label.r ~ "," ~ formula ~ "," ~ formula ~ ")" ^^ {

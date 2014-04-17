@@ -7,7 +7,7 @@ import at.logic.calculi.lk._
 import at.logic.calculi.lk.base._
 import scala.Predef._
 import at.logic.language.schema.{lessThan,sims,leq}
-import at.logic.language.lambda.types.{->, Ti, Tindex}
+import at.logic.language.lambda.types.{->, Ti, Tindex, FunctionType}
 import at.logic.language.lambda.symbols._
 
 object applySchemaSubstitution2 {
@@ -57,7 +57,7 @@ object CloneLKProof2 {
         }
         else if(version == 2){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1,foldRightRule(new_p._2, cloneMySol(a.formula,proofSize), cloneMySol(m.formula,proofSize)))
+          Pair(new_p._1,foldRightRule(new_p._2, cloneMySol(a.formula.asInstanceOf[SchemaFormula],proofSize), cloneMySol(m.formula.asInstanceOf[SchemaFormula],proofSize)))
         }
         else Pair(List(),proof)
       }
@@ -84,7 +84,7 @@ object CloneLKProof2 {
         }
         else if(version == 2){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1,AndLeftEquivalenceRule1(new_p._2, cloneMySol(a.formula,proofSize), cloneMySol(m.formula,proofSize)))
+          Pair(new_p._1,AndLeftEquivalenceRule1(new_p._2, cloneMySol(a.formula.asInstanceOf[SchemaFormula],proofSize), cloneMySol(m.formula.asInstanceOf[SchemaFormula],proofSize)))
         }
         else Pair(List(),proof)
       }
@@ -99,7 +99,7 @@ object CloneLKProof2 {
         }
         else if(version == 2){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1, AndRightEquivalenceRule1(new_p._2, cloneMySol(a.formula,proofSize),cloneMySol(m.formula,proofSize)))
+          Pair(new_p._1, AndRightEquivalenceRule1(new_p._2, cloneMySol(a.formula.asInstanceOf[SchemaFormula],proofSize),cloneMySol(m.formula.asInstanceOf[SchemaFormula],proofSize)))
         }
         else Pair(List(),proof)
       }
@@ -115,7 +115,7 @@ object CloneLKProof2 {
         }
         else if(version == 2){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1,OrRightEquivalenceRule1(new_p._2, cloneMySol(a.formula,proofSize),  cloneMySol(m.formula,proofSize)))
+          Pair(new_p._1,OrRightEquivalenceRule1(new_p._2, cloneMySol(a.formula.asInstanceOf[SchemaFormula],proofSize),  cloneMySol(m.formula.asInstanceOf[SchemaFormula],proofSize)))
         }
         else Pair(List(),proof)
       }
@@ -130,7 +130,7 @@ object CloneLKProof2 {
         }
         else if(version == 2){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1,AndLeftEquivalenceRule3(new_p._2, cloneMySol(a.formula,proofSize), cloneMySol(m.formula,proofSize)))
+          Pair(new_p._1,AndLeftEquivalenceRule3(new_p._2, cloneMySol(a.formula.asInstanceOf[SchemaFormula],proofSize), cloneMySol(m.formula.asInstanceOf[SchemaFormula],proofSize)))
         }
         else Pair(List(),proof)
       }
@@ -145,7 +145,7 @@ object CloneLKProof2 {
         }
         else if(version == 2){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1, AndRightEquivalenceRule3(new_p._2, cloneMySol(a.formula,proofSize), cloneMySol(m.formula,proofSize)))
+          Pair(new_p._1, AndRightEquivalenceRule3(new_p._2, cloneMySol(a.formula.asInstanceOf[SchemaFormula],proofSize), cloneMySol(m.formula.asInstanceOf[SchemaFormula],proofSize)))
         }
         else Pair(List(),proof)
       }
@@ -161,7 +161,7 @@ object CloneLKProof2 {
         }
         else if(version == 2){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1,OrRightEquivalenceRule3(new_p._2, cloneMySol(a.formula,proofSize), cloneMySol(m.formula,proofSize)))
+          Pair(new_p._1,OrRightEquivalenceRule3(new_p._2, cloneMySol(a.formula.asInstanceOf[SchemaFormula],proofSize), cloneMySol(m.formula.asInstanceOf[SchemaFormula],proofSize)))
         }
         else Pair(List(),proof)
       }
@@ -180,7 +180,7 @@ object CloneLKProof2 {
         else if(version == 2){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
           implicit val factory = defaultFormulaOccurrenceFactory
-          Pair(new_p._1,WeakeningLeftRule( new_p._2, cloneMySol(m.formula,proofSize) ) )
+          Pair(new_p._1,WeakeningLeftRule( new_p._2, cloneMySol(m.formula.asInstanceOf[SchemaFormula],proofSize) ) )
         }
         else Pair(List(),proof)
       }
@@ -199,7 +199,7 @@ object CloneLKProof2 {
         else if(version == 2){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
           implicit val factory = defaultFormulaOccurrenceFactory
-          Pair(new_p._1, WeakeningRightRule( new_p._2, cloneMySol(m.formula,proofSize) ))
+          Pair(new_p._1, WeakeningRightRule( new_p._2, cloneMySol(m.formula.asInstanceOf[SchemaFormula],proofSize) ))
         }
         else Pair(List(),proof)
       }
@@ -218,7 +218,7 @@ object CloneLKProof2 {
         else if(version == 2){
           val new_p1 =  apply(p1,name,rewriterules,proofSize,version,ProofLinkPassing)
           val new_p2 =  apply(p2,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p1._1 ++ new_p2._1,CutRule(new_p1._2, new_p2._2, cloneMySol(a2.formula,proofSize)))
+          Pair(new_p1._1 ++ new_p2._1,CutRule(new_p1._2, new_p2._2, cloneMySol(a2.formula.asInstanceOf[SchemaFormula],proofSize)))
         }
         else Pair(List(),proof)
       }
@@ -237,7 +237,7 @@ object CloneLKProof2 {
         else if(version == 2){
           val new_p1 =  apply(p1,name,rewriterules,proofSize,version,ProofLinkPassing)
           val new_p2 =  apply(p2,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p1._1 ++ new_p2._1,OrLeftRule(new_p1._2, new_p2._2, cloneMySol(a1.formula,proofSize), cloneMySol(a2.formula,proofSize)))
+          Pair(new_p1._1 ++ new_p2._1,OrLeftRule(new_p1._2, new_p2._2, cloneMySol(a1.formula.asInstanceOf[SchemaFormula],proofSize), cloneMySol(a2.formula.asInstanceOf[SchemaFormula],proofSize)))
         }
         else Pair(List(),proof)
       }
@@ -256,7 +256,7 @@ object CloneLKProof2 {
         else if(version == 2){
           val new_p1 =  apply(p1,name,rewriterules,proofSize,version,ProofLinkPassing)
           val new_p2 =  apply(p2,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p1._1 ++ new_p2._1,AndRightRule(new_p1._2, new_p2._2, cloneMySol(a1.formula,proofSize), cloneMySol(a2.formula,proofSize)) )
+          Pair(new_p1._1 ++ new_p2._1,AndRightRule(new_p1._2, new_p2._2, cloneMySol(a1.formula.asInstanceOf[SchemaFormula],proofSize), cloneMySol(a2.formula.asInstanceOf[SchemaFormula],proofSize)) )
         }
         else Pair(List(),proof)
       }
@@ -274,7 +274,7 @@ object CloneLKProof2 {
         else if(version == 2){
           val new_p1 =  apply(p1,name,rewriterules,proofSize,version,ProofLinkPassing)
           val new_p2 =  apply(p2,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p1._1 ++ new_p2._1,ImpLeftRule(new_p1._2, new_p2._2, cloneMySol(a1.formula,proofSize), cloneMySol(a2.formula,proofSize)))
+          Pair(new_p1._1 ++ new_p2._1,ImpLeftRule(new_p1._2, new_p2._2, cloneMySol(a1.formula.asInstanceOf[SchemaFormula],proofSize), cloneMySol(a2.formula.asInstanceOf[SchemaFormula],proofSize)))
         }
         else Pair(List(),proof)
       }
@@ -290,7 +290,7 @@ object CloneLKProof2 {
         }
         else if(version == 2){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1,NegLeftRule( new_p._2, cloneMySol(a.formula,proofSize) ))
+          Pair(new_p._1,NegLeftRule( new_p._2, cloneMySol(a.formula.asInstanceOf[SchemaFormula],proofSize) ))
         }
         else Pair(List(),proof)
       }
@@ -309,7 +309,7 @@ object CloneLKProof2 {
         else if(version == 2){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
           val a2 = m.formula  match { case And(l, right) => right }
-          Pair(new_p._1,AndLeft1Rule( new_p._2, cloneMySol(a.formula,proofSize), cloneMySol(a2,proofSize)) )
+          Pair(new_p._1,AndLeft1Rule( new_p._2, cloneMySol(a.formula.asInstanceOf[SchemaFormula],proofSize), cloneMySol(a2.asInstanceOf[SchemaFormula],proofSize)) )
         }
         else Pair(List(),proof)
       }
@@ -328,7 +328,7 @@ object CloneLKProof2 {
         else if(version == 2){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
           val a2 = m.formula  match { case And(l, _) => l }
-          Pair(new_p._1,AndLeft2Rule( new_p._2, cloneMySol(a2,proofSize), cloneMySol(a.formula,proofSize) ))
+          Pair(new_p._1,AndLeft2Rule( new_p._2, cloneMySol(a2.asInstanceOf[SchemaFormula],proofSize), cloneMySol(a.formula.asInstanceOf[SchemaFormula],proofSize) ))
         }
         else Pair(List(),proof)
       }
@@ -347,7 +347,7 @@ object CloneLKProof2 {
         else if(version == 2){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
           val a2 = m.formula  match { case Or(_, ra) => ra }
-          Pair(new_p._1, OrRight1Rule( new_p._2,cloneMySol(a.formula,proofSize),cloneMySol(a2,proofSize)))
+          Pair(new_p._1, OrRight1Rule( new_p._2,cloneMySol(a.formula.asInstanceOf[SchemaFormula],proofSize),cloneMySol(a2.asInstanceOf[SchemaFormula],proofSize)))
         }
         else Pair(List(),proof)
       }
@@ -366,7 +366,7 @@ object CloneLKProof2 {
         else if(version == 2){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
           val a2 = m.formula  match { case Or(l, _) => l }
-          Pair(new_p._1, OrRight2Rule( new_p._2, cloneMySol(a2,proofSize), cloneMySol(a.formula,proofSize)))
+          Pair(new_p._1, OrRight2Rule( new_p._2, cloneMySol(a2.asInstanceOf[SchemaFormula],proofSize), cloneMySol(a.formula.asInstanceOf[SchemaFormula],proofSize)))
         }
         else Pair(List(),proof)
       }
@@ -382,7 +382,7 @@ object CloneLKProof2 {
          }
          else if(version == 2){
            val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-           Pair(new_p._1,NegRightRule( new_p._2, cloneMySol(a.formula,proofSize)))
+           Pair(new_p._1,NegRightRule( new_p._2, cloneMySol(a.formula.asInstanceOf[SchemaFormula],proofSize)))
          }
          else Pair(List(),proof)
       }
@@ -402,7 +402,7 @@ object CloneLKProof2 {
         }
         else if(version == 2){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1,ContractionLeftRule( new_p._2, cloneMySol(a1.formula,proofSize)))
+          Pair(new_p._1,ContractionLeftRule( new_p._2, cloneMySol(a1.formula.asInstanceOf[SchemaFormula],proofSize)))
         }
         else Pair(List(),proof)
       }
@@ -418,7 +418,7 @@ object CloneLKProof2 {
         }
         else if(version == 2){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1,ContractionRightRule( new_p._2, cloneMySol(a1.formula,proofSize)))
+          Pair(new_p._1,ContractionRightRule( new_p._2, cloneMySol(a1.formula.asInstanceOf[SchemaFormula],proofSize)))
         }
         else Pair(List(),proof)
       }
@@ -431,11 +431,11 @@ object CloneLKProof2 {
         }
         else if(version == 1){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1, ForallLeftRule(new_p._2, iterateOnFormula(a.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(m.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(t,ProofLinkPassing)))
+          Pair(new_p._1, ForallLeftRule(new_p._2, iterateOnFormula(a.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(m.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(t.asInstanceOf[SchemaExpression],ProofLinkPassing)))
         }
         else if(version == 2){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1,ForallLeftRule(new_p._2, cloneMySol(a.formula,proofSize), cloneMySol(m.formula,proofSize), cloneMyTerm(t,proofSize)))
+          Pair(new_p._1,ForallLeftRule(new_p._2, cloneMySol(a.formula.asInstanceOf[SchemaFormula],proofSize), cloneMySol(m.formula.asInstanceOf[SchemaFormula],proofSize), cloneMyTerm(t.asInstanceOf[SchemaExpression],proofSize)))
         }
         else Pair(List(),proof)
       }
@@ -446,11 +446,11 @@ object CloneLKProof2 {
         }
         else if(version == 1){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1,ForallRightRule(new_p._2, iterateOnFormula(a.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(m.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(v,ProofLinkPassing).asInstanceOf[SchemaVar]) )
+          Pair(new_p._1,ForallRightRule(new_p._2, iterateOnFormula(a.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(m.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(v.asInstanceOf[SchemaExpression],ProofLinkPassing).asInstanceOf[SchemaVar]) )
         }
         else if(version == 2){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1,ForallRightRule(new_p._2, cloneMySol(a.formula,proofSize), cloneMySol(m.formula,proofSize), cloneMyTerm(v,proofSize).asInstanceOf[SchemaVar]) )
+          Pair(new_p._1,ForallRightRule(new_p._2, cloneMySol(a.formula.asInstanceOf[SchemaFormula],proofSize), cloneMySol(m.formula.asInstanceOf[SchemaFormula],proofSize), cloneMyTerm(v.asInstanceOf[SchemaExpression],proofSize).asInstanceOf[SchemaVar]) )
         }
         else Pair(List(),proof)
       }
@@ -462,11 +462,11 @@ object CloneLKProof2 {
         }
         else if(version == 1){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1,ExistsRightRule(new_p._2, iterateOnFormula(a.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(m.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(t,ProofLinkPassing)))
+          Pair(new_p._1,ExistsRightRule(new_p._2, iterateOnFormula(a.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(m.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(t.asInstanceOf[SchemaExpression],ProofLinkPassing)))
         }
         else if(version == 2){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1,ExistsRightRule(new_p._2, cloneMySol(a.formula,proofSize), cloneMySol(m.formula,proofSize), cloneMyTerm(t,proofSize)))
+          Pair(new_p._1,ExistsRightRule(new_p._2, cloneMySol(a.formula.asInstanceOf[SchemaFormula],proofSize), cloneMySol(m.formula.asInstanceOf[SchemaFormula],proofSize), cloneMyTerm(t.asInstanceOf[SchemaExpression],proofSize)))
         }
         else Pair(List(),proof)
       }
@@ -477,11 +477,11 @@ object CloneLKProof2 {
         }
         else if(version == 1){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1, ExistsLeftRule(new_p._2, iterateOnFormula(a.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(m.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(v,ProofLinkPassing).asInstanceOf[SchemaVar]))
+          Pair(new_p._1, ExistsLeftRule(new_p._2, iterateOnFormula(a.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(m.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(v.asInstanceOf[SchemaExpression],ProofLinkPassing).asInstanceOf[SchemaVar]))
         }
         else if(version == 2){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1,ExistsLeftRule(new_p._2, cloneMySol(a.formula,proofSize), cloneMySol(m.formula,proofSize), cloneMyTerm(v,proofSize).asInstanceOf[SchemaVar]))
+          Pair(new_p._1,ExistsLeftRule(new_p._2, cloneMySol(a.formula.asInstanceOf[SchemaFormula],proofSize), cloneMySol(m.formula.asInstanceOf[SchemaFormula],proofSize), cloneMyTerm(v.asInstanceOf[SchemaExpression],proofSize).asInstanceOf[SchemaVar]))
         }
         else Pair(List(),proof)
       }
@@ -489,15 +489,15 @@ object CloneLKProof2 {
       case ExistsHyperRightRule(p, seq, a, m, t) => {
         if(version == 0){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1,ExistsHyperRightRule(new_p._2, defineremove(a.formula.asInstanceOf[SchemaFormula],rewriterules), defineremove(m.formula.asInstanceOf[SchemaFormula],rewriterules), t))
+          Pair(new_p._1,ExistsHyperRightRule(new_p._2, defineremove(a.formula.asInstanceOf[SchemaFormula],rewriterules), defineremove(m.formula.asInstanceOf[SchemaFormula],rewriterules), t.asInstanceOf[SchemaExpression]))
         }
         else if(version == 1){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1,ExistsHyperRightRule(new_p._2, iterateOnFormula(a.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(m.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(t,ProofLinkPassing)))
+          Pair(new_p._1,ExistsHyperRightRule(new_p._2, iterateOnFormula(a.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(m.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(t.asInstanceOf[SchemaExpression],ProofLinkPassing)))
         }
         else if(version == 2){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1,ExistsHyperRightRule(new_p._2, cloneMySol(a.formula,proofSize), cloneMySol(m.formula,proofSize), cloneMyTerm(t,proofSize)) )
+          Pair(new_p._1,ExistsHyperRightRule(new_p._2, cloneMySol(a.formula.asInstanceOf[SchemaFormula],proofSize), cloneMySol(m.formula.asInstanceOf[SchemaFormula],proofSize), cloneMyTerm(t.asInstanceOf[SchemaExpression],proofSize)) )
         }
         else Pair(List(),proof)
       }
@@ -505,41 +505,41 @@ object CloneLKProof2 {
         if(version == 0)apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
         else if(version == 1){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1,ExistsHyperLeftRule(new_p._2, defineremove(a.formula.asInstanceOf[SchemaFormula],rewriterules), defineremove(m.formula.asInstanceOf[SchemaFormula],rewriterules), v) )
+          Pair(new_p._1,ExistsHyperLeftRule(new_p._2, defineremove(a.formula.asInstanceOf[SchemaFormula],rewriterules), defineremove(m.formula.asInstanceOf[SchemaFormula],rewriterules), v.asInstanceOf[SchemaVar]) )
         }
         else if(version == 2){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1,ExistsHyperLeftRule(new_p._2, cloneMySol(a.formula,proofSize), cloneMySol(m.formula,proofSize), cloneMyTerm(v,proofSize).asInstanceOf[SchemaVar]))
+          Pair(new_p._1,ExistsHyperLeftRule(new_p._2, cloneMySol(a.formula.asInstanceOf[SchemaFormula],proofSize), cloneMySol(m.formula.asInstanceOf[SchemaFormula],proofSize), cloneMyTerm(v.asInstanceOf[SchemaExpression],proofSize).asInstanceOf[SchemaVar]))
         }
         else Pair(List(),proof)
       }
       case ForallHyperLeftRule(p, seq, a, m, t) => {
         if(version == 0){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1,ForallHyperLeftRule(new_p._2, defineremove(a.formula.asInstanceOf[SchemaFormula],rewriterules), defineremove(m.formula.asInstanceOf[SchemaFormula],rewriterules), t) )
+          Pair(new_p._1,ForallHyperLeftRule(new_p._2, defineremove(a.formula.asInstanceOf[SchemaFormula],rewriterules), defineremove(m.formula.asInstanceOf[SchemaFormula],rewriterules), t.asInstanceOf[SchemaExpression]) )
         }
         else if(version == 1){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1,ForallHyperLeftRule(new_p._2, iterateOnFormula(a.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(m.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(t,ProofLinkPassing)) )
+          Pair(new_p._1,ForallHyperLeftRule(new_p._2, iterateOnFormula(a.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(m.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(t.asInstanceOf[SchemaExpression],ProofLinkPassing)) )
         }
         else if(version == 2){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1, ForallHyperLeftRule(new_p._2, cloneMySol(a.formula,proofSize), cloneMySol(m.formula,proofSize), cloneMyTerm(t,proofSize) ))
+          Pair(new_p._1, ForallHyperLeftRule(new_p._2, cloneMySol(a.formula.asInstanceOf[SchemaFormula],proofSize), cloneMySol(m.formula.asInstanceOf[SchemaFormula],proofSize), cloneMyTerm(t.asInstanceOf[SchemaExpression],proofSize) ))
         }
         else Pair(List(),proof)
       }
       case ForallHyperRightRule(p, seq, a, m, v) => {
         if(version == 0){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1,ForallHyperRightRule(new_p._2, defineremove(a.formula.asInstanceOf[SchemaFormula],rewriterules), defineremove(m.formula.asInstanceOf[SchemaFormula],rewriterules), v) )
+          Pair(new_p._1,ForallHyperRightRule(new_p._2, defineremove(a.formula.asInstanceOf[SchemaFormula],rewriterules), defineremove(m.formula.asInstanceOf[SchemaFormula],rewriterules), v.asInstanceOf[SchemaVar]) )
         }
         else if(version == 1){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1,ForallHyperRightRule(new_p._2, iterateOnFormula(a.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(m.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(v,ProofLinkPassing).asInstanceOf[SchemaVar]) )
+          Pair(new_p._1,ForallHyperRightRule(new_p._2, iterateOnFormula(a.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(m.formula.asInstanceOf[SchemaFormula],ProofLinkPassing), iterateOnFormula(v.asInstanceOf[SchemaExpression],ProofLinkPassing).asInstanceOf[SchemaVar]) )
         }
         else if(version == 2){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1,ForallHyperRightRule(new_p._2, cloneMySol(a.formula,proofSize), cloneMySol(m.formula,proofSize), cloneMyTerm(v,proofSize).asInstanceOf[SchemaVar] ))
+          Pair(new_p._1,ForallHyperRightRule(new_p._2, cloneMySol(a.formula.asInstanceOf[SchemaFormula],proofSize), cloneMySol(m.formula.asInstanceOf[SchemaFormula],proofSize), cloneMyTerm(v.asInstanceOf[SchemaExpression],proofSize).asInstanceOf[SchemaVar] ))
         }
         else Pair(List(),proof)
       }
@@ -555,7 +555,7 @@ object CloneLKProof2 {
         }
         else if(version == 2){
           val new_p = apply(p,name,rewriterules,proofSize,version,ProofLinkPassing)
-          Pair(new_p._1, ImpRightRule(new_p._2, cloneMySol(a1.formula,proofSize), cloneMySol(a2.formula,proofSize)) )
+          Pair(new_p._1, ImpRightRule(new_p._2, cloneMySol(a1.formula.asInstanceOf[SchemaFormula],proofSize), cloneMySol(a2.formula.asInstanceOf[SchemaFormula],proofSize)) )
         }
         else Pair(List(),proof)
       }
@@ -586,8 +586,8 @@ object CloneLKProof2 {
           }
         }
         else if(version == 2) Pair(List(),FOSchemaProofLinkRule(
-          new FSequent(s.antecedent.map( x => cloneMySol(x.formula,proofSize)),
-                      s.succedent.map(x => cloneMySol(x.formula,proofSize))),name2,l.map(x => cloneMyTerm(x,proofSize))))
+          new FSequent(s.antecedent.map( x => cloneMySol(x.formula.asInstanceOf[SchemaFormula],proofSize)),
+                      s.succedent.map(x => cloneMySol(x.formula.asInstanceOf[SchemaFormula],proofSize))),name2,l.map(x => cloneMyTerm(x,proofSize))))
         else Pair(List(),proof)
       }
       case _ => throw new Exception("ERROR in unfolding: CloneLKProof2: missing rule !\n" + proof.rule + "\n")
@@ -648,13 +648,14 @@ object genterm {
       case Function(head,l,Tindex) => t
       case SchemaVar(name,Tindex) if name == "k" => t
       case Function(head,l,Ti)  => p match {
-        case Function(headi,li,Ti) if head.name == headi.name && l.length == li.length &&
-         l.zip(li).foldLeft(true,true)((b,pair) => if(equalterms(pair._1,pair._2)&&b._2) b else (b._1,false) )._1  => SchemaConst(SymbolA("!"+ii+"!" ),Ti)
-        case Function(headi,li,Ti) => Function(head, li.map(x => apply(ii,x,t)), Ti)
+        case Function(headi,li,Ti) //if head.name == headi.name && l.length == li.length &&
+                                     if head == headi && l.length == li.length &&
+         l.zip(li).foldLeft(true,true)((b,pair) => if(equalterms(pair._1,pair._2)&&b._2) b else (b._1,false) )._1  => SchemaConst("!"+ii+"!",Ti)
+        case Function(headi,li,Ti) => Function(head, li.map(x => apply(ii,x,t)))
         case _ => p
       }
       case SchemaVar(head,->(Tindex,Ti)) => p match {
-        case Function(headi,li,Ti) if  headi == head  => Function(SchemaConst("!"+ii+"!", FunctionType(Ti, li.map(_.exptype))),li,Ti)
+        case Function(headi,li,Ti) if  headi == head  => Function(SchemaConst("!"+ii+"!", FunctionType(Ti, li.map(_.exptype))),li)
         case _ => p
       }
       case SchemaVar(head,Ti)  => p match {
@@ -665,7 +666,7 @@ object genterm {
         case SchemaConst(head2,t2) if  tt == t2  && head2 == head => SchemaConst("!"+ii+"!", Ti)
         case _ => p
       }
-      case SchemaAbs(x, tt) => p match {case SchemaAbs(x2, t2) if x.compare(x2) == 0 && equalterms(tt,t2) => apply(ii,t2,t)}
+      case SchemaAbs(x, tt) => p match {case SchemaAbs(x2, t2) if x == x2 && equalterms(tt,t2) => apply(ii,t2,t)}
       case _ => throw new Exception("ERROR in unfolding missing formula !\n" + t.toString + "\n")
 
     }
@@ -706,11 +707,9 @@ object cloneMySol{
       case lessThan(l,r) => lessThan(cloneMyTerm(l,proofSize),cloneMyTerm(r,proofSize))
       case sims(l,r) => sims(cloneMyTerm(l,proofSize),cloneMyTerm(r,proofSize))
       case leq(l,r) =>  leq(cloneMyTerm(l,proofSize),cloneMyTerm(r,proofSize))
-      case Atom(set) => {
-        val atomName = set.asInstanceOf[Pair[SymbolA,List[SchemaExpression]]]._1
-        val SOLList = set.asInstanceOf[Pair[SymbolA,List[SchemaExpression]]]._2
-        val finSOLList = SOLList.asInstanceOf[List[SchemaExpression]].map( x => cloneMyTerm(x,proofSize))
-        Atom(atomName,finSOLList)
+      case Atom(head, sollist) => {
+        val finSOLList = sollist.map( x => cloneMyTerm(x,proofSize))
+        Atom(head,finSOLList)
       }
       case _ => throw new Exception("ERROR in unfolding missing formula !\n" + form.toString + "\n")
     }
@@ -748,11 +747,9 @@ object cloneMySol{
       case lessThan(l,r) => lessThan(cloneMyTerm(l,IN,OUT),cloneMyTerm(r,IN,OUT))
       case sims(l,r) => sims(cloneMyTerm(l,IN,OUT),cloneMyTerm(r,IN,OUT))
       case leq(l,r) =>  leq(cloneMyTerm(l,IN,OUT),cloneMyTerm(r,IN,OUT))
-      case Atom(set) => {
-        val atomName = set.asInstanceOf[Pair[SymbolA,List[SchemaExpression]]]._1
-        val SOLList = set.asInstanceOf[Pair[SymbolA,List[SchemaExpression]]]._2
-        val finSOLList = SOLList.asInstanceOf[List[SchemaExpression]].map( x => cloneMyTerm(x,IN,OUT))
-        Atom(atomName,finSOLList)
+      case Atom(head, sollist) => {
+        val finSOLList = sollist.map( x => cloneMyTerm(x,IN,OUT))
+        Atom(head,finSOLList)
       }
       case _ => throw new Exception("ERROR in unfolding missing formula !\n" + form.toString + "\n")
     }
@@ -796,14 +793,26 @@ object cloneMySol{
   }
 }
 
+// TODO (Daniel): I introduced this function during the merge with the new_lambda_calculus
+// branch. Due to the way that the Function.unapply method is set up, and the fact that
+// the code in this file often needs to access the name of some variable or constant,
+// this utility function was helpful. It should be removed once the unapply functions of
+// Function and Atom are improved (see comments there).
+object getName {
+  def apply(term: SchemaExpression) = term match {
+    case SchemaConst(sym, _) => sym
+    case SchemaVar(sym, _) => sym
+  }
+}
+
 object cloneMyTerm{
   def apply(term:SchemaExpression , proofSize:Int):SchemaExpression = {
     term match {
-      case Function(SymbolA(n),l,t) if n =="schS" && t == ind => Function(SymbolA(n),l.map(x => apply(x,proofSize)),t)
-      case SchemaVar(SymbolA(n),t) if n== "k" && t == ind =>  maketogether(proofSize)
-      case Function(SymbolA(n),l,t) if t == ind => Function(SymbolA(n),l.map(x => apply(x,proofSize)),t)
-      case Function(SymbolA(n),l,t) if t == i => Function(SymbolA(n),l.map(x => apply(x,proofSize)),t)
-      case SchemaVar(n,t) if t == i | t == ind->i =>SchemaVar(n,t)
+      case Function(n,l,t) if getName(n) == "schS" && t == Tindex => Function(n,l.map(x => apply(x,proofSize)))
+      case SchemaVar(n,t) if n == "k" && t == Tindex =>  maketogether(proofSize)
+      case Function(n,l,t) if t == Tindex => Function(n,l.map(x => apply(x,proofSize)))
+      case Function(n,l,t) if t == Ti => Function(n,l.map(x => apply(x,proofSize)))
+      case SchemaVar(n,t) if t == Ti | t == Tindex->Ti =>SchemaVar(n,t)
       case SchemaConst(n,t)  => SchemaConst(n,t)
       case SchemaAbs(x, t)   => SchemaAbs(x, apply(t,proofSize))
       case _ => throw new Exception("ERROR in unfolding missing formula !\n" + term.toString + "\n")
@@ -812,25 +821,27 @@ object cloneMyTerm{
   }
   def apply(term:SchemaExpression , IN:SchemaExpression, OUT:SchemaExpression):SchemaExpression = {
     term match {
-      case Function(SymbolA("schS"),l,Tindex) => Function(SymbolA("schS"),l,Tindex)
-      case SchemaVar(SymbolA("k"),Tindex) =>  SchemaVar(SymbolA("k"),Tindex)
-      case Function(SymbolA(n),l,Tindex) => Function(SymbolA(n),l.map(x => apply(x,IN,OUT)),Tindex)
-      case Function(SymbolA(n),l,Ti)  => IN match {
-          case Function(SymbolA(ni),li,Ti)
+      case Function(head,l,Tindex) if getName(head) == "schS" => Function(head,l)
+      case SchemaVar(n,Tindex) if n == "k" =>  SchemaVar(n,Tindex)
+      case Function(n,l,Tindex) => Function(n,l.map(x => apply(x,IN,OUT)))
+      case Function(n,l,Ti)  => IN match {
+          case Function(ni,li,Ti)
             if n == ni && l.length == li.length && l.zip(li).foldLeft(true,true)((b,pair) => if(equalterms(pair._1,pair._2)&&b._2) b else (b._1,false) )._1  => OUT
-          case Function(SymbolA(ni),li,Ti) if n.toList.head == ni.toList.head  => OUT match {
-            case SchemaVar(SymbolA(no),Ti) =>  Function(SymbolA(no),li,Ti)
-            case _ => Function(SymbolA(ni),li,Ti)
+          case Function(ni,li,Ti) if n == ni  => OUT match {
+            // FIXME (Daniel): I don't understand the following line.
+            // commented out to make compile, fix later.
+            //case SchemaVar(no,Ti) =>  Function(no,li)
+            case _ => Function(ni,li)
           }
-          case _ =>  Function(SymbolA(n),l.map(x => apply(x,IN,OUT)),Ti)
+          case _ =>  Function(n,l.map(x => apply(x,IN,OUT)))
         }
-      case SchemaVar(SymbolA(n),t) if t == i | t == ind->i => IN match {
-        case SchemaVar(SymbolA(ni),ti) if  t == ti  && ni == n  => OUT
-        case _ => SchemaVar(SymbolA(n),t)
+      case SchemaVar(n,t) if t == Ti | t == Tindex->Ti => IN match {
+        case SchemaVar(ni,ti) if  t == ti  && ni == n  => OUT
+        case _ => SchemaVar(n,t)
       }
-      case SchemaConst(SymbolA(n),t)  =>  IN match {
-        case SchemaConst(SymbolA(ni),ti) if  t == ti  && ni == n => OUT
-        case _ => SchemaConst(SymbolA(n),t)
+      case SchemaConst(n,t)  =>  IN match {
+        case SchemaConst(ni,ti) if  t == ti  && ni == n => OUT
+        case _ => SchemaConst(n,t)
       }
       case SchemaAbs(x, t)   => SchemaAbs(x, apply(t,IN,OUT))
       case _ => throw new Exception("ERROR in unfolding missing formula !\n" + term.toString + "\n")
@@ -860,11 +871,11 @@ object equalforms{
         case _ => false
       }
       case AllVar(aV,aF) => form2 match {
-        case AllVar(aV2,aF2) if aV.compare(aV2) == 0 => apply(aF,aF2)
+        case AllVar(aV2,aF2) if aV == aV2 => apply(aF,aF2)
         case _ => false
       }
       case ExVar(aV,aF) => form2 match {
-        case ExVar(aV2,aF2) if aV.compare(aV2) == 0 => apply(aF,aF2)
+        case ExVar(aV2,aF2) if aV == aV2 => apply(aF,aF2)
         case _ => false
       }
       case Equation(l,r) => form2 match {
@@ -883,8 +894,8 @@ object equalforms{
         case leq(l2,r2) => equalterms(l,l2) && equalterms(r,r2)
         case _ => false
       }
-      case Atom(SymbolA(x),y)  => form2 match {
-        case  Atom(SymbolA(x2),y2) if x == x2 =>
+      case Atom(x,y)  => form2 match {
+        case  Atom(x2,y2) if x == x2 =>
           y.zip(y2).foldLeft(Pair(true,true))((b,pair) => if(equalterms(pair._1,pair._2)&&b._2) b else Pair(b._1,false))._1
         case _ => false
       }
@@ -896,38 +907,38 @@ object equalforms{
 object equalterms{
   def apply(term:SchemaExpression , term2:SchemaExpression):Boolean = {
     term match {
-      case Function(SymbolA("schS"),l,Tindex) => term2 match{
-        case Function(SymbolA("schS"),l2,Tindex) =>
+      case Function(head,l,Tindex) if getName(head) == "schS" => term2 match{
+        case Function(head2,l2,Tindex) if getName(head2) == "schS" =>
           l.zip(l2).foldLeft(Pair(true,true))((b,pair) => if(apply(pair._1,pair._2)&&b._2) b else Pair(b._1,false))._1
         case _ => false
       }
-      case SchemaVar(SymbolA("k"),Tindex) => term2 match{
-        case SchemaVar(SymbolA("k"),Tindex) =>  true
+      case SchemaVar("k",Tindex) => term2 match{
+        case SchemaVar("k",Tindex) =>  true
         case _ => false
       }
-      case Function(SymbolA(n),l,Tindex) => term2 match{
-        case Function(SymbolA(n2),l2,Tindex) if n == n2 && l.length == l2.length =>
+      case Function(n,l,Tindex) => term2 match{
+        case Function(n2,l2,Tindex) if n == n2 && l.length == l2.length =>
           l.zip(l2).foldLeft(Pair(true,true))((b,pair) => if(apply(pair._1,pair._2)&&b._2) b else Pair(b._1,false))._1
         case _ => false
       }
-      case Function(SymbolA(n),l,Ti)  => term2 match {
-        case Function(SymbolA(n2),l2,Ti) if n == n2 && l.length == l2.length =>
+      case Function(n,l,Ti)  => term2 match {
+        case Function(n2,l2,Ti) if n == n2 && l.length == l2.length =>
           l.zip(l2).foldLeft(Pair(true,true))((b,pair) => if(apply(pair._1,pair._2)&&b._2) b else Pair(b._1,false))._1
         case _ =>  false
       }
-      case SchemaVar(SymbolA(n),->(Tindex,Ti))  => term2 match {
-        case SchemaVar(SymbolA(n2),->(Tindex,Ti)) if n2 == n  => true
+      case SchemaVar(n,->(Tindex,Ti))  => term2 match {
+        case SchemaVar(n2,->(Tindex,Ti)) if n2 == n  => true
         case _ => false
       }
-      case SchemaVar(SymbolA(n),Ti)  => term2 match {
-        case SchemaVar(SymbolA(n2),Ti) if  n2 == n  => true
+      case SchemaVar(n,Ti)  => term2 match {
+        case SchemaVar(n2,Ti) if  n2 == n  => true
         case _ => false
       }
-      case SchemaConst(SymbolA(n),t)  =>  term2 match {
-        case SchemaConst(SymbolA(n2),t2) if  t == t2  && n2 == n => true
+      case SchemaConst(n,t)  =>  term2 match {
+        case SchemaConst(n2,t2) if  t == t2  && n2 == n => true
         case _ => false
       }
-      case SchemaAbs(x, t) => term2 match {case SchemaAbs(x2, t2) if x.compare(x2) == 0 => apply(t,t2)}
+      case SchemaAbs(x, t) => term2 match {case SchemaAbs(x2, t2) if x == x2 => apply(t,t2)}
       case _ => throw new Exception("ERROR in unfolding missing formula !\n" + term.toString + "\n")
 
     }
@@ -964,9 +975,9 @@ object AtomMatch{
 object isIndexSort{
   def apply(term:SchemaExpression):Boolean = {
     term match {
-      case Function(SymbolA("schS"),l,Tindex) => apply(l.head)
-      case SchemaVar(SymbolA("k"),Tindex) =>  true
-      case SchemaConst(SymbolA("0"), Tindex) =>  true
+      case Function(head,l,Tindex) if getName(head) == "schS" => apply(l.head)
+      case SchemaVar("k",Tindex) =>  true
+      case SchemaConst("0", Tindex) =>  true
       case _ => false
 
     }

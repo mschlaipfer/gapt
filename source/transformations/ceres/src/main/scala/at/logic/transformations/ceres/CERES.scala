@@ -10,7 +10,6 @@ import at.logic.language.hol._
 import at.logic.calculi.lk._
 import at.logic.language.hol.logicSymbols._
 import at.logic.algorithms.matching.NaiveIncompleteMatchingAlgorithm
-import at.logic.transformations.ceres.ACNF.SubstituteProof
 import at.logic.language.lambda.{App, LambdaExpression, Var}
 import at.logic.language.lambda.types.{TA, ->, Ti, To}
 import at.logic.language.lambda.symbols._

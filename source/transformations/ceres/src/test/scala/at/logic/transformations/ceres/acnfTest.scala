@@ -23,6 +23,7 @@ import org.specs2.internal.scalaz.Success
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.runner.JUnitRunner
 import scala.io._
+import at.logic.algorithms.lk.applySubstitution
 
 @RunWith(classOf[JUnitRunner])
 class ACNFTest extends SpecificationWithJUnit {
@@ -104,7 +105,7 @@ class ACNFTest extends SpecificationWithJUnit {
 
       //for (p <- proj) println(p)
       val rlkp = RobinsonToLK(rp.get)
-      val gproj = proj map (SubstituteProof(_, FOLSubstitution((u,b)::Nil)))
+      val gproj = proj map (applySubstitution(_, FOLSubstitution((u,b)::Nil))._1)
       //gproj map (x => println(" "+x))
       val acnf = ACNF.plugProjections(rlkp, gproj, es.root.toFSequent)
       //println(acnf)

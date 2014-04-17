@@ -207,11 +207,12 @@ object renameVar {
   }
 }
 
+/*
 object SubstituteProof {
   def subapp(f: HOLFormula, sub:Substitution) = sub(f)
   def subapp(f: FormulaOccurrence, sub:Substitution) = sub(f.formula)
   def remove_from_sub(v:HOLVar, sub:Substitution) = Substitution(sub.holmap.filterNot( x => x._1 == v  ))
-  
+
   def apply(proof: LKProof, sub:Substitution) : LKProof =
     proof match {
       case Axiom(s) =>
@@ -319,5 +320,4 @@ object SubstituteProof {
         DefinitionRightRule(rp, subapp(aux,sub), subapp(main,sub))
     }
 }
-
-
+*/

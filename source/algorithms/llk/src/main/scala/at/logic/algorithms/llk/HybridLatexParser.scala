@@ -19,7 +19,11 @@ case class ExtendedProofDatabase(eproofs : Map[HOLFormula, LKProof],
                                  eaxioms : Map[HOLFormula,HOLFormula],
                                  edefinitions : Map[HOLExpression, HOLExpression])
   extends ProofDatabase(Map(),Nil,Nil,Nil) {
-  override val proofs : List[(String,LKProof)] = eproofs.map(x => x._1 match { case Atom(sym,_) => (sym.toString, x._2)}).toList
+  override val proofs : List[(String,LKProof)] = eproofs.map(x =>
+    x._1 match {
+      case Atom(HOLConst(sym,_),_) => (sym.toString, x._2)
+      case Atom(HOLVar(sym,_),_) => (sym.toString, x._2)
+    }).toList
   override val Definitions : Map[HOLExpression, HOLExpression] = edefinitions
   override val axioms : List[FSequent] = eaxioms.values.toList map (x => FSequent(Nil, x::Nil))
   override val sequentLists : List[(String,List[FSequent])] = Nil

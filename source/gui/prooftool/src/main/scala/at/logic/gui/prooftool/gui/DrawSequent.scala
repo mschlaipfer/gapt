@@ -140,7 +140,12 @@ object DrawSequent {
       else nameToLatexString(constant.name.toString)
       } + {if (indices.isEmpty) "" else indices.map(x => formulaToLatexString(x)).mkString("_{",",","}")}
     case t : IntegerTerm  => parseIntegerTerm(t, 0)
-    case Atom(name, args) =>
+    case Atom(pred, args) =>
+      val name = pred match {
+        case HOLConst(n,_) => n
+        case HOLVar(n,_) => n
+        case _ => throw new Exception("An atom can only contain a const or a var on the outermost level!")
+      }
       if (args.size == 2 &&  name.toString.matches("""(=|!=|\\neq|<|>|\\leq|\\geq|\\in|\+|-|\*|/)""")) { //!name.toString.matches("""[\w\p{InGreek}]*""")) {
         //formats infix formulas
         if (outermost) {
@@ -166,7 +171,13 @@ object DrawSequent {
       "\\textbf {" + name.toString + "}"
     case HOLVar(name,_) =>  name
     case HOLConst(name,_) => name
-    case Function(name, args, _) =>
+    case Function(f, args, _) =>
+      val name = f match {
+        case HOLConst(n,_) => n
+        case HOLVar(n,_) => n
+        case _ => throw new Exception("An atom can only contain a const or a var on the outermost level!")
+      }
+
       if (name.toString == "EXP")
         args.last.asInstanceOf[IntVar].name + "^{" + parseIntegerTerm(args.head.asInstanceOf[IntegerTerm], 0) + "}"
       else if (args.size == 1) parseNestedUnaryFunction(name.toString, args.head, 1)

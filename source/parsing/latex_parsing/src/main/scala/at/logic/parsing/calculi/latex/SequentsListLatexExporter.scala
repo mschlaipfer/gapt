@@ -5,16 +5,15 @@
 
 package at.logic.parsing.calculi.latex
 
-import at.logic.language.lambda.symbols._
-import at.logic.language.hol.logicSymbols._
+import at.logic.calculi.lk._
+import at.logic.calculi.lk.base._
+import at.logic.calculi.lksk._
 import at.logic.language.hol._
+import at.logic.language.hol.logicSymbols._
 import at.logic.language.lambda.types._
 import at.logic.parsing.ExportingException
-import at.logic.calculi.lk.base._
+import at.logic.parsing.OutputExporter
 import at.logic.parsing.language.latex.HOLTermLatexExporter
-import at.logic.calculi.lksk.{LabelledFormulaOccurrence, LabelledSequent}
-import at.logic.language.lambda._
-import scala.Tuple2
 
 
 trait SequentsListLatexExporter extends HOLTermLatexExporter {
@@ -28,7 +27,7 @@ trait SequentsListLatexExporter extends HOLTermLatexExporter {
     if (seq._2.size > 1) seq._2.tail.foreach(x => {getOutput.write(smskip); /*getOutput.write(",");*/ exportTerm1(x)})
   }
   
-  def exportSequentList(ls: List[FSequent], sections: List[Tuple2[String,List[Tuple2[Any,Any]]]]): at.logic.parsing.OutputExporter = {
+  def exportSequentList(ls: List[FSequent], sections: List[Tuple2[String,List[Tuple2[Any,Any]]]]): OutputExporter = {
     // first obtain information about the clauses, replace lambda expressions of constant type by constants (and describe it at the top of the page)
     // Also describe the types of all constants
 
@@ -75,6 +74,21 @@ trait SequentsListLatexExporter extends HOLTermLatexExporter {
     this
   }
 
+  private def getFSVars(fs:FSequent) : Set[HOLVar] = fs.formulas.toSet.flatMap(getVars)
+  private def getVars(l: HOLExpression) : Set[HOLVar] = l match {
+    case v: HOLVar => Set(v)
+    case c: HOLConst => Set()
+    case HOLAbs(x,t) => getVars(t) ++ getVars(x)
+    case HOLApp(s,t) => getVars(s) ++ getVars(t)
+  }
+
+  private def getFSConsts(fs:FSequent) : Set[HOLConst] = fs.formulas.toSet.flatMap(getConsts)
+  private def getConsts(l: HOLExpression) : Set[HOLConst] = l match {
+    case v: HOLVar => Set()
+    case c: HOLConst => Set(c)
+    case HOLAbs(x,t) => getConsts(t) ++ getConsts(x)
+    case HOLApp(s,t) => getConsts(s) ++ getConsts(t)
+  }
 
   def printTypes(l: List[FSequent]) = {
     val (vmap, cmap) = getTypes(l)
@@ -129,9 +143,8 @@ trait SequentsListLatexExporter extends HOLTermLatexExporter {
   }
 
   private def getTypes(l:List[FSequent]) = {
-
-    val vars = l.foldLeft(Set[Var]())((rec,fs) => rec ++ fs.formulas.toSet.flatMap(getVars.apply))
-    val consts = l.foldLeft(Set[Const]())((rec,fs) => rec ++ fs.formulas.toSet.flatMap(getConsts.apply))
+    val vars = l.foldLeft(Set[HOLVar]()) ((acc, fs) => acc ++ getFSVars(fs))
+    val consts = l.foldLeft(Set[HOLConst]()) ((acc, fs) => acc ++ getFSConsts(fs))
     val svars = vars.map(_.name.toString())
     val cvars = consts.map(_.name.toString())
     if (cvars.exists(svars.contains(_)) || svars.exists(cvars.contains(_)))
@@ -258,4 +271,13 @@ trait LabelledSequentsListLatexExporter extends HOLTermLatexExporter {
     } )
     getOutput.write("""}$""")
   }
+  /*private def replaceTerm(f: LambdaExpression, defs: Map[Int, Tuple2[Abs,Var]]): LambdaExpression = f match {
+    case v: Var => v
+    case App(a,b) => App(replaceTerm(a, defs), replaceTerm(b, defs))
+    case a @ Abs(x,b) => defs.get(extractAbs(a.asInstanceOf[Abs])) match {
+      case Some(v) => v._2
+      case _ => Abs(x, replaceTerm(b, defs))
+    }
+  }*/
 }
+

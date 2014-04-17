@@ -7,9 +7,9 @@ package at.logic.parsing.language.arithmetic
 
 import at.logic.language.hol._
 import at.logic.language.hol.logicSymbols._
+import at.logic.language.lambda.symbols.SymbolA
 import at.logic.language.schema.{TopC, BottomC, BigAnd, BigOr, SchemaFormula}
 import at.logic.language.schema.logicSymbols.BiggerThanSymbol
-import at.logic.language.fol
 import at.logic.parsing.OutputExporter
 import at.logic.parsing.language.HOLTermExporter
 

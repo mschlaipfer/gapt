@@ -164,8 +164,23 @@ object fowVar {
 }
 
 object Function {
+  /*
   def apply(head: SchemaVar, args: List[SchemaExpression]): SchemaExpression = apply_(head, args)
   def apply(head: SchemaConst, args: List[SchemaExpression]): SchemaExpression = apply_(head, args)
+  */
+
+  // I added the following method to replace the ones above to avoid case distinctions
+  // in user code. Maybe better: Add a trait "AtomHead" or something, and add it to
+  // both SchemaConst and SchemaVar. Then, use SchemaExpression with AtomHead instead
+  // of SchemaExpression below.
+  //
+  // The above methods are not so good since the unapply method returns SchemaExpressions,
+  // which cannot directly be fed to the above apply methods without casting/case distinction.
+  //
+  def apply(head: SchemaExpression, args: List[SchemaExpression]): SchemaExpression = {
+    require(head.isInstanceOf[SchemaVar] || head.isInstanceOf[SchemaConst])
+    apply_(head, args)
+  }
 
   private def apply_(head: SchemaExpression, args: List[SchemaExpression]): SchemaExpression = args match {
     case Nil => head

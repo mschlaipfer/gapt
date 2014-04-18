@@ -382,8 +382,7 @@ object VeriTParser extends RegexParsers {
   def success : Parser[String] = "success"
   def unsat : Parser[String] = "unsat"
   def sat : Parser[String] = "sat"
-  // TODO: find out what is the general format of this title.
-  def title : Parser[String] = "verit dev - the VERI(T) theorem prover (UFRN/LORIA)." | "veriT 201310d - the SMT-solver veriT (UFRN/LORIA)."
+  def title : Parser[String] = """veri(.*)\.""".r
   def msg : Parser[String] = "Formula is Satisfiable"
  
   // INPUT PROCESSING RULES
@@ -418,7 +417,6 @@ object VeriTParser extends RegexParsers {
 
   def innerRule : Parser[List[Instances]] = resolution | and | and_pos | or | or_pos | and_neg | not_and | not_or | or_neg | implies | implies_pos | implies_neg1 | implies_neg2 | not_implies1 | not_implies2
   // Rules that I don't care
-  // TODO: parse all rules
   def resolution : Parser[List[Instances]] = "resolution" ~> premises <~ conclusion
   def and : Parser[List[Instances]] = "and" ~> premises <~ conclusion
   def and_pos : Parser[List[Instances]] = "and_pos" ~> conclusion  ^^ { case _ => Nil }

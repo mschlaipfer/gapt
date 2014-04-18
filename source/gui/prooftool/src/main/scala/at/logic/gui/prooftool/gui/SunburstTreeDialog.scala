@@ -11,7 +11,6 @@ import scala.swing._
 import at.logic.calculi.proofs.TreeProof
 import scala.swing.event.{Key, KeyPressed, UIElementResized}
 import at.logic.calculi.lk.base.LKProof
-import ch.randelshofer.tree.sunburst.SunburstNode
 import at.logic.gui.prooftool.parser.{ChangeSequentColor, ProofToolPublisher}
 
 
@@ -88,6 +87,6 @@ class SunburstTreeDialog[T](name: String, proof: TreeProof[T]) extends Dialog {
   }
 
   override def closeOperation() {
-    ProofToolPublisher.publish(ChangeSequentColor(null,null,true))
+    ProofToolPublisher.publish(ChangeSequentColor(null,null,reset=true))
   }
 }

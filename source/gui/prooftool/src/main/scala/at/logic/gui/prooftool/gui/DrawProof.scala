@@ -156,7 +156,7 @@ class DrawProof(val proof: TreeProof[_], private val fSize: Int, private var vis
     if (! str.isEmpty && proof.name.contains(str)) g.setColor(new Color(0,255,0))
 
     if (drawLines) proof match {
-      case p: UnaryTreeProof[_] => {
+      case p: UnaryTreeProof[_] =>
         val center = this.layout.find(x => x._2 == Position.Center).get._1.asInstanceOf[DrawProof]
         val width = center.size.width + fSize*4
         val height = center.size.height
@@ -164,8 +164,7 @@ class DrawProof(val proof: TreeProof[_], private val fSize: Int, private var vis
 
         g.drawLine((width - seqLength) / 2, height, (width + seqLength) / 2, height)
         g.drawString(p.name, (fSize / 4 + width + seqLength) / 2, height + metrics.getMaxDescent)
-      }
-      case p: BinaryTreeProof[_] => {
+      case p: BinaryTreeProof[_] =>
         val left = this.layout.find(x => x._2 == Position.West).get._1.asInstanceOf[DrawProof]
         val leftWidth = left.size.width + fSize*4
         val right = this.layout.find(x => x._2 == Position.East).get._1.asInstanceOf[DrawProof]
@@ -177,7 +176,6 @@ class DrawProof(val proof: TreeProof[_], private val fSize: Int, private var vis
 
         g.drawLine((leftWidth - leftSeqLength) / 2, height, lineLength, height)
         g.drawString(p.name, lineLength + fSize / 4, height + metrics.getMaxDescent)
-      }
       case _ =>
     }
   }
@@ -201,10 +199,9 @@ class DrawProof(val proof: TreeProof[_], private val fSize: Int, private var vis
       if (res == None) dp match {
         case x : DrawProof =>
           x.getLocationOfProof(p) match {
-            case Some(loc) => { // need to translate
+            case Some(loc) =>  // need to translate
               val newloc = new Point(loc.x + location.x, loc.y + location.y)
               Some(newloc)
-            }
             case _ => None
           }
         case _ => None

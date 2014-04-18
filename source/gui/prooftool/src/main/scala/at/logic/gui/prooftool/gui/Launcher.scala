@@ -7,16 +7,8 @@ package at.logic.gui.prooftool.gui
  * Time: 5:43:38 PM
  */
 
-import at.logic.calculi.expansionTrees.ExpansionTree
-import at.logic.calculi.lk.base.FSequent
-import at.logic.calculi.proofs.{Proof, TreeProof}
-import at.logic.gui.prooftool.parser.{UnLoaded, Loaded, ProofToolPublisher, StructPublisher}
-import at.logic.language.hol.HOLFormula
-import at.logic.utils.ds.trees.Tree
-
 import java.awt.Font._
 import java.awt.event.{MouseEvent, MouseMotionListener}
-import javax.swing.border.TitledBorder
 import scala.swing._
 import event.{MouseWheelMoved, MouseReleased, MouseDragged}
 import at.logic.gui.prooftool.parser.{UnLoaded, Loaded, ProofToolPublisher, StructPublisher}
@@ -37,7 +29,7 @@ class Launcher(private val option: Option[(String, AnyRef)], private val fSize: 
         case Some(s) => s
         case None => name
       }
-//      val bd: TitledBorder = Swing.TitledBorder(Swing.LineBorder(new Color(0,0,0), 2), " "+name+" ")
+
       val nice_name:String = actualname match {
         case s:String if s == "\\psi" || s == "psi" => "ψ"
         case s:String if s == "\\chi" || s == "chi" => "χ"
@@ -47,10 +39,9 @@ class Launcher(private val option: Option[(String, AnyRef)], private val fSize: 
         case s:String if s == "\\sigma" || s == "sigma" => "σ"
         case s:String if s == "\\tau" || s == "tau" => "τ"
         case s:String if s == "\\omega" || s == "omega" => "Ω"
-
         case _ => actualname
       }
-      val bd: TitledBorder = Swing.TitledBorder(Swing.LineBorder(new Color(0,0,0), 2), " "+nice_name+" ")
+      val bd = Swing.TitledBorder(Swing.LineBorder(new Color(0,0,0), 2), " "+nice_name+" ")
       bd.setTitleFont(new Font(SERIF, BOLD, 16))
       border = bd
     case _ =>

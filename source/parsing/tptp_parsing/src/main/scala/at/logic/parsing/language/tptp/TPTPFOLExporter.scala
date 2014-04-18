@@ -54,7 +54,7 @@ object TPTPFOLExporter extends at.logic.utils.logging.Logger {
 
   def exportFormula( f: FOLFormula ) = {
     val map = getVarRenaming( f )
-    trace("var renaming: " + map)
+    trace("var renaming for " + f + ": " + map)
     tptpFormula( f )( map )
   }
 
@@ -78,6 +78,10 @@ object TPTPFOLExporter extends at.logic.utils.logging.Logger {
     case Neg(x) => "~" + tptp( x )
   }
 
+  private def addToMap( v : FOLVar )(implicit s_map: Map[FOLVar, String]) = {
+    s_map + ((v, "X" + s_map.size))
+  }
+  
   // Exports a full formula in TPTP format.
   def tptpFormula( f : FOLFormula ) (implicit s_map: Map[FOLVar, String]) : String = f match {
     case Atom(x, args) => handleAtom( x, args )
@@ -85,13 +89,20 @@ object TPTPFOLExporter extends at.logic.utils.logging.Logger {
     case Neg(x) => "( ~" + tptpFormula( x ) + ")"
     case And(x,y) => "( " + tptpFormula( x ) + " & " + tptpFormula( y ) + " )"
     case Imp(x,y) => "( " + tptpFormula( x ) + " => " + tptpFormula( y ) + " )"
-    case AllVar(v, f) => "! [" + tptp(v) + "] : " + tptpFormula(f)
-    case ExVar(v, f) => "? [" + tptp(v) + "] : " + tptpFormula(f)
+    case AllVar(v, f) => {
+      val new_map = addToMap(v)
+      "! [" + tptp(v)(new_map) + "] : " + tptpFormula(f)(new_map)
+    }
+    case ExVar(v, f) => 
+    {
+      val new_map = addToMap(v)
+      "? [" + tptp(v)(new_map) + "] : " + tptpFormula(f)(new_map)
+    }
   }
 
   def tptp( t: FOLTerm )(implicit s_map: Map[FOLVar, String]) : String = t match {
     case FOLConst(c) => single_quote( c.toString )
-    case x : FOLVar => s_map( x )
+    case x : FOLVar => s_map( x ) 
     case Function(x, args) => handleAtom( x, args )
   }
 

@@ -309,15 +309,12 @@ class Prover9Test extends SpecificationWithJUnit {
       val s = FSequent(Nil,List(AllVar(FOLVar("x"), parse("=(x,x)"))))
 
 
-  /* FIXME: commented out since tptp export of quantifiers is still failing.
-     Try again after merging Giselle's changes. */
-      /*
       p.isValid(s) must beTrue
-      p.getRobinsonProof (s) must beLike {
+    // TODO: cannot yet import proofs for arbitrary formulas
+    /*  p.getRobinsonProof (s) must beLike {
         case Some(_) => ok
         case None => ko
-      }
-      */
+      } */
     }
 
     "prove { A or B :- -(-A and -B)  }" in {

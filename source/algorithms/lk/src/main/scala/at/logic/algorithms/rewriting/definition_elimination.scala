@@ -71,12 +71,12 @@ class DefinitionElimination {
   def try_to_matchformula(dmap:DefinitionsMap,e:HOLExpression) = c(try_to_match(dmap,e))
   def try_to_match(dmap: DefinitionsMap, e: HOLExpression): HOLExpression = {
     dmap.keys.foldLeft(e)((v, key) => {
-      //println("matching " + v + " against " + key)
+//      println("matching " + v + " against " + key)
       NaiveIncompleteMatchingAlgorithm.holMatch(key, v)(Nil) match {
-        case None => e
+        case None => v
         case Some(sub) =>
           val r = sub(dmap(key))
-          //println("YES! "+sub)
+//          println("YES! "+sub)
           r
       }
     }

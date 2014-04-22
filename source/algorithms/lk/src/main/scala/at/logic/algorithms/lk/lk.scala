@@ -291,7 +291,7 @@ object regularize {
       case r @ CutRule( p1, p2, _, a1, a2 ) => {
         // first left, then right
         val rec1 = rec( p1, vars )
-        val rec2 = rec( p2, vars ++ rec1._2 )
+        val rec2 = rec( p2, rec1._2 )
         val new_proof = CutRule( rec1._1, rec2._1, rec1._3( a1 ), rec2._3( a2 ) )
         ( new_proof, rec2._2, computeMap( p1.root.antecedent ++
         (p1.root.succedent.filter(_ != a1)), r, new_proof, rec1._3 ) ++
@@ -468,7 +468,7 @@ object regularize {
                         constructor: (LKProof, LKProof, FormulaOccurrence, FormulaOccurrence, HOLFormula) => BinaryLKProof with AuxiliaryFormulas ) = {
        // first left, then right
       val rec1 = rec( p1, vars )
-      val rec2 = rec( p2, vars ++ rec1._2 )
+      val rec2 = rec( p2, rec1._2 )
       val new_proof = constructor( rec1._1, rec2._1, rec1._3( a1 ), rec2._3( a2 ) , m )
       ( new_proof, rec2._2, computeMap( p1.root.antecedent ++ p1.root.succedent, r, new_proof, rec1._3 ) ++
                    computeMap( p2.root.antecedent ++ p2.root.succedent, r, new_proof, rec2._3 ) )
@@ -477,11 +477,11 @@ object regularize {
   def handleBinaryProp( r: BinaryLKProof with AuxiliaryFormulas, p1: LKProof, p2: LKProof, a1: FormulaOccurrence, a2: FormulaOccurrence, vars: List[HOLVar],
     constructor: (LKProof, LKProof, FormulaOccurrence, FormulaOccurrence) => BinaryLKProof with AuxiliaryFormulas ) = {
        // first left, then right
-      val rec1 = rec( p1, vars )
-      val rec2 = rec( p2, vars ++ rec1._2 )
-      val new_proof = constructor( rec1._1, rec2._1, rec1._3( a1 ), rec2._3( a2 ) )
-      ( new_proof, rec2._2, computeMap( p1.root.antecedent ++ p1.root.succedent, r, new_proof, rec1._3 ) ++
-                   computeMap( p2.root.antecedent ++ p2.root.succedent, r, new_proof, rec2._3 ) )
+      val (rec1, vars1, map1) = rec( p1, vars )
+      val (rec2, vars2, map2) = rec( p2, vars1 )
+      val new_proof = constructor( rec1, rec2, map1( a1 ), map2( a2 ) )
+      ( new_proof, vars2, computeMap( p1.root.antecedent ++ p1.root.succedent, r, new_proof, map1 ) ++
+                   computeMap( p2.root.antecedent ++ p2.root.succedent, r, new_proof, map2 ) )
   }
 
 

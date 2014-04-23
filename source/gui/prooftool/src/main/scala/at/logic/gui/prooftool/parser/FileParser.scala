@@ -28,6 +28,7 @@ import at.logic.transformations.ceres.clauseSchema._
 import at.logic.calculi.slk.SchemaProofDB
 import at.logic.calculi.proofs.Proof
 import at.logic.algorithms.shlk.SCHOLParser
+import at.logic.algorithms.hlk.HybridLatexParser
 
 class FileParser {
 
@@ -106,8 +107,21 @@ class FileParser {
     resProofs = ("ivy_proof", ivy)::Nil
   }
 
+  def llkFileReader(filename: String) {
+    SchemaProofDB.clear
+    resolutionProofSchemaDB.clear
+    proofs = Nil
+    resProofs = Nil
+    termTrees = Nil
+    //  val start = System.currentTimeMillis()
+    proofdb = HybridLatexParser.createLKProof(HybridLatexParser.parseFile(filename))
+    //  val end = System.currentTimeMillis()
+    //  println("parsing took " + (end - start).toString)
+  }
+
   def parseFile(path: String) { try {
-    if (path.endsWith(".lksc")) lksCNTFileReader(fileStreamReader(path))
+    if (path.endsWith(".llk")) llkFileReader(path)
+    else if (path.endsWith(".lksc")) lksCNTFileReader(fileStreamReader(path))
     else if (path.endsWith(".lks")) lksFileReader(fileStreamReader(path))
     else if (path.endsWith(".lks.gz")) lksFileReader(gzFileStreamReader(path))
     else if (path.endsWith(".rs")) rsFileReader(fileStreamReader(path))
@@ -169,7 +183,7 @@ class FileParser {
     proofdb = new ProofDatabase(map, proofdb.proofs, proofdb.axioms, proofdb.sequentLists)
   }
 
-  def getDefinitions: List[(HOLExpression, HOLExpression)] = proofdb.Definitions.toList //._1.toList ::: proofdb.Definitions._2.toList ::: proofdb.Definitions._3.toList
+  def getDefinitions = proofdb.Definitions //._1.toList ::: proofdb.Definitions._2.toList ::: proofdb.Definitions._3.toList
 
   def getSequentLists = proofdb.sequentLists
 

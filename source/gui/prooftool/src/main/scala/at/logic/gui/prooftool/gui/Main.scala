@@ -45,6 +45,10 @@ import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 import java.awt.Color
 import at.logic.language.lambda.types.{To, Ti}
+import scala.Some
+import at.logic.gui.prooftool.parser.ShowAllRules
+import at.logic.gui.prooftool.parser.ChangeFormulaColor
+import at.logic.algorithms.rewriting.DefinitionElimination
 
 
 object Main extends SimpleSwingApplication {
@@ -721,7 +725,7 @@ object Main extends SimpleSwingApplication {
             for (i <- l) contents += new MenuItem(Action(i._1) { loadResolutionProof(i) }) { border = customBorder }
         }
       }
-      contents += new MenuItem(Action("View Definition List") { loadClauseSet(("Definition List", db.getDefinitions)) }) {
+      contents += new MenuItem(Action("View Definition List") { loadClauseSet(("Definition List", db.getDefinitions.toList)) }) {
         mnemonic = Key.D
         border = customBorder
       }
@@ -1080,7 +1084,7 @@ object Main extends SimpleSwingApplication {
   def eliminateDefsLK() { try {
     body.cursor = new java.awt.Cursor(java.awt.Cursor.WAIT_CURSOR)
     val pair = body.getContent.getData.get
-    val new_proof = eliminateDefinitions( pair._2.asInstanceOf[LKProof]   )
+    val new_proof = AtomicExpansion(DefinitionElimination(db.getDefinitions, pair._2.asInstanceOf[LKProof]))
     db.addProofs((pair._1+" without def rules", new_proof)::Nil)
     body.contents = new Launcher(Some("Proof without Definitions",new_proof),14)
     body.cursor = java.awt.Cursor.getDefaultCursor
@@ -1326,6 +1330,24 @@ object Main extends SimpleSwingApplication {
       }
 
       def getDescription: String = ".lks"
+    }
+
+    fileFilter = new FileFilter {
+      def accept(f: File): Boolean = {
+        if (f.getName.endsWith(".lksc") || f.isDirectory) true
+        else false
+      }
+
+      def getDescription: String = ".lksc"
+    }
+
+    fileFilter = new FileFilter {
+      def accept(f: File): Boolean = {
+        if (f.getName.endsWith(".llk") || f.isDirectory) true
+        else false
+      }
+
+      def getDescription: String = ".llk"
     }
 
     fileFilter = new FileFilter {

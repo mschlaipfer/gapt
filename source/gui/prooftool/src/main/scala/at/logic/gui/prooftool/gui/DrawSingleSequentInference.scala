@@ -31,21 +31,21 @@ class DrawSingleSequentInference(var orientation : Orientation.Value) extends Sc
   val primaries = new BoxPanel(Orientation.Vertical) {
     border = Swing.TitledBorder(Swing.LineBorder(new Color(0,0,0), 1), " Primary: ")
     background = new Color(255,255,255)
-    preferredSize = new Dimension(50,20)
+    minimumSize = new Dimension(50,20)
     xLayoutAlignment = 0
   }
 
   val rule =  new BoxPanel(Orientation.Vertical) {
     border = Swing.TitledBorder(Swing.LineBorder(new Color(0,0,0), 1), " Inference: ")
     background = new Color(255,255,255)
-    preferredSize = new Dimension(50,20)
+    minimumSize = new Dimension(50,20)
     xLayoutAlignment = 0
   }
 
   val substitution =  new BoxPanel(Orientation.Vertical) {
     border = Swing.TitledBorder(Swing.LineBorder(new Color(0,0,0), 1), " Substitution: ")
     background = new Color(255,255,255)
-    preferredSize = new Dimension(50,20)
+    minimumSize = new Dimension(50,20)
     xLayoutAlignment = 0
   }
 

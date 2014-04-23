@@ -22,7 +22,6 @@ import at.logic.algorithms.llk.HybridLatexExporter
 
 
 object LKtoLKskc extends Logger {
-  implicit def sequent2fsequent(fs : Sequent) : FSequent = FSequent(fs.antecedent map (_.formula), fs.succedent map (_.formula))
   def fo2occ(f:HOLFormula) = factory.createFormulaOccurrence(f, Nil)
 
   def apply(proof: LKProof) : LKProof = apply( proof, getCutAncestors( proof ) )
@@ -48,21 +47,17 @@ object LKtoLKskc extends Logger {
   // and the handleEquationalRule method below!
   def rec(proof: LKProof, subst_terms: Map[FormulaOccurrence, Label], cut_occs: Set[FormulaOccurrence]) : (LKProof, Map[FormulaOccurrence,LabelledFormulaOccurrence]) = proof match {
     case LKAxiom(so) => {
-      val ant = so.antecedent
-      val succ = so.succedent
-/*
-      val a = Axiom.createDefault( Sequent( ant.map( fo => fo.formula ), succ.map( fo => fo.formula ) ),
-                     Pair( ant.map( fo => subst_terms.apply( fo ) ), 
-                           succ.map( fo => subst_terms.apply( fo ) ) ) )
-                           */
+      val ant = so.antecedent.map(fo => fo.formula)
+      val succ = so.succedent.map(fo => fo.formula)
+      val labels_ant = so.antecedent.map( fo => subst_terms( fo ) ).toList
+      val labels_succ = so.succedent.map( fo => subst_terms( fo ) ).toList
 
-      val a = Axiom.createDefault( Sequent( ant, succ ),
-                     Pair( ant.map( fo => subst_terms.apply( fo ) ).toList,
-                           succ.map( fo => subst_terms.apply( fo ) ).toList ) )
+      val a = Axiom.createDefault( FSequent( ant, succ ), Pair(labels_ant, labels_succ) )
+      
       //assert( a._1.root.isInstanceOf[LabelledSequent] )
       val map = new HashMap[FormulaOccurrence, LabelledFormulaOccurrence]
-      a._2._1.zip(a._2._1.indices).foreach( p => map.update( ant( p._2 ), p._1 ) )
-      a._2._2.zip(a._2._2.indices).foreach( p => map.update( succ( p._2 ), p._1 ) )
+      a._2._1.zip(a._2._1.indices).foreach( p => map.update( so.antecedent( p._2 ), p._1 ) )
+      a._2._2.zip(a._2._2.indices).foreach( p => map.update( so.succedent( p._2 ), p._1 ) )
       (a._1, map)
     }
     case ForallLeftRule(p, s, a, m, t) => 
@@ -90,7 +85,6 @@ object LKtoLKskc extends Logger {
             info( "Using Skolem function symbol '" + f + "' for formula " + m.formula )
             val s = Function( f, args )
             val subst = Substitution( v, s )
-//            info("Substitution="+subst+" End-sequent:"+this.f(r._1.root))
             val new_parent = applySubstitution( r._1, subst )
             val new_proof = ForallSkRightRule(new_parent._1, new_parent._2(newaux), m.formula, s)
             //assert( new_proof.root.isInstanceOf[LabelledSequent] )

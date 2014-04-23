@@ -15,12 +15,6 @@ import at.logic.calculi.lk.{InitialRuleType, WeakeningLeftRuleType, WeakeningRig
 import scala.collection.mutable.{Map,HashMap}
 import base._
 
-import at.logic.calculi.lk.base._
-import at.logic.calculi.lk.{InitialRuleType, WeakeningLeftRuleType, WeakeningRightRuleType}
-import at.logic.calculi.lk.{Axiom => LKAxiom}
-import at.logic.calculi.occurrences.FormulaOccurrence
-import scala.Some
-
 import TypeSynonyms._
 
 // lksk proofs

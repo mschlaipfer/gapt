@@ -30,6 +30,7 @@ import at.logic.transformations.ceres.projections.Projections
 import at.logic.transformations.ceres.struct.StructCreators
 import at.logic.transformations.herbrandExtraction.extractExpansionTrees
 import at.logic.transformations.skolemization.skolemize
+import at.logic.transformations.skolemization.lksk.LKtoLKskc
 import at.logic.utils.constraint.{Constraint, NoConstraint, ExactBound, UpperBound}
 
 import java.util.zip.GZIPInputStream
@@ -226,7 +227,6 @@ class MiscTest extends SpecificationWithJUnit {
     }
 
     "Extract expansion tree from tape proof" in {
-      skipped("definition elimination is broken")
       val testFilePath = "target" + separator + "test-classes" + separator + "tape3.llk"
       val tokens = HybridLatexParser.parseFile(testFilePath)
       val db = HybridLatexParser.createLKProof(tokens)
@@ -235,6 +235,8 @@ class MiscTest extends SpecificationWithJUnit {
       val (_,p)::_ = proofs
       val elp = AtomicExpansion(DefinitionElimination(db.Definitions,p))
       val reg = regularize(elp)
+      val lksk_proof = LKtoLKskc(reg._1)
+      // TODO
       extractExpansionTrees(reg._1) must throwA[IllegalArgumentException] // currently contains problematic definitions
     }
 

@@ -818,7 +818,7 @@ object rename {
 
 //TODO: find a better name for all this stuff
 object ntape {
-  val p = loadLLK("algorithms/hlk/src/test/resources/tape3.llk");
+  val p = loadLLK("algorithms/llk/src/test/resources/tape3.llk");
   val elp = regularize(eliminateDefinitions(p, "TAPEPROOF"))._1;
   val selp = at.logic.transformations.skolemization.lksk.LKtoLKskc(elp);
 

@@ -16,7 +16,7 @@ import at.logic.gui.prooftool.parser.{ChangeSequentColor, ProofToolPublisher}
 
 class SunburstTreeDialog[T](name: String, proof: TreeProof[T]) extends Dialog {
   title = "Sunburst view of " + name
-  modal = true
+  modal = false
   preferredSize = new Dimension(700,500)
   peer.setDefaultCloseOperation(2) //DISPOSE_ON_CLOSE
 

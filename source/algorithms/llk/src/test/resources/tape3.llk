@@ -159,8 +159,8 @@
 \AX{ \delta = 0}{\delta = 0}
 
 \AX{\delta=\nu+1}{\delta=\nu+1}
-\AX{AX,  (\nu+ \kappa)+1 = 0}{((\nu+ \kappa)+1 = 0)}
-\NEGL{AX,  (\nu+ \kappa)+1 = 0, - ((\nu+ \kappa)+1 = 0)}{}
+\AX{  (\nu+ \kappa)+1 = 0}{((\nu+ \kappa)+1 = 0)}
+\NEGL{  (\nu+ \kappa)+1 = 0, - ((\nu+ \kappa)+1 = 0)}{}
 \INSTAXIOM{A1}{AX,  (\nu+ \kappa)+1 = 0}{}
 \EQAXIOM{A13: \nu+ (\kappa+1)=(\nu+ \kappa)+1}{AX,  \nu+ (\kappa+1) = 0}{}
 \EQAXIOM{A12: 1 + \kappa = \kappa+1}{AX,  \nu+ (1 + \kappa) = 0}{}
@@ -184,8 +184,8 @@
 
 \CONTINUEFROM{\pi_1}{AX,\delta<0+1}{\delta=0}
 
-\AX{AX,\gamma<0}{ \gamma < 0}
-\NEGL{AX,- \gamma < 0, \gamma<0}{}
+\AX{\gamma<0}{ \gamma < 0}
+\NEGL{- \gamma < 0, \gamma<0}{}
 \INSTAXIOM{A7}{AX,\gamma<0}{}
 \EQL{AX,\delta<0+1, \gamma<\delta}{}
 \WEAKL{AX,\gamma<0+1, \delta<0+1, \gamma<\delta}{}
@@ -282,16 +282,16 @@
 
   \CONTINUEFROM{BIF0(n+1<n+1, h'(j_1), \alpha)}{AX}{ - n+1<n+1 -> \ite{ \benc{n+1<n+1} }{h'(j_1)}{\alpha} = \alpha}
 
-  \AX{AX, n+1<n+1}{n+1<n+1}
-  \NEGL{AX, - n+1<n+1, n+1<n+1}{}
-  \NEGR{AX, - n+1<n+1}{- n+1<n+1}
+  \AX{ n+1<n+1}{n+1<n+1}
+  \NEGL{ - n+1<n+1, n+1<n+1}{}
+  \NEGR{ - n+1<n+1}{- n+1<n+1}
 
 
-  \AX{AX, \ite{ \benc{n+1<n+1} }{h'(j_1)}{\alpha} = \alpha}{\ite{ \benc{n+1<n+1} }{h'(j_1)}{\alpha} = \alpha}
-  \IMPL{AX, - n+1<n+1, - n+1<n+1 -> \ite{ \benc{n+1<n+1} }{h'(j_1)}{\alpha} = \alpha}{\ite{ \benc{n+1<n+1} }{h'(j_1)}{\alpha} = \alpha}
-  \CUT{AX, AX,- n+1<n+1}{\ite{ \benc{n+1<n+1} }{h'(j_1)}{\alpha} = \alpha}
-  \INSTAXIOM{A33}{AX,AX}{\ite{ \benc{n+1<n+1} }{h'(j_1)}{\alpha} = \alpha}
-  \CONTRL{AX}{\ite{ \benc{n+1<n+1} }{h'(j_1)}{\alpha} = \alpha}
+  \AX{ \ite{ \benc{n+1<n+1} }{h'(j_1)}{\alpha} = \alpha}{\ite{ \benc{n+1<n+1} }{h'(j_1)}{\alpha} = \alpha}
+  \IMPL{ - n+1<n+1, - n+1<n+1 -> \ite{ \benc{n+1<n+1} }{h'(j_1)}{\alpha} = \alpha}{\ite{ \benc{n+1<n+1} }{h'(j_1)}{\alpha} = \alpha}
+  \CUT{ AX,- n+1<n+1}{\ite{ \benc{n+1<n+1} }{h'(j_1)}{\alpha} = \alpha}
+  \INSTAXIOM{A33}{AX}{\ite{ \benc{n+1<n+1} }{h'(j_1)}{\alpha} = \alpha}
+%  \CONTRL{AX}{\ite{ \benc{n+1<n+1} }{h'(j_1)}{\alpha} = \alpha} %
   \CONTINUEWITH{MONstep_{a6}}
 
 % ===== END OF PROOF ===== %
@@ -497,7 +497,7 @@
 % ===== START OF PROOF ===== %
 
 
-  \AX{AX}{\gamma = \gamma}
+  \AX{}{\gamma = \gamma}
   \EQAXIOM{A31:0+\gamma=\gamma}{AX}{0 + \gamma = \gamma}
   \EQAXIOM{A5: 0*\gamma = 0}{AX}{(0 * \gamma) + \gamma = \gamma}
   \EQAXIOM{A6: (0+1) * \gamma = (0*\gamma) + \gamma}{AX}{(0+1) * \gamma = \gamma}
@@ -513,7 +513,7 @@
 
 % ===== START OF PROOF ===== %
 
-  \AX{AX}{\beta  = \beta}
+  \AX{}{\beta  = \beta}
   \EQAXIOM{A31: 0+\beta=\beta}{AX}{0  +\beta  = \beta}
   \EQAXIOM{A5: 0*\beta = 0}{AX}{(0 * \beta) +\beta  = \beta}
   \EQAXIOM{A6: (0+1)*\beta = (0 * \beta) + \beta}{AX}{(0+1)*\beta  = \beta}
@@ -616,7 +616,7 @@
   \AX{0<0+1}{0<0+1}
   \INSTAXIOM{A19: 0<x+1}{AX}{0<0+1}
 
-  \AX{AX,\alpha < \alpha +1 -> \alpha +1 < (\alpha+1)+1}{\alpha < \alpha +1 -> \alpha +1 < (\alpha+1)+1}
+  \AX{\alpha < \alpha +1 -> \alpha +1 < (\alpha+1)+1}{\alpha < \alpha +1 -> \alpha +1 < (\alpha+1)+1}
   \INSTAXIOM{A32: x<y -> x+1 < y+1}{AX}{\alpha < \alpha +1 -> \alpha +1 < (\alpha+1)+1}
   \ALLR{\alpha}{AX}{( all n (n<n+1 -> n+1 < (n+1)+1))}
   \ANDR{AX}{0<0+1 & (( all n (n<n+1 -> n+1 < (n+1)+1)))}
@@ -631,9 +631,9 @@
 
 % ===== START OF PROOF ===== %
 
-  \AX{AX, 0+1<0}{0+1<0}
-  \NEGL{AX, - 0+1<0, 0+1<0}{}
-  \NEGR{AX, - 0+1<0}{- 0+1<0}
+  \AX{ 0+1<0}{0+1<0}
+  \NEGL{ - 0+1<0, 0+1<0}{}
+  \NEGR{ - 0+1<0}{- 0+1<0}
   \INSTAXIOM{A1: - (x+1 < 0)}{AX}{- 0+1<0 }
 
   \AX{ (n+1)+1 < n +1}{ (n+1)+1 < n+1}
@@ -720,7 +720,7 @@
 
 % ===== START OF PROOF ===== %
 
-  \AX{AX,0<(n_1+1)}{0<(n_1+1)}
+  \AX{0<(n_1+1)}{0<(n_1+1)}
   \INSTAXIOM{A19}{AX}{0<(n_1+1)}
 
   \AX{0+n_0<(n_1+1)+n_0}{0+n_0<(n_1+1)+n_0}
@@ -730,7 +730,7 @@
   \EQAXIOM{A31: 0+n_0=n_0}{AX}{n_0<n_0+(n_1+1)}
   \EQAXIOM{A13: n_0+(n_1+1)=(n_0+n_1)+1}{AX}{n_0<(n_0+n_1)+1}
 
-  \AX{AX,0<n_0+1}{0<n_0+1}
+  \AX{0<n_0+1}{0<n_0+1}
   \INSTAXIOM{A19}{AX}{0<n_0+1}
   \AX{0+n_1<(n_0+1)+n_1}{0+n_1<(n_0+1)+n_1}
 

@@ -89,6 +89,7 @@ import java.io.IOException
 import java.io.{File, FileReader, FileInputStream, InputStreamReader, FileWriter => JFileWriter, BufferedWriter=>JBufferedWriter}
 import java.util.zip.GZIPInputStream
 import scala.collection.mutable.{Map => MMap}
+import at.logic.utils.ds.acyclicGraphs.{LeafAGraph, AGraph}
 
 object printProofStats {
   def apply(p: LKProof) = {
@@ -265,6 +266,18 @@ object loadLLK {
     HybridLatexParser.createLKProof(tokens)
   }
 }
+
+object exportLLK {
+  def apply(lkproof : LKProof, enable_latex : Boolean) = HybridLatexExporter(lkproof,enable_latex)
+  def apply(lkproof : LKProof) = HybridLatexExporter(lkproof,true)
+  def apply(lkproof : LKProof, filename:String) = {
+    val file = new JBufferedWriter(new JFileWriter(filename))
+    file.write(HybridLatexExporter(lkproof, true))
+    file.close
+  }
+}
+
+
 
 object loadProver9Proof {
   def apply(filename: String, escape_underscore: Boolean = true, newimpl: Boolean = true):
@@ -805,7 +818,17 @@ object format {
     cs + vs + fs
   }
 
+  /*
+  def dot[T](p:AGraph[T]) = "digraph resproof {\n graph [rankdir=TB]; node [shape=box];\n" + dot1(p:AGraph,0, Map[AGraph, Int]()) + "\n}"
 
+  def dot1[T](p:AGraph, idx : Int, map : Map[AGraph,Int]) : (String, Int) =
+    if (map contains p) ("", idx) else p match {
+      case LeafAGraph(_) =>
+        ""
+
+    }
+
+    */
 }
 
 object rename {

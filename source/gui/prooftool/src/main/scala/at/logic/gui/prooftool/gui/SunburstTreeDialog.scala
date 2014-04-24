@@ -12,6 +12,12 @@ import at.logic.calculi.proofs.TreeProof
 import scala.swing.event.{Key, KeyPressed, UIElementResized}
 import at.logic.calculi.lk.base.LKProof
 import at.logic.gui.prooftool.parser.{ChangeSequentColor, ProofToolPublisher}
+import at.logic.gui.prooftool.gui.ProofNode
+import scala.swing.event.KeyPressed
+import scala.Some
+import scala.swing.event.UIElementResized
+import at.logic.gui.prooftool.parser.ChangeSequentColor
+import at.logic.gui.prooftool.gui.NodeSelectedEvent
 
 
 class SunburstTreeDialog[T](name: String, proof: TreeProof[T]) extends Dialog {
@@ -19,8 +25,27 @@ class SunburstTreeDialog[T](name: String, proof: TreeProof[T]) extends Dialog {
   modal = false
   preferredSize = new Dimension(700,500)
   peer.setDefaultCloseOperation(2) //DISPOSE_ON_CLOSE
+  menuBar = new MenuBar() {
+    import javax.swing.KeyStroke
+    import java.awt.event.{KeyEvent, ActionEvent => JActionEvent}
 
-  contents = new SplitPane(Orientation.Vertical) {
+    val customBorder = Swing.EmptyBorder(5, 3, 5, 3)
+    contents += new Menu("Export") {
+      mnemonic = Key.E
+      contents += new MenuItem(Action("As PDF") { Main.fExportPdf(main) }) {
+        mnemonic = Key.D
+        this.peer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, JActionEvent.CTRL_MASK))
+        border = customBorder
+      }
+      contents += new MenuItem(Action("As PNG") { Main.fExportPng(main) }) {
+        mnemonic = Key.N
+        this.peer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, JActionEvent.CTRL_MASK))
+        border = customBorder
+      }
+    }
+  }
+
+  val main = new SplitPane(Orientation.Vertical) {
     focusable = true  // required to get events from keyboard
     preferredSize = SunburstTreeDialog.this.preferredSize
     dividerLocation = preferredSize.height
@@ -85,6 +110,8 @@ class SunburstTreeDialog[T](name: String, proof: TreeProof[T]) extends Dialog {
         sunView.repaintView()
     }
   }
+
+  contents = main
 
   override def closeOperation() {
     ProofToolPublisher.publish(ChangeSequentColor(null,null,reset=true))

@@ -155,14 +155,14 @@ object Main extends SimpleSwingApplication {
     case _ =>
   }}
 
-  def fExportPdf() { chooser.showSaveDialog(mBar) match {
+  def fExportPdf(component: Component) { chooser.showSaveDialog(mBar) match {
     case FileChooser.Result.Approve => try {
       body.cursor = new java.awt.Cursor(java.awt.Cursor.WAIT_CURSOR)
       import java.io.FileOutputStream
       import com.itextpdf.text.{Document, Rectangle => PdfRectangle}
       import com.itextpdf.text.pdf.PdfWriter
 
-      val component = body.getContent.contents.head
+      // val component = body.getContent.contents.head
       val width = component.size.width
       val height = component.size.height
       val document = new Document(new PdfRectangle(width, height + 20))
@@ -184,11 +184,11 @@ object Main extends SimpleSwingApplication {
   }}
 
 
-  def fExportPng() { chooser.showSaveDialog(mBar) match {
+  def fExportPng(component: Component) { chooser.showSaveDialog(mBar) match {
     case FileChooser.Result.Approve => try {
       body.cursor = new java.awt.Cursor(java.awt.Cursor.WAIT_CURSOR)
 
-      val component = body.getContent.contents.head
+      // val component = body.getContent.contents.head
       val width = component.size.width
       val height = component.size.height
       val img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
@@ -455,7 +455,7 @@ object Main extends SimpleSwingApplication {
         }
       }
       contents += new Separator
-      contents += new MenuItem(Action("Export as PDF") { fExportPdf() }) {
+      contents += new MenuItem(Action("Export as PDF") { fExportPdf(body.getContent.contents.head) }) {
         mnemonic = Key.D
         this.peer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, JActionEvent.CTRL_MASK))
         border = customBorder
@@ -465,9 +465,9 @@ object Main extends SimpleSwingApplication {
           case EnableMenus => enabled = true
         }
       }
-      contents += new MenuItem(Action("Export as PNG") { fExportPng() }) {
+      contents += new MenuItem(Action("Export as PNG") { fExportPng(body.getContent.contents.head) }) {
         mnemonic = Key.N
-        //this.peer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, JActionEvent.CTRL_MASK))
+        this.peer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, JActionEvent.CTRL_MASK))
         border = customBorder
         listenTo(ProofToolPublisher)
         reactions += {

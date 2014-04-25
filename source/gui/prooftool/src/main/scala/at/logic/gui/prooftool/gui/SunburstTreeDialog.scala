@@ -9,15 +9,11 @@ package at.logic.gui.prooftool.gui
 
 import scala.swing._
 import at.logic.calculi.proofs.TreeProof
-import scala.swing.event.{Key, KeyPressed, UIElementResized}
+import scala.swing.event._
 import at.logic.calculi.lk.base.LKProof
-import at.logic.gui.prooftool.parser.{ChangeSequentColor, ProofToolPublisher}
-import at.logic.gui.prooftool.gui.ProofNode
-import scala.swing.event.KeyPressed
-import scala.Some
-import scala.swing.event.UIElementResized
+import at.logic.gui.prooftool.parser._
+import java.awt.Color
 import at.logic.gui.prooftool.parser.ChangeSequentColor
-import at.logic.gui.prooftool.gui.NodeSelectedEvent
 
 
 class SunburstTreeDialog[T](name: String, proof: TreeProof[T]) extends Dialog {
@@ -29,20 +25,25 @@ class SunburstTreeDialog[T](name: String, proof: TreeProof[T]) extends Dialog {
     import javax.swing.KeyStroke
     import java.awt.event.{KeyEvent, ActionEvent => JActionEvent}
 
-    val customBorder = Swing.EmptyBorder(5, 3, 5, 3)
-    contents += new Menu("Export") {
-      mnemonic = Key.E
-      contents += new MenuItem(Action("As PDF") { Main.fExportPdf(main) }) {
+    val customBorder = Swing.LineBorder(Color.lightGray, 2) // .EmptyBorder(5, 3, 5, 3)
+    contents += new Label("Export as:") { border = Swing.EmptyBorder(5)}
+   // contents += new Menu("Export") {
+   //   mnemonic = Key.E
+      contents += new MenuItem(Action("PDF") { Main.fExportPdf(Some(main)) }) {
         mnemonic = Key.D
         this.peer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, JActionEvent.CTRL_MASK))
         border = customBorder
+        preferredSize = new Dimension(50,20)
       }
-      contents += new MenuItem(Action("As PNG") { Main.fExportPng(main) }) {
+    contents += new Separator
+      contents += new MenuItem(Action("PNG") { Main.fExportPng(Some(main)) }) {
         mnemonic = Key.N
         this.peer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, JActionEvent.CTRL_MASK))
         border = customBorder
+        preferredSize = new Dimension(50,20)
       }
-    }
+    contents += Swing.HGlue
+   // }
   }
 
   val main = new SplitPane(Orientation.Vertical) {
@@ -68,8 +69,9 @@ class SunburstTreeDialog[T](name: String, proof: TreeProof[T]) extends Dialog {
     leftComponent = Component.wrap(sunView)
     rightComponent = info
 
-    listenTo(keys,SunburstTreeDialog.this)
+    listenTo(keys,SunburstTreeDialog.this, Main.top, ProofToolPublisher)
     reactions += {
+      case WindowClosing(Main.top) => dispose()
       case UIElementResized(source) =>
         preferredSize = SunburstTreeDialog.this.size
         if (preferredSize.width > preferredSize.height) {
@@ -108,6 +110,7 @@ class SunburstTreeDialog[T](name: String, proof: TreeProof[T]) extends Dialog {
         }
         if (node.children().size() == 2) sunView.setSelectedNode(node.children().get(1))
         sunView.repaintView()
+      case Loaded | UnLoaded => dispose()
     }
   }
 

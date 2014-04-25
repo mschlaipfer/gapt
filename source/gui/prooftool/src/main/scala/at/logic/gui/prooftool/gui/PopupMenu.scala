@@ -31,8 +31,8 @@ object PopupMenu {
     //  contents += new MenuItem(Action("Scroll to this sequent") { Main.scrollToProof(proof) })
       contents += new MenuItem(Action("Apply Gentzen's Method (new)") { Main.newgentzen(proof) })
       contents += new MenuItem(Action("Apply Gentzen's Method") { Main.gentzen(proof) })
-      contents += new MenuItem(Action("Export Subproof in XML") { Main.fSaveProof(proof) })
-      contents += new MenuItem(Action("Export Subproof in TeX") { Main.fExportProofToTex(proof, ask = false) })
+      contents += new MenuItem(Action("Save Subproof as...") { Main.fSave((proof.name,proof)) })
+    //  contents += new MenuItem(Action("Export Subproof in TeX") { Main.fExportProofToTex(proof, ask = false) })
     //  contents += new MenuItem(Action("Compute Clause Set") {} )
     //  contents += new MenuItem(Action("Compute Clause Term") {} )
       contents += new Separator

@@ -49,6 +49,8 @@ import scala.Some
 import at.logic.gui.prooftool.parser.ShowAllRules
 import at.logic.gui.prooftool.parser.ChangeFormulaColor
 import at.logic.algorithms.rewriting.DefinitionElimination
+import at.logic.algorithms.llk.HybridLatexExporter
+import at.logic.parsing.language.tptp.TPTPFOLExporter
 
 
 object Main extends SimpleSwingApplication {
@@ -93,7 +95,6 @@ object Main extends SimpleSwingApplication {
       case _ =>
         body.contents = new Launcher(Some(name, obj), defaultFontSize)
     }
-
     body.cursor = java.awt.Cursor.getDefaultCursor
   }
 
@@ -121,159 +122,147 @@ object Main extends SimpleSwingApplication {
     body.cursor = java.awt.Cursor.getDefaultCursor
   }
 
-  def fOpen() { chooser.showOpenDialog(mBar) match {
-    case FileChooser.Result.Approve => loadProof(chooser.selectedFile.getPath,defaultFontSize)
-    case _ =>
-  }}
+  def fOpen() {
+    chooser.fileFilter = chooser.acceptAllFileFilter
+    chooser.showOpenDialog(mBar) match {
+      case FileChooser.Result.Approve => loadProof(chooser.selectedFile.getPath,defaultFontSize)
+      case _ =>
+    }
+  }
 
-  def fSaveProof(tp: AnyRef) { chooser.showSaveDialog(mBar) match {
-    case FileChooser.Result.Approve =>
-      body.cursor = new java.awt.Cursor(java.awt.Cursor.WAIT_CURSOR)
-      tp match {
-        case proof: LKProof => try {
-          val result = chooser.selectedFile.getPath
-          val path = if (result.endsWith(".xml")) result else result + ".xml"
-          XMLExporter(path, "the-proof", proof)
-        } catch {
-          case e: Throwable => errorMessage("Can't save the proof! \n\n" + getExceptionString(e))
+  def fSave(pair: (String, AnyRef)) {
+    chooser.fileFilter = chooser.acceptAllFileFilter
+    chooser.showSaveDialog(mBar) match {
+      case FileChooser.Result.Approve =>
+        body.cursor = new java.awt.Cursor(java.awt.Cursor.WAIT_CURSOR)
+        val result = chooser.selectedFile.getPath
+        // val pair = body.getContent.getData.get
+        pair._2 match {
+          case proof: LKProof =>
+            try {
+              if (result.endsWith(".xml") || chooser.fileFilter.getDescription == ".xml") {
+                XMLExporter(result, pair._1, proof)
+              } else if (result.endsWith(".llk") || chooser.fileFilter.getDescription == ".llk") {
+                val filename = if (result.endsWith(".llk")) result else result + ".llk"
+                val file = new JBufferedWriter(new JFileWriter(filename))
+                file.write(HybridLatexExporter(proof, escape_latex = true))
+                file.close()
+              } else if (result.endsWith(".tex") || chooser.fileFilter.getDescription == ".tex") {
+                val filename = if (result.endsWith(".tex")) result else result + ".tex"
+                val file = new JBufferedWriter(new JFileWriter(filename))
+                file.write(ProofToLatexExporter(proof))
+                file.close()
+              } else infoMessage("Proofs cannot be saved in this format.")
+            }
+            catch { case e: Throwable => errorMessage("Cannot save the proof! \n\n" + getExceptionString(e)) }
+            finally { body.cursor = java.awt.Cursor.getDefaultCursor }
+          case list: List[_] =>
+            try {
+              val ls = list.map(x => x match {
+                case s: Sequent => s.toFSequent()
+                case fs: FSequent => fs
+                case _ => throw new Exception("Cannot save this kind of lists.")
+              })
+              if (result.endsWith(".xml") || chooser.fileFilter.getDescription == ".xml") {
+                XMLExporter(result, new ProofDatabase(Map(), Nil, Nil, List((pair._1, ls))))
+              } else if (result.endsWith(".tex") || chooser.fileFilter.getDescription == ".tex") {
+                val filename = if (result.endsWith(".tex")) result else result + ".tex"
+                (new FileWriter(filename) with SequentsListLatexExporter with HOLTermArithmeticalExporter)
+                  .exportSequentList(ls, Nil).close
+              } else if (result.endsWith(".tptp") || chooser.fileFilter.getDescription == ".tptp") {
+                val filename = if (result.endsWith(".tptp")) result else result + ".tptp"
+                val file = new JBufferedWriter(new JFileWriter( filename ))
+                file.write(TPTPFOLExporter.tptp_problem( ls ))
+                file.close()
+              } else infoMessage("Lists cannot be saved in this format.")
+            }
+            catch { case e: Throwable => errorMessage("Cannot save the list! \n\n" + getExceptionString(e)) }
+            finally { body.cursor = java.awt.Cursor.getDefaultCursor }
+          case _ => infoMessage("Cannot save this kind of objects.")
         }
-        case _ => infoMessage("This is not a proof, can't save it!")
-      }
-      body.cursor = java.awt.Cursor.getDefaultCursor
-    case _ =>
-  }}
+      case _ =>
+    }
+  }
 
-  def fSaveAll() { chooser.showSaveDialog(mBar) match {
-    case FileChooser.Result.Approve => try {
-      body.cursor = new java.awt.Cursor(java.awt.Cursor.WAIT_CURSOR)
-      val result = chooser.selectedFile.getPath
-      val path = if (result.endsWith(".xml")) result else result + ".xml"
-      XMLExporter(path, db.getProofDB)
-    } catch {
-      case e: Throwable => errorMessage("Can't save the database! \n\n" + getExceptionString(e))
-    } finally { body.cursor = java.awt.Cursor.getDefaultCursor }
-    case _ =>
-  }}
+  def fSaveAll() {
+    chooser.fileFilter = chooser.acceptAllFileFilter
+    chooser.showSaveDialog(mBar) match {
+      case FileChooser.Result.Approve =>
+        body.cursor = new java.awt.Cursor(java.awt.Cursor.WAIT_CURSOR)
+        val result = chooser.selectedFile.getPath
+        try {
+          if (result.endsWith(".xml") || chooser.fileFilter.getDescription == ".xml") {
+            XMLExporter(result, db.getProofDB)
+          } else if (result.endsWith(".tex") || chooser.fileFilter.getDescription == ".tex") {
+            val filename = if (result.endsWith(".tex")) result else result + ".tex"
+            val file = new JBufferedWriter(new JFileWriter(filename))
+            file.write(ProofToLatexExporter(db.getProofs.map(pair => (pair._1, pair._2.asInstanceOf[LKProof]))))
+            file.close()
+          } else infoMessage("Proofs cannot be saved in this format.")
+        } catch { case e: Throwable => errorMessage("Cannot save the file! \n\n" + getExceptionString(e))
+        } finally { body.cursor = java.awt.Cursor.getDefaultCursor }
+      case _ =>
+    }
+  }
 
-  def fExportPdf(component: Component) { chooser.showSaveDialog(mBar) match {
-    case FileChooser.Result.Approve => try {
-      body.cursor = new java.awt.Cursor(java.awt.Cursor.WAIT_CURSOR)
-      import java.io.FileOutputStream
-      import com.itextpdf.text.{Document, Rectangle => PdfRectangle}
-      import com.itextpdf.text.pdf.PdfWriter
+  def fExportPdf(componentOption: Option[Component]) {
+    if (componentOption != None) {
+      chooser.fileFilter = chooser.peer.getChoosableFileFilters.find(f => f.getDescription == ".pdf").get
+      chooser.showSaveDialog(mBar) match {
+        case FileChooser.Result.Approve => try {
+          body.cursor = new java.awt.Cursor(java.awt.Cursor.WAIT_CURSOR)
+          import java.io.FileOutputStream
+          import com.itextpdf.text.{Document, Rectangle => PdfRectangle}
+          import com.itextpdf.text.pdf.PdfWriter
 
-      // val component = body.getContent.contents.head
-      val width = component.size.width
-      val height = component.size.height
-      val document = new Document(new PdfRectangle(width, height + 20))
-      val result = chooser.selectedFile.getPath
-      val path = if (result.endsWith(".pdf")) result else result + ".pdf"
-      val writer = PdfWriter.getInstance(document, new FileOutputStream(path))
-      document.open()
-      val content = writer.getDirectContent
-      val template = content.createTemplate(width, height)
-      val g2 = template.createGraphicsShapes(width, height)
-      component.paint(g2)
-      g2.dispose()
-      content.addTemplate(template, 0, 10)
-      document.close()
-    } catch {
-      case e: Throwable => errorMessage("Can't export to pdf! \n\n" + getExceptionString(e))
-    } finally { body.cursor = java.awt.Cursor.getDefaultCursor }
-    case _ =>
-  }}
-
-
-  def fExportPng(component: Component) { chooser.showSaveDialog(mBar) match {
-    case FileChooser.Result.Approve => try {
-      body.cursor = new java.awt.Cursor(java.awt.Cursor.WAIT_CURSOR)
-
-      // val component = body.getContent.contents.head
-      val width = component.size.width
-      val height = component.size.height
-      val img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
-      val g = img.createGraphics()
-      g.setBackground(new Color(255,255,255))
-      g.fillRect(0,0,width,height)
-      component.paint(g)
-      val result = chooser.selectedFile.getPath
-      val path = if (result.endsWith(".png")) result else result + ".png"
-      ImageIO.write(img, "png", new File(path))
-    } catch {
-      case e: Throwable => errorMessage("Can't export to png! \n\n" + getExceptionString(e))
-    } finally { body.cursor = java.awt.Cursor.getDefaultCursor }
-    case _ =>
-  }}
-
-  def fExportClauseSetToTPTP() { chooser.showSaveDialog(mBar) match {
-    case FileChooser.Result.Approve =>
-      body.cursor = new java.awt.Cursor(java.awt.Cursor.WAIT_CURSOR)
-      body.getContent.getData.get._2  match {
-        case l : List[_] => try {
-          val list = l.map( x => x match {
-            case s: Sequent => s.toFSequent()
-            case fs: FSequent => fs
-            case _ => throw new Exception("This is not a clause set.")
-          })
+          val component = componentOption.get
+          val width = component.size.width
+          val height = component.size.height
+          val document = new Document(new PdfRectangle(width, height + 20))
           val result = chooser.selectedFile.getPath
-          val path = if (result.endsWith(".tptp")) result else result + ".tptp"
-          val file = new JBufferedWriter(new JFileWriter( path ))
-          file.write(at.logic.parsing.language.tptp.TPTPFOLExporter.tptp_problem( list ))
-          file.close()
+          val path = if (result.endsWith(".pdf")) result else result + ".pdf"
+          val writer = PdfWriter.getInstance(document, new FileOutputStream(path))
+          document.open()
+          val content = writer.getDirectContent
+          val template = content.createTemplate(width, height)
+          val g2 = template.createGraphicsShapes(width, height)
+          component.paint(g2)
+          g2.dispose()
+          content.addTemplate(template, 0, 10)
+          document.close()
         } catch {
-          case e: Throwable => errorMessage("Can't export the clause set! \n\n" + getExceptionString(e))
-        }
-        case _ => infoMessage("This is not a clause set, can't export it!")
+          case e: Throwable => errorMessage("Can't export to pdf! \n\n" + getExceptionString(e))
+        } finally { body.cursor = java.awt.Cursor.getDefaultCursor }
+        case _ =>
       }
-      body.cursor = java.awt.Cursor.getDefaultCursor
-    case _ =>
-  }}
+    } else infoMessage("There is nothing to export!")
+  }
 
-  def fExportClauseSetToTeX() { chooser.showSaveDialog(mBar) match {
-    case FileChooser.Result.Approve =>
-      body.cursor = new java.awt.Cursor(java.awt.Cursor.WAIT_CURSOR)
-      body.getContent.getData.get._2  match {
-        case l : List[_] => try {
-          val list = l.map( x => x match {
-            case s: Sequent => s.toFSequent()
-            case fs: FSequent => fs
-            case _ => throw new Exception("This is not a clause set.")
-          })
-          val result = chooser.selectedFile.getPath
-          val path = if (result.endsWith(".tex")) result else result + ".tex"
-          (new FileWriter( path ) with SequentsListLatexExporter with HOLTermArithmeticalExporter)
-            .exportSequentList( list , Nil).close
-        } catch {
-          case e: Throwable => errorMessage("Can't export the clause set! \n\n" + getExceptionString(e))
-        }
-        case _ => infoMessage("This is not a clause set, can't export it!")
-      }
-      body.cursor = java.awt.Cursor.getDefaultCursor
-    case _ =>
-  }}
+  def fExportPng(componentOption: Option[Component]) {
+    if (componentOption != None) {
+      chooser.fileFilter = chooser.peer.getChoosableFileFilters.find(f => f.getDescription == ".png").get
+      chooser.showSaveDialog(mBar) match {
+        case FileChooser.Result.Approve => try {
+          body.cursor = new java.awt.Cursor(java.awt.Cursor.WAIT_CURSOR)
 
-  def fExportProofToTex(tp: AnyRef, ask: Boolean) { chooser.showSaveDialog(mBar) match {
-    case FileChooser.Result.Approve =>
-      body.cursor = new java.awt.Cursor(java.awt.Cursor.WAIT_CURSOR)
-      tp match {
-        case proof: LKProof => try {
+          val component = componentOption.get
+          val width = component.size.width
+          val height = component.size.height
+          val img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
+          val g = img.createGraphics()
+          g.setBackground(new Color(255,255,255))
+          g.fillRect(0,0,width,height)
+          component.paint(g)
           val result = chooser.selectedFile.getPath
-          val path = if (result.endsWith(".tex")) result else result + ".tex"
-          val fileContent = if (ask) questionMessage("Would you like to export all proofs?") match {
-            case Dialog.Result.Yes => ProofToLatexExporter(db.getProofs.map(pair => (pair._1, pair._2.asInstanceOf[LKProof])))
-            case _ => ProofToLatexExporter(proof)
-          } else ProofToLatexExporter(proof)
-          val file = new JBufferedWriter(new JFileWriter( path ))
-          file.write(fileContent)
-          file.close()
+          val path = if (result.endsWith(".png")) result else result + ".png"
+          ImageIO.write(img, "png", new File(path))
         } catch {
-          case e: Throwable => errorMessage("Can't save the proof! \n\n" + getExceptionString(e))
-        }
-        case _ => infoMessage("This is not a proof, can't save it!")
+          case e: Throwable => errorMessage("Can't export to png! \n\n" + getExceptionString(e))
+        } finally { body.cursor = java.awt.Cursor.getDefaultCursor }
+        case _ =>
       }
-      body.cursor = java.awt.Cursor.getDefaultCursor
-    case _ =>
-  }}
+    } else infoMessage("There is nothing to export!")
+  }
 
   // This function is changed to dispose for cli.
   // When called from cli, sys.exit forces also cli to exit.
@@ -433,9 +422,9 @@ object Main extends SimpleSwingApplication {
         this.peer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, JActionEvent.CTRL_MASK))
         border = customBorder
       }
-      contents += new MenuItem(Action("Save Proof as XML") { fSaveProof(body.getContent.getData.get._2) }) {
-        mnemonic = Key.P
-        this.peer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, JActionEvent.CTRL_MASK))
+      contents += new MenuItem(Action("Save as...") { fSave(body.getContent.getData.get) }) {
+        mnemonic = Key.S
+        this.peer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, JActionEvent.CTRL_MASK))
         border = customBorder
         enabled = false
         listenTo(ProofToolPublisher)
@@ -444,9 +433,9 @@ object Main extends SimpleSwingApplication {
           case UnLoaded => enabled = false
         }
       }
-      contents += new MenuItem(Action("Save All as XML") { fSaveAll() }) {
-        mnemonic = Key.S
-        this.peer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, JActionEvent.CTRL_MASK))
+      contents += new MenuItem(Action("Save all as...") { fSaveAll() }) {
+        mnemonic = Key.A
+        this.peer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, JActionEvent.CTRL_MASK))
         border = customBorder
         listenTo(ProofToolPublisher)
         reactions += {
@@ -455,7 +444,7 @@ object Main extends SimpleSwingApplication {
         }
       }
       contents += new Separator
-      contents += new MenuItem(Action("Export as PDF") { fExportPdf(body.getContent.contents.head) }) {
+      contents += new MenuItem(Action("Export to PDF") { fExportPdf(body.getContent.contents.headOption) }) {
         mnemonic = Key.D
         this.peer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, JActionEvent.CTRL_MASK))
         border = customBorder
@@ -465,7 +454,7 @@ object Main extends SimpleSwingApplication {
           case EnableMenus => enabled = true
         }
       }
-      contents += new MenuItem(Action("Export as PNG") { fExportPng(body.getContent.contents.head) }) {
+      contents += new MenuItem(Action("Export to PNG") { fExportPng(body.getContent.contents.headOption) }) {
         mnemonic = Key.N
         this.peer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, JActionEvent.CTRL_MASK))
         border = customBorder
@@ -475,7 +464,7 @@ object Main extends SimpleSwingApplication {
           case EnableMenus => enabled = true
         }
       }
-      contents += new Separator
+/*      contents += new Separator
       contents += new MenuItem(Action("Export Clause Set as TPTP") { fExportClauseSetToTPTP() }) {
         mnemonic = Key.T
         this.peer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, JActionEvent.CTRL_MASK))
@@ -506,7 +495,7 @@ object Main extends SimpleSwingApplication {
           case Loaded => enabled = true
           case UnLoaded => enabled = false
         }
-      }
+      } */
       contents += new Separator
       contents += new MenuItem(Action("Exit") { fExit() }) {
         mnemonic = Key.X
@@ -1305,95 +1294,16 @@ object Main extends SimpleSwingApplication {
   }
 
   private val chooser = new FileChooser {
-    fileFilter = new FileFilter {
-      def accept(f: File): Boolean = {
-        if (f.getName.endsWith(".gz") || f.isDirectory) true
-        else false
+    val extensions = List(".gz",".ivy",".lks",".lksc",".llk",".pdf",".png",".rs",".tex",".tptp",".xml")
+    extensions.foreach( fe => peer.addChoosableFileFilter(
+      new FileFilter {
+        def accept(f: File): Boolean = {
+          if (f.getName.endsWith(fe) || f.isDirectory) true
+          else false
+        }
+        def getDescription = fe
       }
-
-      def getDescription: String = ".gz"
-    }
-
-    fileFilter = new FileFilter {
-      def accept(f: File): Boolean = {
-        if (f.getName.endsWith(".ivy") || f.isDirectory) true
-        else false
-      }
-
-      def getDescription: String = ".ivy"
-    }
-
-    fileFilter = new FileFilter {
-      def accept(f: File): Boolean = {
-        if (f.getName.endsWith(".lks") || f.isDirectory) true
-        else false
-      }
-
-      def getDescription: String = ".lks"
-    }
-
-    fileFilter = new FileFilter {
-      def accept(f: File): Boolean = {
-        if (f.getName.endsWith(".lksc") || f.isDirectory) true
-        else false
-      }
-
-      def getDescription: String = ".lksc"
-    }
-
-    fileFilter = new FileFilter {
-      def accept(f: File): Boolean = {
-        if (f.getName.endsWith(".llk") || f.isDirectory) true
-        else false
-      }
-
-      def getDescription: String = ".llk"
-    }
-
-    fileFilter = new FileFilter {
-      def accept(f: File): Boolean = {
-        if (f.getName.endsWith(".pdf") || f.isDirectory) true
-        else false
-      }
-
-      def getDescription: String = ".pdf"
-    }
-
-    fileFilter = new FileFilter {
-      def accept(f: File): Boolean = {
-        if (f.getName.endsWith(".rs") || f.isDirectory) true
-        else false
-      }
-
-      def getDescription: String = ".rs"
-    }
-
-    fileFilter = new FileFilter {
-      def accept(f: File): Boolean = {
-        if (f.getName.endsWith(".tex") || f.isDirectory) true
-        else false
-      }
-
-      def getDescription: String = ".tex"
-    }
-
-    fileFilter = new FileFilter {
-      def accept(f: File): Boolean = {
-        if (f.getName.endsWith(".tptp") || f.isDirectory) true
-        else false
-      }
-
-      def getDescription: String = ".tptp"
-    }
-
-    fileFilter = new FileFilter {
-      def accept(f: File): Boolean = {
-        if (f.getName.endsWith(".xml") || f.isDirectory) true
-        else false
-      }
-
-      def getDescription: String = ".xml"
-    }
+    ))
 
     fileFilter = acceptAllFileFilter
   }

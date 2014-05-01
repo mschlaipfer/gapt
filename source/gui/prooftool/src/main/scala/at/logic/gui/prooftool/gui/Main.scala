@@ -464,38 +464,6 @@ object Main extends SimpleSwingApplication {
           case EnableMenus => enabled = true
         }
       }
-/*      contents += new Separator
-      contents += new MenuItem(Action("Export Clause Set as TPTP") { fExportClauseSetToTPTP() }) {
-        mnemonic = Key.T
-        this.peer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, JActionEvent.CTRL_MASK))
-        border = customBorder
-        listenTo(ProofToolPublisher)
-        reactions += {
-          case DisableMenus => enabled = false
-          case EnableMenus => enabled = true
-        }
-      }
-      contents += new MenuItem(Action("Export Clause Set as TeX") { fExportClauseSetToTeX() }) {
-        mnemonic = Key.E
-        this.peer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, JActionEvent.CTRL_MASK))
-        border = customBorder
-        listenTo(ProofToolPublisher)
-        reactions += {
-          case DisableMenus => enabled = false
-          case EnableMenus => enabled = true
-        }
-      }
-      contents += new MenuItem(Action("Export Proof as TeX") { fExportProofToTex(body.getContent.getData.get._2, ask = true) }) {
-        mnemonic = Key.A
-        this.peer.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, JActionEvent.CTRL_MASK))
-        border = customBorder
-        enabled = false
-        listenTo(ProofToolPublisher)
-        reactions += {
-          case Loaded => enabled = true
-          case UnLoaded => enabled = false
-        }
-      } */
       contents += new Separator
       contents += new MenuItem(Action("Exit") { fExit() }) {
         mnemonic = Key.X

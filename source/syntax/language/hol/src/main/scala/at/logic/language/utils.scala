@@ -7,10 +7,21 @@ package at.logic.language.hol
 
 import at.logic.language.lambda.{freeVariables => freeVariablesLambda, rename => renameLambda}
 import at.logic.language.hol.logicSymbols.LogicalSymbolA
+import at.logic.language.lambda.types.TA
 
 object freeVariables {
   def apply(e: HOLExpression) : List[HOLVar] = freeVariablesLambda(e).asInstanceOf[List[HOLVar]]
 }
+
+// matches for consts and vars, but nothing else
+object VarOrConst {
+  def unapply(e:HOLExpression) : Option[(String, TA)]= e match {
+    case HOLVar(name, et) => Some((name,et))
+    case HOLConst(name, et) => Some((name,et))
+    case _ => None
+  }
+}
+
 
 // get a new variable/constant (similar to the current and) different from all 
 // variables/constants in the blackList, returns this variable if this variable 

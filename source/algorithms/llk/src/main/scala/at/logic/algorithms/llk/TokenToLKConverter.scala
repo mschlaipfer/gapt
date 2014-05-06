@@ -506,7 +506,7 @@ trait TokenToLKConverter {
             }
 
             val worked = List(inf1,inf2,inf3).filter( _.isDefined )
-            require(worked.nonEmpty, "Could not infer or right rule "+fs+" from "+top.root)
+            require(worked.nonEmpty, "Could not infer and left rule "+fs+" from "+top.root)
 
             worked(0).get :: stack
           case _ => throw new HybridLatexParserException("Main formula of a conjunction left rule must have disjunction as outermost operator!")

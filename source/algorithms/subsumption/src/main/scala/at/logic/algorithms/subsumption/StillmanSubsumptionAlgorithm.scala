@@ -24,8 +24,9 @@ object StillmanSubsumptionAlgorithmHOL extends SubsumptionAlgorithm {
     val lv = remove_doubles(left.foldLeft(List[HOLVar]())((l,f) => freeVariablesHOL(f) ++ l))
     val rv = remove_doubles(right.foldLeft(List[HOLVar]())((l,f) => freeVariablesHOL(f) ++ l))
     val renames = rv.filter(x=> lv.contains(x))
-    val (newnames, _) = renames.foldLeft((List[HOLVar](), lv++rv))((pair,x) => {
+    val (newnames, _) = renames.reverse.foldLeft((List[HOLVar](), lv++rv))((pair,x) => {
       val v = renameHOL(x, pair._2)
+      require(v.exptype == x.exptype, "Error renaming variable! Old type "+x.exptype+" != new type "+v.exptype)
       (v::pair._1, v::pair._2)
     }  )
 

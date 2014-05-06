@@ -41,8 +41,6 @@ trait HOLTermArithmeticalExporter extends OutputExporter with HOLTermExporter {
       getOutput.write("}")
       exportTerm(f)
       getOutput.write(")")
-    // FIXME: SCALA BUG!
-    case _ => t match {
 
     case BigOr(v, f, s, e) =>
       getOutput.write("(")
@@ -56,14 +54,19 @@ trait HOLTermArithmeticalExporter extends OutputExporter with HOLTermExporter {
       exportTerm(f)
       getOutput.write(")")
 
-    case Function(name, args, _) => {
-      getOutput.write(name.toString)
+    case Function(VarOrConst(name,_), args, _) => {
+      getOutput.write(name)
       getOutput.write("(")
       if (args.size > 0) exportTerm(args.head)
       if (args.size > 1) args.tail.foreach(x => {getOutput.write(","); exportTerm(x)})
       getOutput.write(")")
   }
-    case Atom(sym, args) => {
+    case Atom(c, args) => {
+      val sym = c match {
+        case h@HOLConst(_,_) => h.asInstanceOf[HOLConst].sym
+        case h@HOLConst(_,_) => h.asInstanceOf[HOLVar].sym
+      }
+
       var nonschematic = sym match {
         case cs : ClauseSetSymbol => {
           getOutput.write("CL^{(");
@@ -93,7 +96,7 @@ trait HOLTermArithmeticalExporter extends OutputExporter with HOLTermExporter {
       else
         getOutput.write("}}")
     }
-  }}
+  }
 
   def exportSymbol(sym: SymbolA): Unit = sym match {
     case cs : ClauseSetSymbol =>

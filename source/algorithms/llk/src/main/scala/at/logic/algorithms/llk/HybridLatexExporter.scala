@@ -174,7 +174,11 @@ class HybridLatexExporter(val expandTex : Boolean) {
       val str = getFormulaString(t1,false,escape_latex) +  " " +op+ " " + getFormulaString(t2,false,escape_latex)
       if (outermost) str else "(" + str + ")"
 
-    case Atom(sym, args) =>
+    case Atom(f, args) =>
+      val sym = f match {
+        case HOLConst(x,_) => x
+        case HOLVar(x,_) => x
+      }
       val str : String =
         if (args.length == 2 && sym.toString.matches("""(<|>|\\leq|\\geq|=|>=|<=)"""))
           "(" + getFormulaString(args(0), false, escape_latex) +" "+nameToLatexString(sym.toString)+" "+
@@ -183,7 +187,11 @@ class HybridLatexExporter(val expandTex : Boolean) {
           nameToLatexString(sym.toString) + (if (args.isEmpty) " " else args.map(getFormulaString(_, false,escape_latex)).mkString("(",", ",")"))
       //if (outermost) str else "(" + str + ")"
       str
-    case Function(sym, args, _) =>
+    case Function(f, args, _) =>
+      val sym = f match {
+        case HOLConst(x,_) => x
+        case HOLVar(x,_) => x
+      }
       if (args.length == 2 && sym.toString.matches("""[+\-*/]"""))
         "("+getFormulaString(args(0), false,escape_latex) +" "+sym.toString+" "+getFormulaString(args(1),false,escape_latex)+")"
       else {

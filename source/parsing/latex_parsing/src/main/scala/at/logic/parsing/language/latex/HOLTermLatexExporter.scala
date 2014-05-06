@@ -10,7 +10,6 @@ import at.logic.parsing.OutputExporter
 import at.logic.language.lambda.types._
 import at.logic.language.schema.indexedOmegaVar
 import at.logic.parsing.language.HOLTermExporter
-import at.logic.language.lambda.{Var, LambdaExpression}
 
 trait HOLTermLatexExporter extends OutputExporter with at.logic.parsing.language.HOLTermExporter {
   // it is LambdaExpression and require because of the stupid design chose not to have a common element for HOL
@@ -18,6 +17,7 @@ trait HOLTermLatexExporter extends OutputExporter with at.logic.parsing.language
     t match {
       case indv: indexedOmegaVar => getOutput.write(indv.name.toString + """_{""" + indv.index+"""}""")
       case HOLVar(name, _) => getOutput.write(name.toString)
+      case HOLConst(name, _) => getOutput.write(name.toString)
       case Neg(f) => { getOutput.write("""\neg """); exportTerm_(f); }
       case And(f1,f2) => { exportTerm_(f1); getOutput.write(""" \wedge """); exportTerm_(f2); }
       case Or(f1,f2) => { exportTerm_(f1); getOutput.write(""" \vee """); exportTerm_(f2); }
@@ -33,6 +33,7 @@ trait HOLTermLatexExporter extends OutputExporter with at.logic.parsing.language
   private def exportTerm_(t: HOLExpression): Unit = {require(t.isInstanceOf[HOLExpression]); t match {
     case indv: indexedOmegaVar => getOutput.write(indv.name.toString + """_{""" + indv.index+"""}""")
     case HOLVar(name, _) => getOutput.write(name.toString)
+    case HOLConst(name, _) => getOutput.write(name.toString)
     case Neg(f) => {getOutput.write("("); getOutput.write("""\neg """); exportTerm_(f); getOutput.write(")")}
     case And(f1,f2) => {getOutput.write("("); exportTerm_(f1); getOutput.write(""" \wedge """); exportTerm_(f2); getOutput.write(")")}
     case Or(f1,f2) => {getOutput.write("("); exportTerm_(f1); getOutput.write(""" \vee """); exportTerm_(f2); getOutput.write(")")}

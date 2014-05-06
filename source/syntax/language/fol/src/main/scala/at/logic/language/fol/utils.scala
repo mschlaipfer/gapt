@@ -15,6 +15,15 @@ object freeVariables {
   def apply(e: FOLExpression) : List[FOLVar] = freeVariablesLambda(e).asInstanceOf[List[FOLVar]]
 }
 
+// matches for consts and vars, but nothing else
+object VarOrConst {
+  def unapply(e:FOLExpression) = e match {
+    case FOLVar(name) => Some(name)
+    case FOLConst(name) => Some(name)
+    case _ => None
+  }
+}
+
 object isPrenex {
   def apply(e: FOLExpression) : Boolean = isPrenexHOL(e)
 }

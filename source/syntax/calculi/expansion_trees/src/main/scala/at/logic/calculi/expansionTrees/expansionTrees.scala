@@ -474,7 +474,7 @@ object substitute extends at.logic.utils.logging.Logger {
     // through merging, some instances might disappear
     // keep map (substituted var -> [  ] ) to rebuild instances from it
     type InstList = ListBuffer[ExpansionTreeWithMerges]
-    val newInstances = collection.mutable.Map[HOLExpression, InstList]()
+    val newInstances = collection.mutable.LinkedHashMap[HOLExpression, InstList]()
     s match {
       case Some(subst) =>
         instances.foreach({ case (et, expr) =>  (newInstances.getOrElseUpdate(subst.apply(expr), new InstList) += doApplySubstitution(subst, et)) })

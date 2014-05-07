@@ -54,10 +54,10 @@ object extractExpansionTrees {
         case ExistsLeftRule(_,_,a,_,v) => SQTree(p.formula, v, map(a))
         case ContractionLeftRule(_,_,a1,a2,_) => MergeNodeTree(map(a1),map(a2))
         case ContractionRightRule(_,_,a1,a2,_) => MergeNodeTree(map(a1),map(a2))
-        case AndLeft1Rule(_,_,a,_) => {val And(_,f2) = p.formula; AndTree(map(a), AtomTree(f2))}
-        case AndLeft2Rule(_,_,a,_) => {val And(f1,_) = p.formula; AndTree(AtomTree(f1),map(a))}
-        case OrRight1Rule(_,_,a,_) => {val Or(_,f2) = p.formula; OrTree(map(a), AtomTree(f2))}
-        case OrRight2Rule(_,_,a,_) => {val Or(f1,_) = p.formula; OrTree(AtomTree(f1),map(a))}
+        case AndLeft1Rule(_,_,a,_) => {val And(_,f2) = p.formula; AndTree(map(a), AtomTree(TopC))}
+        case AndLeft2Rule(_,_,a,_) => {val And(f1,_) = p.formula; AndTree(AtomTree(TopC),map(a))}
+        case OrRight1Rule(_,_,a,_) => {val Or(_,f2) = p.formula; OrTree(map(a), AtomTree(BottomC))}
+        case OrRight2Rule(_,_,a,_) => {val Or(f1,_) = p.formula; OrTree(AtomTree(BottomC),map(a))}
         case ImpRightRule(_,_,a1,a2,_) => ImpTree(map(a1),map(a2))
         case NegLeftRule(_,_,a,_) => NotTree(map(a))
         case NegRightRule(_,_,a,_) => NotTree(map(a))

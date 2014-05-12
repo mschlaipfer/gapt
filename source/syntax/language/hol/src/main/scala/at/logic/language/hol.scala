@@ -89,6 +89,7 @@ trait HOLExpression extends LambdaExpression {
 // Should this be here?
 trait Formula extends LambdaExpression {require(exptype == To)}
 
+
 trait HOLFormula extends HOLExpression with Formula
 
 case object BottomC extends HOLConst(BottomSymbol, Type("o")) with HOLFormula

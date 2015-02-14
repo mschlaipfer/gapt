@@ -57,7 +57,7 @@ object PCNF {
       case None =>
         // check for tautology
         a.pos.find( p => a.neg.exists( n => n == p ) ) match {
-          case Some( f ) => ( Axiom( a.neg, a.pos ), f.asInstanceOf[HOLFormula], false )
+          case Some( f ) => ( Axiom( a.neg.toSeq, a.pos.toSeq ), f.asInstanceOf[HOLFormula], false )
           case _ =>
             // check for reflexivity
             a.pos.find( f => f match {

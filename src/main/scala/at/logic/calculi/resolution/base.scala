@@ -14,6 +14,7 @@ import at.logic.language.hol._
 import at.logic.language.hol.skolemSymbols.TypeSynonyms.SkolemSymbol
 import at.logic.language.lambda.types.{ TA, FunctionType }
 import at.logic.utils.ds.acyclicGraphs._
+import at.logic.utils.ds.Multisets._
 
 trait ResolutionProof[V <: Sequent] extends AGraphProof[V]
 
@@ -53,17 +54,17 @@ object StripNeg {
 // TODO: make a class out of this?? (That extends sequent, maybe) I did not manage to reuse it where I wanted... 
 // Too many castings and adaptations had to be done (seqs to sets or lists, Formulas to FOLFormulas, etc) :(
 trait FClause {
-  def neg: Seq[HOLFormula]
-  def pos: Seq[HOLFormula]
-  def multisetEquals( f: FClause, g: FClause ): Boolean =
-    f.neg.diff( g.neg ).isEmpty && f.pos.diff( g.pos ).isEmpty &&
-      g.neg.diff( f.neg ).isEmpty && g.pos.diff( f.pos ).isEmpty
+  def neg: Multiset[HOLFormula]
+  def pos: Multiset[HOLFormula]
+  //  def multisetEquals( f: FClause, g: FClause ): Boolean =
+  //    f.neg.diff( g.neg ).isEmpty && f.pos.diff( g.pos ).isEmpty &&
+  //      g.neg.diff( f.neg ).isEmpty && g.pos.diff( f.pos ).isEmpty
 
   override def equals( o: Any ) = o match {
-    case s: FClause => multisetEquals( this, s )
+    case s: FClause => s.neg.equals( neg ) && s.pos.equals( pos )
     case _          => false
   }
-  override def hashCode = neg.size + pos.size
+  override def hashCode = neg.hashCode + pos.hashCode
   override def toString = {
     var sb = new scala.StringBuilder()
     var first = true
@@ -86,19 +87,29 @@ trait FClause {
 
   def isSubClauseOf( c: FClause ) = neg.diff( c.neg ).isEmpty && pos.diff( c.pos ).isEmpty
 
-  def toFSequent = FSequent( neg.map( _.asInstanceOf[HOLFormula] ), pos.map( _.asInstanceOf[HOLFormula] ) )
+  def toFSequent = FSequent( neg.map( _.asInstanceOf[HOLFormula] ).toSeq, pos.map( _.asInstanceOf[HOLFormula] ).toSeq )
 
   /*
    compose constructs a sequent from two sequents. Corresponds to the 'o' operator in CERes
    should be moved to FSequent once FSequent is called Sequent (see Issue 201)
   */
-  def compose( other: FClause ) = new FClause { def neg = FClause.this.neg ++ other.neg; def pos = FClause.this.pos ++ other.pos }
+  def compose( other: FClause ) = FClause( neg ++ other.neg, pos ++ other.pos )
 }
 
 // a default factory
 object FClause {
-  def apply( n: Seq[HOLFormula], p: Seq[HOLFormula] ): FClause = new FClause { def neg = n; def pos = p }
+  def apply( n: Iterable[HOLFormula], p: Iterable[HOLFormula] ): FClause = new FClause {
+    val neg_ms = HashMultiset.fromIterable( n )
+    val pos_ms = HashMultiset.fromIterable( p )
+    def neg = neg_ms; def pos = pos_ms
+  }
+  def apply( n: Multiset[HOLFormula], p: Multiset[HOLFormula] ): FClause = new FClause { def neg = n; def pos = p }
   def unapply( fc: FClause ) = Some( ( fc.neg, fc.pos ) )
+}
+
+object EmptyFClause {
+  def apply() = FClause( Nil, Nil )
+  def unapply( c: FClause ) = if ( c.pos.isEmpty && c.neg.isEmpty ) Some( c ) else None
 }
 
 // the boolean represent isPositive as the negation is stripped from the literals

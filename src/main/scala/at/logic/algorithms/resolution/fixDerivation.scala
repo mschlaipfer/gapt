@@ -54,8 +54,8 @@ object fixDerivation extends at.logic.utils.logging.Logger {
     val avail_pos = from.succedent.map( f => f.asInstanceOf[FOLFormula] )
     val avail_neg = from.antecedent.map( f => f.asInstanceOf[FOLFormula] )
 
-    val neg_map = createMap( avail_neg, to.neg.map( _.asInstanceOf[FOLFormula] ) )
-    val pos_map = createMap( avail_pos, to.pos.map( _.asInstanceOf[FOLFormula] ) )
+    val neg_map = createMap( avail_neg, to.neg.map( _.asInstanceOf[FOLFormula] ).toSeq )
+    val pos_map = createMap( avail_pos, to.pos.map( _.asInstanceOf[FOLFormula] ).toSeq )
 
     if ( err )
       None
@@ -151,8 +151,8 @@ object fixDerivation extends at.logic.utils.logging.Logger {
   // NOTE: What if the symmetric clause found is a tautology?
   private def handleInitialClause( cls: FClause, cs: Seq[FSequent] ) = {
     val cls_sequent = FSequent(
-      cls.neg.map( f => f.asInstanceOf[FOLFormula] ),
-      cls.pos.map( f => f.asInstanceOf[FOLFormula] ) )
+      cls.neg.map( f => f.asInstanceOf[FOLFormula] ).toSeq,
+      cls.pos.map( f => f.asInstanceOf[FOLFormula] ).toSeq )
 
     if ( cs.contains( cls_sequent ) || isReflexivity( cls ) || isTautology( cls ) ) InitialClause( cls )
     else

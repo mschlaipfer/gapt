@@ -99,8 +99,8 @@ class MiniSAT extends at.logic.utils.logging.Stopwatch {
         sb.append( " " );
       } )
 
-      atoms_to_str( clause.pos, true )
-      atoms_to_str( clause.neg, false )
+      atoms_to_str( clause.pos.toSeq, true )
+      atoms_to_str( clause.neg.toSeq, false )
 
       sb.toString()
     }

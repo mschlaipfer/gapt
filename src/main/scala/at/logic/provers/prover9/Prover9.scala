@@ -25,6 +25,7 @@ import at.logic.provers.prover9.commands.InferenceExtractor
 import java.io._
 import at.logic.utils.logging.Logger
 import org.slf4j.LoggerFactory
+import at.logic.utils.ds.Multisets._
 
 import scala.sys.process._
 import scala.collection.immutable.HashMap
@@ -372,7 +373,7 @@ object Prover9 extends at.logic.utils.logging.Logger {
       val closure = FSequent( ant, suc )
 
       val clause_set = CNFn( endsequent.toFormula ).map( c =>
-        FSequent( c.neg.map( f => f.asInstanceOf[FOLFormula] ), c.pos.map( f => f.asInstanceOf[FOLFormula] ) ) )
+        FSequent( c.neg.map( f => f.asInstanceOf[FOLFormula] ).toSeq, c.pos.map( f => f.asInstanceOf[FOLFormula] ).toSeq ) )
 
       val res_proof = fixDerivation( proof, clause_set )
 
@@ -382,10 +383,10 @@ object Prover9 extends at.logic.utils.logging.Logger {
 
       val fclauses: Set[FClause] = proof.nodes.map {
         case InitialClause( clause ) => clause.toFClause
-        case _                       => FClause( Nil, Nil )
+        case _                       => FClause( EmptyMultiset[FOLFormula], EmptyMultiset[FOLFormula] )
       }.filter( ( x: FClause ) => x match {
-        case FClause( Nil, Nil ) => false;
-        case _                   => true
+        case EmptyFClause( _ ) => false;
+        case _                 => true
       } )
       val clauses = fclauses.map( c => univclosure( Or(
         c.neg.map( f => Neg( f.asInstanceOf[FOLFormula] ) ).toList ++

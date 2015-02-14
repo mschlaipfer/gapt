@@ -47,7 +47,7 @@ package robinson {
 
   object InitialClause {
     def apply( c: FClause )( implicit factory: FOFactory ): RobinsonResolutionProof =
-      apply( c.neg.map( f => f.asInstanceOf[FOLFormula] ), c.pos.map( f => f.asInstanceOf[FOLFormula] ) )
+      apply( c.neg.map( f => f.asInstanceOf[FOLFormula] ).toSeq, c.pos.map( f => f.asInstanceOf[FOLFormula] ).toSeq )
 
     def apply( ant: Seq[FOLFormula], suc: Seq[FOLFormula] )( implicit factory: FOFactory ): RobinsonResolutionProof = {
       val left: Seq[FormulaOccurrence] = ant.map( factory.createFormulaOccurrence( _, Nil ) )

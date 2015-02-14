@@ -43,7 +43,7 @@ object RobinsonToLK extends at.logic.utils.logging.Logger {
   }
 
   def apply( resproof: RobinsonResolutionProof ): LKProof =
-    recConvert( resproof, FSequent( List(), List() ), scala.collection.mutable.Map[FClause, LKProof](), x => Axiom( x.neg, x.pos ) )
+    recConvert( resproof, FSequent( List(), List() ), scala.collection.mutable.Map[FClause, LKProof](), x => Axiom( x.neg.toSeq, x.pos.toSeq ) )
 
   /**
    * This method converts a RobinsonResolutionProof resproof, which is assumed to have the empty clause

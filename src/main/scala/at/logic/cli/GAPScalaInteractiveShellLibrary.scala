@@ -1064,7 +1064,7 @@ object ntape {
 
   def axioms( rp: RobinsonResolutionProof ) = {
     val rrp = NameReplacement( rp, rrename )
-    val lkp = RobinsonToLK( rrp, FSequent( Nil, Nil ), ( ( c: FClause ) => Axiom( c.neg, c.pos ) ) )
+    val lkp = RobinsonToLK( rrp, FSequent( Nil, Nil ), ( ( c: FClause ) => Axiom( c.neg.toSeq, c.pos.toSeq ) ) )
     val axioms = lkp.nodes.flatMap( _ match {
       case a @ Axiom( _ ) => List( a.root.toFSequent );
       case _              => List[FSequent]()

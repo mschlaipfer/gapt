@@ -15,9 +15,26 @@ object Multisets {
   trait Multiset[A] extends Iterable[A] {
     def +( elem: A ): Multiset[A]
     def -( elem: A ): Multiset[A]
+    def diff( other: Multiset[A] ): Multiset[A]
+    // Returns 0 if elem is not contained in the multiset,
+    // and the number of times it is contained otherwise.
+    def contains( elem: A ): Int
   }
 
   class HashMultiset[A]( val map: HashMap[A, Int] ) extends Multiset[A] {
+    def diff( other: Multiset[A] ) = {
+      val diffmap = map.keys.foldLeft( HashMap[A, Int]() )( ( acc, key ) => {
+        val diff = map( key ) - other.contains( key )
+        if ( diff > 0 )
+          acc + ( ( key, diff ) )
+        else
+          acc
+      } )
+      new HashMultiset( diffmap )
+    }
+
+    def contains( elem: A ) = map.getOrElse( elem, 0 )
+
     def +( elem: A ) = new HashMultiset( map + ( ( elem, map.getOrElse( elem, 0 ) + 1 ) ) )
 
     def -( elem: A ) = new HashMultiset( if ( map.contains( elem ) )
@@ -72,7 +89,8 @@ object Multisets {
   }
 
   object HashMultiset {
-    def apply[A]() = new HashMultiset( new HashMap[A, Int] )
+    def apply[A](): HashMultiset[A] = new HashMultiset( new HashMap[A, Int] )
+    def fromIterable[A]( s: Iterable[A] ): HashMultiset[A] = s.foldLeft( apply[A]() )( ( acc, i ) => acc + i )
   }
 
   // some combinatorics: return the set of all multisets
@@ -85,6 +103,11 @@ object Multisets {
       val s = combinations( n - 1, m - elem )
       res ++ s ++ s.map( m => m + elem )
     } )
+  }
+
+  object EmptyMultiset {
+    def apply[A]() = HashMultiset[A]()
+    def unapply[A]( s: Multiset[A] ) = if ( s == HashMultiset() ) Some() else None
   }
 }
 

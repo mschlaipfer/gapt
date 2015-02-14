@@ -155,7 +155,7 @@ class MaxSAT( solver: MaxSATSolver ) extends at.logic.utils.logging.Logger {
    */
   private def updateAtoms( clauses: List[FClause] ) =
     {
-      val atoms = clauses.flatMap( c => c.neg.asInstanceOf[Seq[FOLFormula]] ++ c.pos.asInstanceOf[Seq[FOLFormula]] ).distinct;
+      val atoms = clauses.flatMap( c => c.neg.toSeq.asInstanceOf[Seq[FOLFormula]] ++ c.pos.toSeq.asInstanceOf[Seq[FOLFormula]] ).distinct;
       atom_map = atoms.zip( 1 to atoms.size ).toMap
     }
 
@@ -199,8 +199,8 @@ class MaxSAT( solver: MaxSATSolver ) extends at.logic.utils.logging.Logger {
         sb.append( " " );
       } )
 
-      atoms_to_str( clause.pos.asInstanceOf[Seq[FOLFormula]], true )
-      atoms_to_str( clause.neg.asInstanceOf[Seq[FOLFormula]], false )
+      atoms_to_str( clause.pos.toSeq.asInstanceOf[Seq[FOLFormula]], true )
+      atoms_to_str( clause.neg.toSeq.asInstanceOf[Seq[FOLFormula]], false )
 
       sb.toString()
     }

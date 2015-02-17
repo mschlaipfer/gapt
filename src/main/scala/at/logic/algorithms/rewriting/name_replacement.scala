@@ -201,7 +201,7 @@ object NameReplacement {
         case Instance( clause, parent1, sub ) =>
           val ( rpmap, rmap, rparent1 ) = if ( pmap contains parent1 ) add_pmap( pmap, parent1 ) else rename_resproof( parent1, smap, pmap )
           val nsub = Substitution( sub.folmap map ( x => ( x._1, apply( x._2, smap ) ) ) )
-          var inference: RobinsonResolutionProof = Instance( rparent1, nsub )
+          val inference: RobinsonResolutionProof = Instance( rparent1, nsub )
 
           def matcher( o: FormulaOccurrence, t: FormulaOccurrence ): Boolean = {
             val anc_correspondences: Seq[FormulaOccurrence] = o.parents.map( rmap )
@@ -209,7 +209,6 @@ object NameReplacement {
               anc_correspondences.diff( t.parents ).isEmpty &&
               t.parents.diff( anc_correspondences ).isEmpty
           }
-
           val rsmap = find_matching( clause.negative.toList, inference.root.negative.toList, matcher ) ++
             find_matching( clause.positive.toList, inference.root.positive.toList, matcher )
 

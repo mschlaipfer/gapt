@@ -172,8 +172,9 @@ object RenameResproof extends Logger {
           extendw_pmap( p, rpmap, rsmap, inference )
 
         case Instance( clause, parent1, sub ) =>
-          val ( rpmap, rmap, rparent1 ) = if ( pmap contains parent1 ) add_pmap( pmap, parent1 ) else rename_resproof( parent1, irules, smap, pmap )
-          val nsub = Substitution( sub.folmap map ( x => ( x._1, apply( x._2, smap ) ) ) )
+          val smap_ = smap.map( x => (x._1, sub(x._2)))
+          val ( rpmap, rmap, rparent1 ) = if ( pmap contains parent1 ) add_pmap( pmap, parent1 ) else rename_resproof( parent1, irules, smap_, pmap )
+          val nsub = Substitution( sub.folmap map ( x => ( x._1, apply( x._2, smap_ ) ) ) )
           val inference: RobinsonResolutionProof = Instance( rparent1, nsub )
           trace( "sub=" + sub )
           trace( "nsub=" + nsub )
@@ -186,10 +187,14 @@ object RenameResproof extends Logger {
             val anc_correspondences: Seq[FormulaOccurrence] = o.parents.map( rmap )
             trace( "anc corr in matcher:" )
             trace( anc_correspondences.toString )
-            t.formula == apply( o.formula.asInstanceOf[FOLExpression], smap ) &&
+            t.formula == apply( o.formula.asInstanceOf[FOLExpression], smap_ ) &&
               anc_correspondences.diff( t.parents ).isEmpty &&
               t.parents.diff( anc_correspondences ).isEmpty
           }
+
+          trace("find matching for:\n" + clause.positive.mkString("\n"))
+          trace("rewritten:\n" + clause.positive.map(x => apply(x.formula.asInstanceOf[FOLFormula], smap_)).mkString("\n"))
+          trace("and\n"+inference.root.positive.mkString("\n"))
 
           val rsmap = find_matching( clause.negative.toList, inference.root.negative.toList, matcher ) ++
             find_matching( clause.positive.toList, inference.root.positive.toList, matcher )

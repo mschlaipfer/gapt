@@ -107,43 +107,43 @@ object sFOParser {
       def trs: Parser[Unit] = s_term ~ "->" ~ term ~ s_term ~ "->" ~ term ^^ {
         case t1 ~ "->" ~ base ~ t2 ~ "->" ~ step =>
           t1 match {
-            case sTerm(func1,_,_) =>
+            case sTerm( func1, _, _ ) =>
               t2 match {
-                case sTerm(func2,_,_) =>
-                  if(func1 == func2)
-                    dbTRS.add(func1.asInstanceOf[SchemaConst], Tuple2(t1, base), Tuple2(t2, step))
-                  else throw new Exception("Cannot parse term schema definition!")
+                case sTerm( func2, _, _ ) =>
+                  if ( func1 == func2 )
+                    dbTRS.add( func1.asInstanceOf[SchemaConst], Tuple2( t1, base ), Tuple2( t2, step ) )
+                  else throw new Exception( "Cannot parse term schema definition!" )
               }
           }
       }
 
-      def sequentSchema: Parser[FSequent] =  rep(trs) ~ sequent ^^ {
-        case a ~ s  => {
+      def sequentSchema: Parser[FSequent] = rep( trs ) ~ sequent ^^ {
+        case a ~ s => {
           s.toFSequent
         }
       }
 
     }
     lazy val sp = new SequentParser
-    sp.parseAll(sp.sequentSchema, txt) match {
-      case sp.Success(result,_) =>
+    sp.parseAll( sp.sequentSchema, txt ) match {
+      case sp.Success( result, _ ) =>
         result.asInstanceOf[FSequent]
       case x: AnyRef =>
-        throw new Exception("Error in sFOParser.parseSequent : "+x.toString)
+        throw new Exception( "Error in sFOParser.parseSequent : " + x.toString )
     }
   }
 
   //--------------------------------- parse SLK proof -----------------------
 
   def parseProofFlat( txt: InputStreamReader ): MMap[String, Tuple2[LKProof, LKProof]] =
-  {
-    val map = parseProof( txt )
-    map.map( pp => {
-      val name = pp._1
-      val pair = pp._2
-      ( name, Tuple2( pair._1.get( "root" ).get, pair._2.get( "root" ).get ) )
-    } )
-  }
+    {
+      val map = parseProof( txt )
+      map.map( pp => {
+        val name = pp._1
+        val pair = pp._2
+        ( name, Tuple2( pair._1.get( "root" ).get, pair._2.get( "root" ).get ) )
+      } )
+    }
 
   //plabel should return the proof corresponding to this label
   def parseProof( txt: InputStreamReader ): MMap[String, Tuple2[MMap[String, LKProof], MMap[String, LKProof]]] = {

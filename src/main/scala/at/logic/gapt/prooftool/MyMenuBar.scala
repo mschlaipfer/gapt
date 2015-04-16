@@ -214,7 +214,7 @@ class MyMenubar extends MenuBar {
   }
   contents += new Menu( "View" ) {
     mnemonic = Key.V
- /*   listenTo( ProofToolPublisher )
+    /*   listenTo( ProofToolPublisher )
     reactions += {
       case DisableMenus => enabled = false
       case EnableMenus  => enabled = true
@@ -485,10 +485,10 @@ class MyMenubar extends MenuBar {
       ProofToolPublisher.publish( EnableMenus )
     } ) { border = customBorder }
   }
-  contents += new Menu("Prover") {
-    contents += new MenuItem(Action("Start") {
+  contents += new Menu( "Prover" ) {
+    contents += new MenuItem( Action( "Start" ) {
       SchemaProver()
-    }) {border = customBorder}
+    } ) { border = customBorder }
 
   }
 }

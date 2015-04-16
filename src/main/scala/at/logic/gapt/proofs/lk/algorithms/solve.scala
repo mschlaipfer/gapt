@@ -1,8 +1,8 @@
 package at.logic.gapt.proofs.lk.algorithms
 
 import at.logic.gapt.language.hol.{ HOLSubstitution => SubstitutionHOL, _ }
-import at.logic.gapt.language.lambda.types.{Ti, Tindex, ->}
-import at.logic.gapt.language.schema.{SchemaAnd => AndSchema, SchemaOr => OrSchema, SchemaSubstitution => SubstitutionSchema, freeVariables => SchemaFreeVars, isAtom => SchemaIsAtom, _} // this alliases are needed not to clash with HOL analogies.
+import at.logic.gapt.language.lambda.types.{ Ti, Tindex, -> }
+import at.logic.gapt.language.schema.{ SchemaAnd => AndSchema, SchemaOr => OrSchema, SchemaSubstitution => SubstitutionSchema, freeVariables => SchemaFreeVars, isAtom => SchemaIsAtom, _ } // this alliases are needed not to clash with HOL analogies.
 import at.logic.gapt.proofs.expansionTrees.{ BinaryExpansionTree, ExpansionSequent, ExpansionTree, ETStrongQuantifier, UnaryExpansionTree, ETWeakQuantifier, getETOfFormula, toShallow, ETAtom => AtomET }
 import at.logic.gapt.proofs.lk._
 import at.logic.gapt.proofs.lk.base._
@@ -47,15 +47,15 @@ object solve extends at.logic.gapt.utils.logging.Logger {
     startProving( seq, new ExpansionTreeProofStrategy( expansionSequent ), cleanStructuralRules, throwOnError )
   }
 
-  def solveSchema(seq: FSequent, cleanStructuralRules: Boolean = false, throwOnError: Boolean = true): Option[LKProof] = {
-    debug("running solveSchema")
+  def solveSchema( seq: FSequent, cleanStructuralRules: Boolean = false, throwOnError: Boolean = true ): Option[LKProof] = {
+    debug( "running solveSchema" )
 
-    if (SolveUtils.noCommonAtoms(seq)) {
-      trace("no common atoms: " + seq)
+    if ( SolveUtils.noCommonAtoms( seq ) ) {
+      trace( "no common atoms: " + seq )
       None
     }
 
-    startProving(seq,  new SchemaProofStrategy, cleanStructuralRules, throwOnError)
+    startProving( seq, new SchemaProofStrategy, cleanStructuralRules, throwOnError )
   }
 
   // internal interface method
@@ -97,10 +97,10 @@ object solve extends at.logic.gapt.utils.logging.Logger {
     } else if ( SolveUtils.findNonschematicAxiom( seq ).isDefined ) {
       val Some( ( f, g ) ) = SolveUtils.findNonschematicAxiom( seq )
       Some( AtomicExpansion( seq, f, g ) )
-    } else if (SolveUtils.findSchematicAxiom(seq).isDefined) { println("Schematic axiom reached")
-      SolveUtils.findSchematicAxiom(seq)
-    } else if (SolveUtils.findProofLink(seq).isDefined) { println("proof link reached")
-      SolveUtils.findProofLink(seq)
+    } else if ( SolveUtils.findSchematicAxiom( seq ).isDefined ) {
+      SolveUtils.findSchematicAxiom( seq )
+    } else if ( SolveUtils.findProofLink( seq ).isDefined ) {
+      SolveUtils.findProofLink( seq )
     } else {
 
       trace( "no axiom, calc next step" )
@@ -552,115 +552,102 @@ object ProofStrategy {
   }
 }
 
-
 class SchemaProofStrategy extends ProofStrategy with at.logic.gapt.utils.logging.Logger {
   val FormulaLocation = ProofStrategy.FormulaLocation // shortcut
 
-  override def calcNextStep(seq: FSequent): Option[ProofStrategy.Action] = {
+  override def calcNextStep( seq: FSequent ): Option[ProofStrategy.Action] = {
 
-    if (SolveUtils.isAxiom(seq) || SolveUtils.findNonschematicAxiom(seq).isDefined) {
-      throw new RuntimeException("SchemaProofStrategy called on axiom: " + seq)
+    if ( SolveUtils.isAxiom( seq ) || SolveUtils.findNonschematicAxiom( seq ).isDefined ) {
+      throw new RuntimeException( "SchemaProofStrategy called on axiom: " + seq )
     } else {
 
       // rule preference:
       // NOTE: getOrElse uses call by name, i.e. functions below are only evaluated if really needed
-      findUnaryRight(seq).orElse(
-        findUnaryLeft(seq).orElse(
-          findBinaryRight(seq).orElse(
-            findBinaryLeft(seq).orElse(
-              findStrongQuantifier(seq).orElse(
-                findWeakQuantifier(seq).orElse(
-                //          findProofLink(seq).orElse(
-                {
-                  debug("SchemaProofStrategy is unable to find a rule to apply on: "+seq)
-                  None
-                }
-                //        )
-                )
-              )
-            )
-          )
-        )
-      )
+      findUnaryRight( seq ).orElse(
+        findUnaryLeft( seq ).orElse(
+          findBinaryRight( seq ).orElse(
+            findBinaryLeft( seq ).orElse(
+              findStrongQuantifier( seq ).orElse(
+                findWeakQuantifier( seq ).orElse(
+                  //          findProofLink(seq).orElse(
+                  {
+                    debug( "SchemaProofStrategy is unable to find a rule to apply on: " + seq )
+                    None
+                  } //        )
+                  ) ) ) ) ) )
     }
   }
 
   // Tries to find a formula on the left or on the right such that its
   // introduction rule is unary.
-  def findUnaryLeft(seq: FSequent) : Option[ProofStrategy.Action] =
-    seq.antecedent.find(f => f match {
-      case HOLNeg(_) | HOLAnd(_,_) | BigAnd(_,_,_,_) => true
+  def findUnaryLeft( seq: FSequent ): Option[ProofStrategy.Action] =
+    seq.antecedent.find( f => f match {
+      case HOLNeg( _ ) | HOLAnd( _, _ ) | BigAnd( _, _, _, _ ) => true
       case _ => false
-    }).map(new ProofStrategy.Action(_, FormulaLocation.Antecedent, Some(this)))
-  def findUnaryRight(seq: FSequent) : Option[ProofStrategy.Action] =
-    seq.succedent.find(f => f match {
-      case HOLNeg(_) | HOLImp(_,_) | HOLOr(_,_) | BigOr(_,_,_,_) => true
+    } ).map( new ProofStrategy.Action( _, FormulaLocation.Antecedent, Some( this ) ) )
+  def findUnaryRight( seq: FSequent ): Option[ProofStrategy.Action] =
+    seq.succedent.find( f => f match {
+      case HOLNeg( _ ) | HOLImp( _, _ ) | HOLOr( _, _ ) | BigOr( _, _, _, _ ) => true
       case _ => false
-    }).map(new ProofStrategy.Action(_, FormulaLocation.Succedent, Some(this)))
+    } ).map( new ProofStrategy.Action( _, FormulaLocation.Succedent, Some( this ) ) )
 
-  def findStrongQuantifier(seq: FSequent): Option[ProofStrategy.Action] = {
+  def findStrongQuantifier( seq: FSequent ): Option[ProofStrategy.Action] = {
     var qv: Option[HOLExpression] = None
-    val antQ = seq.antecedent.find(f => f match {
-      case HOLExVar(v,_) =>
-        qv = Some(v)
+    val antQ = seq.antecedent.find( f => f match {
+      case HOLExVar( v, _ ) =>
+        qv = Some( v )
         true
       case _ => false
-    }).map(new SchemaAction(_,FormulaLocation.Antecedent, Some(this),qv))
+    } ).map( new SchemaAction( _, FormulaLocation.Antecedent, Some( this ), qv ) )
 
     antQ.orElse(
-      seq.succedent.find(f => f match {
-        case HOLAllVar(v,_) =>
-          qv = Some(v)
+      seq.succedent.find( f => f match {
+        case HOLAllVar( v, _ ) =>
+          qv = Some( v )
           true
         case _ => false
-      }).map(new SchemaAction(_,FormulaLocation.Succedent,Some(this),qv))
-    )
+      } ).map( new SchemaAction( _, FormulaLocation.Succedent, Some( this ), qv ) ) )
   }
 
-  def findWeakQuantifier(seq: FSequent): Option[ProofStrategy.Action] = {
-    val t = dbTRS.map.get(SchemaConst("g", ->(Tindex, ->(Ti, Ti)))).get._2._2.get(HOLPosition(2)).get
-    val subst = SubstitutionHOL(t.get(HOLPosition(2)).get.asInstanceOf[HOLVar], HOLConst("a",Ti))
-    val term = subst(t)
-    val antQ = seq.antecedent.find(f => f match {
-      case HOLAllVar(_,_) =>
+  def findWeakQuantifier( seq: FSequent ): Option[ProofStrategy.Action] = {
+    val t = dbTRS.map.get( SchemaConst( "g", ->( Tindex, ->( Ti, Ti ) ) ) ).get._2._2.get( HOLPosition( 2 ) ).get
+    val subst = SubstitutionHOL( t.get( HOLPosition( 2 ) ).get.asInstanceOf[HOLVar], HOLConst( "a", Ti ) )
+    val term = subst( t )
+    val antQ = seq.antecedent.find( f => f match {
+      case HOLAllVar( _, _ ) =>
         true
       case _ => false
-    }).map(new SchemaAction(_,FormulaLocation.Antecedent, Some(this),Some(term)))
+    } ).map( new SchemaAction( _, FormulaLocation.Antecedent, Some( this ), Some( term ) ) )
 
     antQ.orElse(
-      seq.succedent.find(f => f match {
-        case HOLExVar(_,_) =>
-          println("f in else")
-          println(f)
+      seq.succedent.find( f => f match {
+        case HOLExVar( _, _ ) =>
           true
         case _ => false
-      }).map(new SchemaAction(_,FormulaLocation.Succedent,Some(this),Some(term)))
-    )
+      } ).map( new SchemaAction( _, FormulaLocation.Succedent, Some( this ), Some( term ) ) ) )
   }
 
   // Tries to find a formula on the left or on the right such that its
   // introduction rule is binary.
-  def findBinaryLeft(seq: FSequent) : Option[ProofStrategy.Action] =
-    seq.antecedent.find(f => f match {
-      case HOLImp(_,_) | HOLOr(_,_) | BigOr(_,_,_,_) => true
+  def findBinaryLeft( seq: FSequent ): Option[ProofStrategy.Action] =
+    seq.antecedent.find( f => f match {
+      case HOLImp( _, _ ) | HOLOr( _, _ ) | BigOr( _, _, _, _ ) => true
       case _ => false
-    }).map(new ProofStrategy.Action(_, FormulaLocation.Antecedent, Some(this)))
-  def findBinaryRight(seq: FSequent) : Option[ProofStrategy.Action] =
-    seq.succedent.find(f => f match {
-      case HOLAnd(_,_) | BigAnd(_,_,_,_) => true
-      case _ => false
-    }).map(new ProofStrategy.Action(_, FormulaLocation.Succedent, Some(this)))
+    } ).map( new ProofStrategy.Action( _, FormulaLocation.Antecedent, Some( this ) ) )
+  def findBinaryRight( seq: FSequent ): Option[ProofStrategy.Action] =
+    seq.succedent.find( f => f match {
+      case HOLAnd( _, _ ) | BigAnd( _, _, _, _ ) => true
+      case _                                     => false
+    } ).map( new ProofStrategy.Action( _, FormulaLocation.Succedent, Some( this ) ) )
 
-  def findProofLink(seq: FSequent): Option[ProofStrategy.Action] = None
+  def findProofLink( seq: FSequent ): Option[ProofStrategy.Action] = None
 
-  class SchemaAction(override val formula: HOLFormula, override val loc: ProofStrategy.FormulaLocation.Value, val oldStrategy: Option[ProofStrategy],
-                     val quantifiedTerm: Option[HOLExpression])
-    extends ProofStrategy.Action(formula, loc, oldStrategy) {
+  class SchemaAction( override val formula: HOLFormula, override val loc: ProofStrategy.FormulaLocation.Value, val oldStrategy: Option[ProofStrategy],
+                      val quantifiedTerm: Option[HOLExpression] )
+      extends ProofStrategy.Action( formula, loc, oldStrategy ) {
     override def getQuantifiedTerm(): Option[HOLExpression] = quantifiedTerm
   }
 }
-
-
 
 class PropositionalProofStrategy extends ProofStrategy with at.logic.gapt.utils.logging.Logger {
   val FormulaLocation = ProofStrategy.FormulaLocation // shortcut
@@ -677,10 +664,10 @@ class PropositionalProofStrategy extends ProofStrategy with at.logic.gapt.utils.
         findUnaryRight( seq ).orElse(
           findBinaryLeft( seq ).orElse(
             findBinaryRight( seq ).orElse(
-            {
-              debug( "PropositionalProofStrategy is unable to find a rule to apply on: " + seq )
-              None
-            } ) ) ) )
+              {
+                debug( "PropositionalProofStrategy is unable to find a rule to apply on: " + seq )
+                None
+              } ) ) ) )
     }
   }
 
@@ -731,10 +718,10 @@ class ExpansionTreeProofStrategy( val expansionSequent: ExpansionSequent ) exten
 
               findBinaryLeft( seq ).orElse(
                 findBinaryRight( seq ).orElse(
-                {
-                  debug( "ExpansionTreeProofStrategy is unable to find a rule to apply on: " + seq )
-                  None
-                } ) ) ) ) ) )
+                  {
+                    debug( "ExpansionTreeProofStrategy is unable to find a rule to apply on: " + seq )
+                    None
+                  } ) ) ) ) ) )
     }
   }
 
@@ -941,7 +928,7 @@ class ExpansionTreeProofStrategy( val expansionSequent: ExpansionSequent ) exten
 object ExpansionTreeProofStrategy {
   class ExpansionTreeAction( override val formula: HOLFormula, override val loc: ProofStrategy.FormulaLocation.Value,
                              val quantifiedTerm: Option[HOLExpression], val subStrategy: Seq[ProofStrategy] )
-    extends ProofStrategy.Action( formula, loc, None ) {
+      extends ProofStrategy.Action( formula, loc, None ) {
     override def toString() = "ExpansionTreeAction(" + formula + ", " + loc + ", " + quantifiedTerm + "," + subStrategy + ")"
     override def getNextStrategies(): Seq[ProofStrategy] = subStrategy
     override def getQuantifiedTerm(): Option[HOLExpression] = quantifiedTerm
@@ -957,25 +944,26 @@ private object SolveUtils extends at.logic.gapt.utils.logging.Logger {
           f.syntaxEquals( f2 ) ) )
   }
 
-  def findSchematicAxiom(seq: FSequent) : Option[LKProof] = {
-    val pair = for ( f <- seq.antecedent.toList;
-                     g <- seq.succedent.toList;
-                     if ((f,g) match {
-                       case (SchemaAtom(f1, args1), SchemaAtom(g1, args2)) if (f1 == g1) => true
-                       case _ => false
-                     })
-    ) yield {(f,g)}
+  def findSchematicAxiom( seq: FSequent ): Option[LKProof] = {
+    val pair = for (
+      f <- seq.antecedent.toList;
+      g <- seq.succedent.toList;
+      if ( ( f, g ) match {
+        case ( SchemaAtom( f1, args1 ), SchemaAtom( g1, args2 ) ) if ( f1 == g1 ) => true
+        case _ => false
+      } )
+    ) yield { ( f, g ) }
     pair match {
       case Nil => None
-      case (f,g)::_ => try {
+      case ( f, g ) :: _ => try {
         // Computing premise antecedent and succedent
         val p1: Option[LKProof] = try {
-          Some(trsArrowLeftRule(Axiom(g :: Nil, g :: Nil), g.asInstanceOf[SchemaFormula]))
+          Some( trsArrowLeftRule( Axiom( g :: Nil, g :: Nil ), g.asInstanceOf[SchemaFormula] ) )
         } catch {
-          case _ : Throwable => try {
-            Some(trsArrowRightRule(Axiom(f :: Nil, f :: Nil), f.asInstanceOf[SchemaFormula]))
+          case _: Throwable => try {
+            Some( trsArrowRightRule( Axiom( f :: Nil, f :: Nil ), f.asInstanceOf[SchemaFormula] ) )
           } catch {
-            case _ : Throwable => None
+            case _: Throwable => None
           }
         }
         /*  (f,g) match {
@@ -986,35 +974,29 @@ private object SolveUtils extends at.logic.gapt.utils.logging.Logger {
           case _ => throw new Exception("Wrong answer from findSchematicAxiom")
         } */
         try {
-          val p = WeakeningMacroRule(p1.get,seq)
-          Some(p)
+          val p = WeakeningMacroRule( p1.get, seq )
+          Some( p )
         } catch {
-          case _ : Throwable => None
+          case _: Throwable => None
         }
       } catch {
-        case e : Throwable =>
-          println(e.getMessage)
-          throw new Exception("Error in Atom trs rule!")
+        case e: Throwable =>
+          println( e.getMessage )
+          throw new Exception( "Error in Atom trs rule!" )
       }
 
     }
   }
 
-  def findProofLink(seq:FSequent) : Option[LKProof] = {
-    println("checks if proof link")
-    val sp = SchemaProofDB.get("\\psi")
-    println(sp.seq)
-    println(seq)
-    if (sp.seq.antecedent.toSet.forall(f => seq.antecedent.toSet.contains(f)) &&
-      sp.seq.succedent.toSet.forall(f => seq.succedent.toSet.contains(f))) {
-      val p1 = SchemaProofLinkRule(sp.seq,sp.name,sp.vars.head)
-      val p = WeakeningMacroRule(p1,seq)
-      println("returns proof link")
-      Some(p)
-    }
-    else None
+  def findProofLink( seq: FSequent ): Option[LKProof] = {
+    val sp = SchemaProofDB.get( "\\psi" )
+    if ( sp.seq.antecedent.toSet.forall( f => seq.antecedent.toSet.contains( f ) ) &&
+      sp.seq.succedent.toSet.forall( f => seq.succedent.toSet.contains( f ) ) ) {
+      val p1 = SchemaProofLinkRule( sp.seq, sp.name, sp.vars.head )
+      val p = WeakeningMacroRule( p1, seq )
+      Some( p )
+    } else None
   }
-
 
   def findNonschematicAxiom( seq: FSequent ): Option[( HOLFormula, HOLFormula )] = {
     val axs = for (

@@ -149,7 +149,7 @@ object DrawSequent {
         case HOLVar( n, _ )   => n
         case _                => throw new Exception( "An atom can only contain a const or a var on the outermost level!" )
       }
-      if ( args.size == 2 && !name.toString.matches("""[\w\p{InGreek}]*""")) { // name.toString.matches( """(=|!=|\\neq|<|>|\\leq|\\geq|\\in|\+|-|\*|/)""" ) ) does not cover cases of prime and tape proofs
+      if ( args.size == 2 && !name.toString.matches( """[\w\p{InGreek}]*""" ) ) { // name.toString.matches( """(=|!=|\\neq|<|>|\\leq|\\geq|\\in|\+|-|\*|/)""" ) ) does not cover cases of prime and tape proofs
         //formats infix formulas
         if ( outermost ) {
           //if the whole formula is an infix atom, we can skip parenthesis
@@ -182,7 +182,7 @@ object DrawSequent {
       if ( name.toString == "EXP" )
         args.last.asInstanceOf[IntVar].name + "^{" + parseIntegerTerm( args.head.asInstanceOf[IntegerTerm], 0 ) + "}"
       else if ( args.size == 1 ) parseNestedUnaryFunction( name.toString, args.head, 1 )
-      else if ( args.size == 2 && !name.toString.matches("""[\w\p{InGreek}]*""")) // name.toString.matches( """(=|!=|\\neq|<|>|\\leq|\\geq|\\in|\+|-|\*|/)""" ) ) does not cover cases of prime and tape proofs
+      else if ( args.size == 2 && !name.toString.matches( """[\w\p{InGreek}]*""" ) ) // name.toString.matches( """(=|!=|\\neq|<|>|\\leq|\\geq|\\in|\+|-|\*|/)""" ) ) does not cover cases of prime and tape proofs
         "(" + formulaToLatexString( args.head, outermost = false ) + " " + nameToLatexString( name.toString ) + " " + formulaToLatexString( args.last, outermost = false ) + ")"
       else nameToLatexString( name.toString ) + { if ( args.isEmpty ) "" else args.map( x => formulaToLatexString( x, outermost = false ) ).mkString( "(", ",", ")" ) }
     case HOLAbs( v, s ) => "(" + """ \lambda """ + formulaToLatexString( v, outermost = false ) + """.""" + formulaToLatexString( s, outermost = false ) + ")"

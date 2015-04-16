@@ -28,7 +28,7 @@ class DrawProof( val proof: TreeProof[_], private val fSize: Int, private var vi
   background = white
   opaque = false
 
-  private val labelFont = new Font( SERIF, ITALIC, fSize - 2 )
+  private val labelFont = new Font( SANS_SERIF, ITALIC, fSize / 6 * 5 )
   private val bd = Swing.EmptyBorder( 0, fSize * 2, 0, fSize * 2 )
   private val ft = new Font( SERIF, PLAIN, fSize )
   private var drawLines = true
@@ -112,7 +112,9 @@ class DrawProof( val proof: TreeProof[_], private val fSize: Int, private var vi
             background = white
             opaque = false
             border = Swing.EmptyBorder( 0, fSize, 0, fSize )
-            val pLink = LatexLabel( ft, "(\\textbf{" + link + "}" + indices.foldRight( "" )( ( i, rez ) => ", " + DrawSequent.formulaToLatexString( i ) + rez ) + ")", null )
+            val pLink = LatexLabel( ft, "\\textbf{" + link + "} (" +
+              indices.foldRight( "" )( ( i, rez ) => DrawSequent.formulaToLatexString( i ) +
+                { if (rez.isEmpty) rez else ", " + rez } ) + ")", null )
             pLink.xLayoutAlignment = 0.5
             pLink.opaque = false
             pLink.border = Swing.EmptyBorder( 0, 0, 5, 0 )
@@ -130,7 +132,7 @@ class DrawProof( val proof: TreeProof[_], private val fSize: Int, private var vi
 
   def getSequentWidth( g: Graphics2D ) = tx match {
     case label: Label      => g.getFontMetrics( ft ).stringWidth( label.text )
-    case fPanel: FlowPanel => fPanel.contents.foldLeft( 0 )( ( width, x ) => width + x.size.width + 5 )
+    case fPanel: FlowPanel => fPanel.contents.foldLeft( 0 )( ( width, x ) => width + x.size.width + 1 )
   }
 
   def search_=( s: String ) {

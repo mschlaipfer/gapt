@@ -214,11 +214,11 @@ class MyMenubar extends MenuBar {
   }
   contents += new Menu( "View" ) {
     mnemonic = Key.V
-    listenTo( ProofToolPublisher )
+ /*   listenTo( ProofToolPublisher )
     reactions += {
       case DisableMenus => enabled = false
       case EnableMenus  => enabled = true
-    }
+    } */
     contents += new MenuItem( Action( "Zoom In" ) { Main.zoomIn() } ) {
       this.peer.setAccelerator( KeyStroke.getKeyStroke( KeyEvent.VK_UP, JActionEvent.ALT_MASK ) )
       border = customBorder
@@ -484,5 +484,11 @@ class MyMenubar extends MenuBar {
       Main.updateLauncher( "Proof", all3, Main.defaultFontSize )
       ProofToolPublisher.publish( EnableMenus )
     } ) { border = customBorder }
+  }
+  contents += new Menu("Prover") {
+    contents += new MenuItem(Action("Start") {
+      SchemaProver()
+    }) {border = customBorder}
+
   }
 }

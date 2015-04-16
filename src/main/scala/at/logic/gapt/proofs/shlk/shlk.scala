@@ -904,7 +904,7 @@ object trsArrowRightRule {
 
 object trsArrowLeftRule {
   def apply( s1: LKProof, auxf: SchemaFormula ): UnaryTree[Sequent] with UnaryLKProof with AuxiliaryFormulas with PrincipalFormulas = {
-    ( ( s1.root.antecedent ).filter( x => unfoldSFormula( x.formula.asInstanceOf[SchemaFormula] ) == unfoldSFormula( auxf ) ) ).toList match {
+    ( ( s1.root.antecedent ).filter( x => x.formula.asInstanceOf[SchemaFormula] == auxf ) ).toList match {
       case ( x :: _ ) => trsArrowRule.apply( s1, x )
       case _          => throw new LKRuleCreationException( "Not matching formula occurrences in the left side found for application of the trsArrowLeftRule with the given formula" )
     }

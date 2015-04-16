@@ -2,7 +2,7 @@ package at.logic.gapt.prooftool
 
 import at.logic.gapt.formats.shlk_parsing.sFOParser
 import at.logic.gapt.language.hol.HOLExpression
-import at.logic.gapt.language.schema.{IntVar, dbTRS}
+import at.logic.gapt.language.schema._
 import at.logic.gapt.proofs.lk.algorithms.solve
 import at.logic.gapt.proofs.lk.base.FSequent
 import at.logic.gapt.proofs.shlk.{SchemaProofDB, SchemaProof}
@@ -40,13 +40,14 @@ object SchemaProver {
     val sp = new SchemaProof("\\psi", k::Nil, s, null, null)
     SchemaProofDB.clear
     SchemaProofDB.put(sp)
- /*   val subst_0 = Substitution((k, IntZero()) :: Nil)
+    val subst_0 = SchemaSubstitution((k, IntZero()) :: Nil)
     val s_0 =  FSequent(s.antecedent.map(fo => subst_0(fo)),
       s.succedent.map(fo => subst_0(fo)))
-    val subst_k = Substitution((k, Succ(k)) :: Nil)
+    val subst_k = SchemaSubstitution((k, Succ(k)) :: Nil)
     val s_k = FSequent(s.antecedent.map(fo => subst_k(fo)),
       s.succedent.map(fo => subst_k(fo)))
-*/
+    Main.db.addSeqList(List(s_0,s_k))
+
     try {
       val p_base = try {
         solve.solveSchema(sp.b_res)

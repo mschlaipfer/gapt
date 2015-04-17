@@ -97,9 +97,9 @@ object solve extends at.logic.gapt.utils.logging.Logger {
     } else if ( SolveUtils.findNonschematicAxiom( seq ).isDefined ) {
       val Some( ( f, g ) ) = SolveUtils.findNonschematicAxiom( seq )
       Some( AtomicExpansion( seq, f, g ) )
-    } else if ( SolveUtils.findSchematicAxiom( seq ).isDefined ) {
+    } else if ( strategy.isInstanceOf[SchemaProofStrategy] && SolveUtils.findSchematicAxiom( seq ).isDefined ) {
       SolveUtils.findSchematicAxiom( seq )
-    } else if ( SolveUtils.findProofLink( seq ).isDefined ) {
+    } else if ( strategy.isInstanceOf[SchemaProofStrategy] && SolveUtils.findProofLink( seq ).isDefined ) {
       SolveUtils.findProofLink( seq )
     } else {
 
@@ -989,11 +989,15 @@ private object SolveUtils extends at.logic.gapt.utils.logging.Logger {
   }
 
   def findProofLink( seq: FSequent ): Option[LKProof] = {
+    println( "checks if proof link" )
     val sp = SchemaProofDB.get( "\\psi" )
+    println( sp.seq )
+    println( seq )
     if ( sp.seq.antecedent.toSet.forall( f => seq.antecedent.toSet.contains( f ) ) &&
       sp.seq.succedent.toSet.forall( f => seq.succedent.toSet.contains( f ) ) ) {
       val p1 = SchemaProofLinkRule( sp.seq, sp.name, sp.vars.head )
       val p = WeakeningMacroRule( p1, seq )
+      println( "returns proof link" )
       Some( p )
     } else None
   }

@@ -1688,6 +1688,28 @@ case class InductionRule( cases: Seq[InductionCase], mainFormula: HOLFormula ) e
   override def name = "ind"
 }
 
+abstract class DefinitionRule extends UnaryLKProof with CommonRule {
+  def subProof: LKProof
+  def aux: SequentIndex
+  def definition: ( Const, LambdaExpression )
+  def mainFormula: HOLFormula
+  def pos: Seq[HOLPosition]
+
+  aux match {
+    case Ant( _ ) => validateIndices( premise, Seq( aux ), Seq() )
+    case Suc( _ ) => validateIndices( premise, Seq(), Seq( aux ) )
+  }
+
+  val ( lhs, rhs ) = definition
+
+  val auxFormula_ = pos.foldLeft( mainFormula ) { ( acc, p ) =>
+    require( acc.get( p ) contains lhs )
+    acc.replace( p, rhs )
+  }
+
+  require( BetaReduction.betaNormalize( auxFormula_ ) == premise( aux ) )
+}
+
 /**
  * An LKProof ending with a definition on the left:
  *
@@ -1702,13 +1724,14 @@ case class InductionRule( cases: Seq[InductionCase], mainFormula: HOLFormula ) e
  *
  * @param subProof The proof π.
  * @param aux The index of A in the antecedent.
- * @param main The formula B that A is to be replaced with.
+ * @param mainFormula The formula B that A is to be replaced with.
  */
-case class DefinitionLeftRule( subProof: LKProof, aux: SequentIndex, main: HOLFormula )
-    extends UnaryLKProof with CommonRule {
+case class DefinitionLeftRule( subProof: LKProof, aux: SequentIndex, definition: ( Const, LambdaExpression ), mainFormula: HOLFormula, pos: Seq[HOLPosition] )
+    extends DefinitionRule {
+
   override def name = "d:l"
   override def auxIndices = Seq( Seq( aux ) )
-  override def mainFormulaSequent = main +: Sequent()
+  override def mainFormulaSequent = mainFormula +: Sequent()
 }
 
 object DefinitionLeftRule extends ConvenienceConstructor( "DefinitionLeftRule" ) {
@@ -1721,11 +1744,11 @@ object DefinitionLeftRule extends ConvenienceConstructor( "DefinitionLeftRule" )
    * @param mainFormula The main formula.
    * @return
    */
-  def apply( subProof: LKProof, auxFormula: HOLFormula, mainFormula: HOLFormula ): DefinitionLeftRule = {
+  def apply( subProof: LKProof, auxFormula: HOLFormula, definition: ( Const, LambdaExpression ), mainFormula: HOLFormula, pos: Seq[HOLPosition] ): DefinitionLeftRule = {
     val premise = subProof.endSequent
     val ( indices, _ ) = findAndValidate( premise )( Seq( auxFormula ), Seq() )
 
-    DefinitionLeftRule( subProof, Ant( indices( 0 ) ), mainFormula )
+    DefinitionLeftRule( subProof, Ant( indices( 0 ) ), definition, mainFormula, pos )
   }
 }
 
@@ -1743,13 +1766,14 @@ object DefinitionLeftRule extends ConvenienceConstructor( "DefinitionLeftRule" )
  *
  * @param subProof The proof π.
  * @param aux The index of A in the succedent.
- * @param main The formula B that A is to be replaced with.
+ * @param mainFormula The formula B that A is to be replaced with.
  */
-case class DefinitionRightRule( subProof: LKProof, aux: SequentIndex, main: HOLFormula )
-    extends UnaryLKProof with CommonRule {
+case class DefinitionRightRule( subProof: LKProof, aux: SequentIndex, definition: ( Const, LambdaExpression ), mainFormula: HOLFormula, pos: Seq[HOLPosition] )
+    extends DefinitionRule {
+
   override def name = "d:r"
   override def auxIndices = Seq( Seq( aux ) )
-  override def mainFormulaSequent = Sequent() :+ main
+  override def mainFormulaSequent = Sequent() :+ mainFormula
 }
 
 object DefinitionRightRule extends ConvenienceConstructor( "DefinitionRightRule" ) {
@@ -1762,20 +1786,20 @@ object DefinitionRightRule extends ConvenienceConstructor( "DefinitionRightRule"
    * @param mainFormula The main formula.
    * @return
    */
-  def apply( subProof: LKProof, auxFormula: HOLFormula, mainFormula: HOLFormula ): DefinitionRightRule = {
+  def apply( subProof: LKProof, auxFormula: HOLFormula, definition: ( Const, LambdaExpression ), mainFormula: HOLFormula, pos: Seq[HOLPosition] ): DefinitionRightRule = {
     val premise = subProof.endSequent
     val ( _, indices ) = findAndValidate( premise )( Seq(), Seq( auxFormula ) )
 
-    DefinitionRightRule( subProof, Suc( indices( 0 ) ), mainFormula )
+    DefinitionRightRule( subProof, Suc( indices( 0 ) ), definition, mainFormula, pos )
   }
 }
 
 object DefinitionRule {
-  def apply( subProof: LKProof, auxFormula: HOLFormula, mainFormula: HOLFormula, isSuc: Boolean ): LKProof =
+  def apply( subProof: LKProof, auxFormula: HOLFormula, definition: ( Const, LambdaExpression ), mainFormula: HOLFormula, pos: Seq[HOLPosition], isSuc: Boolean ): LKProof =
     if ( isSuc )
-      DefinitionRightRule( subProof, auxFormula, mainFormula )
+      DefinitionRightRule( subProof, auxFormula, definition, mainFormula, pos )
     else
-      DefinitionLeftRule( subProof, auxFormula, mainFormula )
+      DefinitionLeftRule( subProof, auxFormula, definition, mainFormula, pos )
 }
 
 object consoleString {

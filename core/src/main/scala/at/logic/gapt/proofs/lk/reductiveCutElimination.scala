@@ -1,11 +1,3 @@
-
-/*
- * ReductiveCutElim.scala
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
- */
-
 package at.logic.gapt.proofs.lk
 
 import at.logic.gapt.expr._
@@ -118,7 +110,6 @@ class ReductiveCutElimination {
         }
       } )
 
-  // TODO: Implement this properly, i.e. with SequentIndices.
   /**
    * Recursively traverses a proof until it finds a cut to reduce.
    *
@@ -257,7 +248,7 @@ class ReductiveCutElimination {
         val rSubProofNew = Substitution( eigen, term )( rSubProof )
         CutRule( lSubProof, rSubProofNew, left.auxFormulas.head.head )
 
-      case ( DefinitionRightRule( lSubProof, a1, main1 ), DefinitionLeftRule( rSubProof, a2, main2 ) ) if left.mainIndices.head == aux1 && right.mainIndices.head == aux2 =>
+      case ( DefinitionRightRule( lSubProof, a1,def1, main1, pos1 ), DefinitionLeftRule( rSubProof, a2,def2, main2, pos2 ) ) if left.mainIndices.head == aux1 && right.mainIndices.head == aux2 =>
         CutRule( lSubProof, a1, rSubProof, a2 )
 
       // If no grade reduction rule can be applied -- in particular, if one of the cut formulas is not introduced directly above the cut
@@ -320,19 +311,19 @@ class ReductiveCutElimination {
             CutRule( leftSubProof, a1, cutSub, cutSub.getLeftOccConnector.child( a2 ) )
         }
 
-      case l @ DefinitionLeftRule( subProof, a, main ) =>
+      case l @ DefinitionLeftRule( subProof, a, definition, main, pos ) =>
 
         val aux1Sub = l.getOccConnector.parent( aux1 )
         val cutSub = CutRule( l.subProof, aux1Sub, right, aux2 )
         val aNew = cutSub.getLeftOccConnector.child( a )
-        DefinitionLeftRule( cutSub, aNew, main )
+        DefinitionLeftRule( cutSub, aNew, definition, main, pos )
 
-      case l @ DefinitionRightRule( subProof, a, main ) if left.mainIndices.head != aux1 =>
+      case l @ DefinitionRightRule( subProof, a, definition, main, pos ) if left.mainIndices.head != aux1 =>
 
         val aux1Sub = l.getOccConnector.parent( aux1 )
         val cutSub = CutRule( l.subProof, aux1Sub, right, aux2 )
         val aNew = cutSub.getLeftOccConnector.child( a )
-        DefinitionRightRule( cutSub, aNew, main )
+        DefinitionRightRule( cutSub, aNew, definition, main, pos )
 
       case l @ AndLeftRule( subProof, a1, a2 ) =>
 
@@ -506,17 +497,17 @@ class ReductiveCutElimination {
             CutRule( leftSubProof, a1, cutSub, cutSub.getRightOccConnector.child( a2 ) )
         }
 
-      case r @ DefinitionLeftRule( subProof, a, main ) if right.mainIndices.head != aux2 =>
+      case r @ DefinitionLeftRule( subProof, a, definition, main, pos ) if right.mainIndices.head != aux2 =>
         val aux2Sub = r.getOccConnector.parent( aux2 )
         val cutSub = CutRule( left, aux1, r.subProof, aux2Sub )
         val aNew = cutSub.getRightOccConnector.child( a )
-        DefinitionLeftRule( cutSub, aNew, main )
+        DefinitionLeftRule( cutSub, aNew, definition, main, pos )
 
-      case r @ DefinitionRightRule( subProof, a, main ) =>
+      case r @ DefinitionRightRule( subProof, a, definition, main, pos ) =>
         val aux2Sub = r.getOccConnector.parent( aux2 )
         val cutSub = CutRule( left, aux1, r.subProof, aux2Sub )
         val aNew = cutSub.getRightOccConnector.child( a )
-        DefinitionLeftRule( cutSub, aNew, main )
+        DefinitionLeftRule( cutSub, aNew, definition, main, pos )
 
       case r @ AndLeftRule( subProof, a1, a2 ) if right.mainIndices.head != aux2 =>
         val aux2Sub = r.getOccConnector.parent( aux2 )

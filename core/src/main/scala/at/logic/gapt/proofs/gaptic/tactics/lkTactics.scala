@@ -960,12 +960,8 @@ case class EqualityRightTactic( equalityLabel: String, formulaLabel: String, lef
   def to( targetFormula: HOLFormula ) = new EqualityRightTactic( equalityLabel, formulaLabel, targetFormula = Some( targetFormula ) )
 }
 
-/**
- * DefinitionLeftRule tactic
- * @param applyToLabel
- * @param replacement
- */
-case class DefinitionLeftTactic( applyToLabel: String, replacement: HOLFormula ) extends Tactic {
+
+case class DefinitionLeftTactic( applyToLabel: String, definition: (Const, LambdaExpression), posOption: Option[Seq[HOLPosition]] ) extends Tactic {
 
   override def apply( goal: OpenAssumption ) = {
     val goalSequent = goal.s
@@ -976,18 +972,27 @@ case class DefinitionLeftTactic( applyToLabel: String, replacement: HOLFormula )
 
     for ( i <- indices.headOption ) yield {
       val ( _, existingFormula ) = goalSequent( i )
-      val premise = OpenAssumption( goalSequent delete ( i ) insertAt ( i, ( applyToLabel -> replacement ) ) )
-      DefinitionLeftRule( premise, i, existingFormula )
+
+      val ( lhs, rhs ) = definition
+
+      val pos = posOption match{
+        case Some(p) => p
+        case None => existingFormula.find(lhs)
+      }
+
+      val replacement = BetaReduction.betaNormalize(pos.foldLeft( existingFormula ) { ( acc, p ) =>
+        require( acc.get( p ) contains lhs )
+        acc.replace( p, rhs )
+      })
+
+      val premise = OpenAssumption( goalSequent updated ( i,  applyToLabel -> replacement  ) )
+      DefinitionLeftRule( premise, i, definition, existingFormula, pos )
     }
   }
 }
 
-/**
- * DefinitionRightRule tactic
- * @param applyToLabel
- * @param replacement
- */
-case class DefinitionRightTactic( applyToLabel: String, replacement: HOLFormula ) extends Tactic {
+
+case class DefinitionRightTactic( applyToLabel: String, definition: (Const, LambdaExpression), posOption: Option[Seq[HOLPosition]] ) extends Tactic {
 
   override def apply( goal: OpenAssumption ) = {
     val goalSequent = goal.s
@@ -998,8 +1003,21 @@ case class DefinitionRightTactic( applyToLabel: String, replacement: HOLFormula 
 
     for ( i <- indices.headOption ) yield {
       val ( _, existingFormula ) = goalSequent( i )
-      val premise = OpenAssumption( goalSequent delete ( i ) insertAt ( i, ( applyToLabel -> replacement ) ) )
-      DefinitionRightRule( premise, i, existingFormula )
+
+      val ( lhs, rhs ) = definition
+
+      val pos = posOption match{
+        case Some(p) => p
+        case None => existingFormula.find(lhs)
+      }
+
+      val replacement = BetaReduction.betaNormalize(pos.foldLeft( existingFormula ) { ( acc, p ) =>
+        require( acc.get( p ) contains lhs )
+        acc.replace( p, rhs )
+      })
+
+      val premise = OpenAssumption( goalSequent updated ( i,  applyToLabel -> replacement  ) )
+      DefinitionRightRule( premise, i, definition, existingFormula, pos )
     }
   }
 }

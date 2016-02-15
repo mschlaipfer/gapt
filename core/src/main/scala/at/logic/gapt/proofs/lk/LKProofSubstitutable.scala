@@ -120,13 +120,13 @@ class LKProofSubstitutable( preserveEigenvariables: Boolean ) extends Substituta
         indCase( substitution, _ )
       }, substitution( main ) )
 
-    case DefinitionLeftRule( subProof, aux, main ) =>
+    case DefinitionLeftRule( subProof, aux, definition, main, pos ) =>
       val subProofNew = applySubstitution( substitution, subProof )
-      DefinitionLeftRule( subProofNew, aux, betaNormalize( substitution( main ) ) )
+      DefinitionLeftRule( subProofNew, aux,(definition._1, betaNormalize(substitution(definition._2))), betaNormalize( substitution( main ) ), pos )
 
-    case DefinitionRightRule( subProof, aux, main ) =>
+    case DefinitionRightRule( subProof, aux, definition, main, pos ) =>
       val subProofNew = applySubstitution( substitution, subProof )
-      DefinitionRightRule( subProofNew, aux, betaNormalize( substitution( main ) ) )
+      DefinitionRightRule( subProofNew, aux,(definition._1, betaNormalize(substitution(definition._2))), betaNormalize( substitution( main ) ), pos )
 
     case _ => throw new IllegalArgumentException( s"This rule is not handled at this time." )
   }

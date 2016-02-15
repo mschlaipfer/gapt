@@ -199,13 +199,13 @@ object regularize {
 
       InductionRule( newCases, All( newQuant, Substitution( proof.quant -> newQuant )( proof.qfFormula ) ) ) -> blacklistNew
 
-    case DefinitionLeftRule( subProof, aux, main ) =>
+    case DefinitionLeftRule( subProof, aux, definition,  main, pos ) =>
       val ( subProofNew, blacklistNew ) = apply_( subProof, blacklist )
-      ( DefinitionLeftRule( subProofNew, aux, main ), blacklistNew )
+      ( DefinitionLeftRule( subProofNew, aux, definition, main, pos ), blacklistNew )
 
-    case DefinitionRightRule( subProof, aux, main ) =>
+    case DefinitionRightRule( subProof, aux, definition,  main, pos ) =>
       val ( subProofNew, blacklistNew ) = apply_( subProof, blacklist )
-      ( DefinitionRightRule( subProofNew, aux, main ), blacklistNew )
+      ( DefinitionRightRule( subProofNew, aux, definition, main, pos ), blacklistNew )
 
     case _ => throw new IllegalArgumentException( s"This rule is not handled at this time." )
   }

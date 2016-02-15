@@ -763,8 +763,8 @@ object AtomicExpansion {
     case EqualityLeftRule( subProof, eq, aux, pos ) => EqualityLeftRule( apply( subProof ), eq, aux, pos )
     case EqualityRightRule( subProof, eq, aux, pos ) => EqualityRightRule( apply( subProof ), eq, aux, pos )
 
-    case DefinitionLeftRule( subProof, aux, main ) => DefinitionLeftRule( apply( subProof ), aux, main )
-    case DefinitionRightRule( subProof, aux, main ) => DefinitionRightRule( apply( subProof ), aux, main )
+    case DefinitionLeftRule( subProof, aux, defi,  main, pos ) => DefinitionLeftRule( apply( subProof ), aux,defi, main,pos )
+    case DefinitionRightRule( subProof, aux,defi, main,pos ) => DefinitionRightRule( apply( subProof ), aux,defi, main,pos )
   }
 
 }

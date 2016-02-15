@@ -175,13 +175,13 @@ object lkNew2Old {
       val mainOcc = proofOld.getDescendantInLowerSequent( proofOld_.prin.head ).get
       testCorrectness( proofOld, proof, sequent.delete( aux ).map( o => proofOld.getDescendantInLowerSequent( o ).get ) :+ mainOcc )
 
-    case DefinitionLeftRule( subProof, aux, main ) =>
+    case DefinitionLeftRule( subProof, aux, defi, main, pos ) =>
       val ( subProofOld, sequent ) = apply_( subProof )
       val proofOld = lkOld.DefinitionLeftRule( subProofOld, sequent( aux ), main )
 
       testCorrectness( proofOld, proof, proofOld.prin.head +: sequent.delete( aux ).map( o => proofOld.getDescendantInLowerSequent( o ).get ) )
 
-    case DefinitionRightRule( subProof, aux, main ) =>
+    case DefinitionRightRule( subProof, aux, defi, main, pos ) =>
       val ( subProofOld, sequent ) = apply_( subProof )
       val proofOld = lkOld.DefinitionRightRule( subProofOld, sequent( aux ), main )
 
@@ -424,19 +424,9 @@ object lkOld2New {
 
       testCorrectness( proof, proofNew, ( leftSequent.delete( eq ).map( o => proof.getDescendantInLowerSequent( o ).get ) ++ rightSequent.delete( aux ).map( o => proof.getDescendantInLowerSequent( o ).get ) ) :+ mainOcc )
 
-    case lkOld.DefinitionLeftRule( subProof, endSequent, auxOcc, mainOcc ) =>
-      val ( subProofNew, sequent ) = apply_( subProof )
-      val aux = sequent indexOf auxOcc
-      val proofNew = DefinitionLeftRule( subProofNew, aux, mainOcc.formula )
+    case lkOld.DefinitionLeftRule( _, _, _, _ ) | lkOld.DefinitionLeftRule( _, _, _, _ ) =>
+      throw new NotImplementedError("Definition rules are not handled at this time.")
 
-      testCorrectness( proof, proofNew, mainOcc +: sequent.delete( aux ).map( o => proof.getDescendantInLowerSequent( o ).get ) )
-
-    case lkOld.DefinitionRightRule( subProof, endSequent, auxOcc, mainOcc ) =>
-      val ( subProofNew, sequent ) = apply_( subProof )
-      val aux = sequent indexOf auxOcc
-      val proofNew = DefinitionRightRule( subProofNew, aux, mainOcc.formula )
-
-      testCorrectness( proof, proofNew, sequent.delete( aux ).map( o => proof.getDescendantInLowerSequent( o ).get ) :+ mainOcc )
   }
 
   /**

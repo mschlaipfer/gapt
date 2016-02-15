@@ -125,8 +125,8 @@ object TermReplacement {
           c.copy( apply( c.proof, repl ), constructor = apply( c.constructor, repl ).asInstanceOf[Const] )
         }, apply( main, repl ) )
 
-      case DefinitionLeftRule( subProof, aux, main )  => DefinitionLeftRule( f( subProof ), aux, apply( main, repl ) )
-      case DefinitionRightRule( subProof, aux, main ) => DefinitionRightRule( f( subProof ), aux, apply( main, repl ) )
+      case DefinitionLeftRule( subProof, aux, definition, main, pos )  => DefinitionLeftRule( f( subProof ), aux, (apply(definition._1, repl).asInstanceOf[Const], apply(definition._2, repl)), apply( main, repl ), pos )
+      case DefinitionRightRule( subProof, aux, definition, main, pos ) => DefinitionRightRule( f( subProof ), aux, (apply(definition._1, repl).asInstanceOf[Const], apply(definition._2, repl)), apply( main, repl ), pos )
     }
 
     f( proof )

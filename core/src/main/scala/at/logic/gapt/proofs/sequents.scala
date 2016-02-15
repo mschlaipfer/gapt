@@ -148,8 +148,6 @@ class Sequent[+A]( val antecedent: Seq[A], val succedent: Seq[A] ) {
    */
   def isSubsetOf[B >: A]( other: Sequent[B] ) = ( this.distinct diff other.distinct ).isEmpty
 
-  def isTaut: Boolean = antecedent intersect succedent nonEmpty
-
   /**
    *
    * @return The sequent in tuple form.
@@ -410,8 +408,6 @@ class Sequent[+A]( val antecedent: Seq[A], val succedent: Seq[A] ) {
 
   def zip[B]( that: Sequent[B] ): Sequent[( A, B )] =
     Sequent( this.antecedent zip that.antecedent, this.succedent zip that.succedent )
-
-  def replaceAt[B >: A]( i: SequentIndex, el: B ) = delete( i ).insertAt( i, el )
 
   def insertAt[B >: A]( i: SequentIndex, el: B ) = i match {
     case Ant( j ) =>

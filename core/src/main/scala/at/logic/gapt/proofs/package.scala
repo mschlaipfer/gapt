@@ -21,6 +21,8 @@ package object proofs {
     def toNegFormula: HOLFormula = And( sequent.antecedent ++ sequent.succedent.map( Neg( _ ) ) )
 
     def toImplication: HOLFormula = Imp( And( sequent.antecedent ), Or( sequent.succedent ) )
+
+    def isTaut: Boolean = sequent.antecedent intersect sequent.succedent nonEmpty
   }
 
   implicit class RichFOLSequent( sequent: FOLSequent ) {

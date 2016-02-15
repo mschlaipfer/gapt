@@ -98,8 +98,8 @@ case class ProofState( currentGoalIndex: Int, proofSegment: LKProof ) {
       case ExistsRightRule( subProof, _, a, term, v )                  => ExistsRightRule( f( subProof ), Ex( v, a ), term )
       case EqualityLeftRule( subProof, eq, index, pos )                => EqualityLeftRule( f( subProof ), subProof.conclusion( eq ), subProof.conclusion( index ), pos )
       case EqualityRightRule( subProof, eq, index, pos )               => EqualityRightRule( f( subProof ), subProof.conclusion( eq ), subProof.conclusion( index ), pos )
-      case DefinitionLeftRule( subProof, index, main )                 => DefinitionLeftRule( f( subProof ), subProof.conclusion( index ), main )
-      case DefinitionRightRule( subProof, index, main )                => DefinitionRightRule( f( subProof ), subProof.conclusion( index ), main )
+      case DefinitionLeftRule( subProof, index, defi,  main, pos )                 => DefinitionLeftRule( f( subProof ), subProof.conclusion( index ),defi, main,pos )
+      case DefinitionRightRule( subProof, index, defi,  main, pos )                => DefinitionRightRule( f( subProof ), subProof.conclusion( index ),defi, main,pos )
       case _ =>
         throw new Exception( "Unmatched LK rule: " + p + ". Could not replace sub goal." )
     }

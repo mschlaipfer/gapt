@@ -122,6 +122,7 @@ object skolemize {
 
     // Definition rules:
     // We do it as in the old LK: skolemize both the before and after formulas using the same stream of skolem symbols.
+    // FIXME: Investigate how this works with new definitions
     case proof @ DefinitionLeftRule( subProof, aux, main ) =>
       val subProof_ = apply( subProof, proof.getOccConnector.parents( contextAndSymbols ).map( _.head ) )
       DefinitionLeftRule( subProof_, aux, maybeSkolemize( main, false, contextAndSymbols( proof.mainIndices.head ) ) )

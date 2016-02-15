@@ -1,6 +1,7 @@
 package at.logic.gapt.proofs
 
 import at.logic.gapt.expr._
+import at.logic.gapt.expr.hol.HOLPosition
 import at.logic.gapt.proofs.gaptic.tactics._
 import at.logic.gapt.proofs.lk.LKProof
 
@@ -94,9 +95,9 @@ package object gaptic {
 
   def eqR( eq: String, fm: String ) = EqualityRightTactic( eq, fm )
 
-  def defL( l: String, r: HOLFormula ) = DefinitionLeftTactic( l, r )
+  def defL( l: String, defi: (Const, LambdaExpression), pos: Option[Seq[HOLPosition]] = None ) = DefinitionLeftTactic( l, defi, pos )
 
-  def defR( l: String, r: HOLFormula ) = DefinitionRightTactic( l, r )
+  def defR( l: String, defi: (Const, LambdaExpression), pos: Option[Seq[HOLPosition]] = None ) = DefinitionRightTactic( l, defi, pos )
 
   // Meta
 

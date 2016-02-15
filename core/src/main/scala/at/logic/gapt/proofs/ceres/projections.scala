@@ -86,8 +86,8 @@ object Projections extends at.logic.gapt.utils.logging.Logger {
         case ForallLeftRule( p, a, f, t, v )        => handleWeakQuantRule( proof, p, a, f, t, v, ForallLeftRule.apply, pred )
         case ExistsRightRule( p, a, f, t, v )       => handleWeakQuantRule( proof, p, a, f, t, v, ExistsRightRule.apply, pred )
 
-        case DefinitionLeftRule( p, a, m )          => handleDefRule( proof, p, a, m, DefinitionLeftRule.apply, pred )
-        case DefinitionRightRule( p, a, m )         => handleDefRule( proof, p, a, m, DefinitionRightRule.apply, pred )
+        case DefinitionLeftRule( p, a,_, m,_ )          => handleDefRule( proof, p, a, m, DefinitionLeftRule.apply, pred )
+        case DefinitionRightRule( p, a,_, m,_ )         => handleDefRule( proof, p, a, m, DefinitionRightRule.apply, pred )
         case EqualityLeftRule( p1, e, a, pos )      => handleEqRule( proof, p1, e, a, pos, EqualityLeftRule.apply, pred )
         case EqualityRightRule( p1, e, a, pos )     => handleEqRule( proof, p1, e, a, pos, EqualityRightRule.apply, pred )
         case rule @ CutRule( p1, a1, p2, a2 ) =>
